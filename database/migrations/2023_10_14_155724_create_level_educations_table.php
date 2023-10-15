@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('level_education', function (Blueprint $table) {
+        Schema::create('level_educations', function (Blueprint $table) {
             $table->id();
             $table->string('level_name', 50);
             $table->unsignedBigInteger('level_education_kis_id'); //Table name in IMBL BD dbo.Project_EducationLevel
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('level_education');
+        Schema::dropIfExists('level_educations');
     }
 };

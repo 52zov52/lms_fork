@@ -1,48 +1,30 @@
 <x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
-
-        <x-validation-errors class="mb-4" />
-
-        @if (session('status'))
-            <div class="mb-4 font-medium text-sm text-green-600">
-                {{ session('status') }}
-            </div>
-        @endif
-
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
-
-            <div>
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            </div>
-
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
-            </div>
-
-            <div class="block mt-4">
-                <label for="remember_me" class="flex items-center">
-                    <x-checkbox id="remember_me" name="remember" />
-                    <span class="ml-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-                </label>
-            </div>
-
-            <div class="flex items-center justify-end mt-4">
-                @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                        {{ __('Forgot your password?') }}
-                    </a>
-                @endif
-
-                <x-button class="ml-4">
-                    {{ __('Log in') }}
-                </x-button>
-            </div>
-        </form>
-    </x-authentication-card>
+    <div class="mx-auto flex flex-col space-y-4 max-w-md px-2 md:px-0">
+        <!-- Logo -->
+        <div class="mt-4 flex flex-col items-center justify-center">
+            <a href="{{ route('login') }}">
+                <img src="{{ asset('storage/logo.svg') }}" alt="logo">
+            </a>
+            <p class="text-2xl text-center">{{ __('ИУБиП|Digital') }}</p>
+        </div>
+        <!-- Auth user form -->
+        <div class="flex flex-col w-full bg-white border border-t-4 border-t-blue-500 rounded-md shadow-xl p-6">
+            <form action="{{ route('login') }}" method="post">
+                @csrf
+                <div>
+                    <label class="text-sm" for="name-id">Имя пользователя:</label>
+                    <input class="w-full block border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" type="text" name="name" id="name-id" value="{{ old('name') }}" required autofocus autocomplete="name">
+                    @error('name')<span class="text-xs md:text-sm text-red-500 font-bold">{{ $message }}</span>@enderror
+                </div>
+                <div class="mt-4">
+                    <label class="text-sm" for="password-id">Пароль:</label>
+                    <input class="w-full block border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" type="password" name="password" id="password-id" required autocomplete="current-password">
+                    @error('password')<span class="text-xs md:text-sm text-red-500 font-bold">{{ $message }}</span>@enderror
+                </div>
+                <div class="mt-4">
+                    <button class="w-full block bg-blue-500 hover:bg-blue-600 rounded px-4 py-2 text-white" type="submit">Войти</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </x-guest-layout>

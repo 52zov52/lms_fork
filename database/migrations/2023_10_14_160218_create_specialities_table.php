@@ -29,7 +29,8 @@ return new class extends Migration
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
 
-            $table->foreignIdFor(DepartmentPosition::class)
+            $table->unsignedBigInteger('department_position_id');
+            $table->foreign('department_position_id')->references('id')->on('department_position')
                 ->constrained()
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
