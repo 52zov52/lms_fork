@@ -21,4 +21,24 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    Route::get('/schedule', function () {
+        return view('pages.schedule');
+    })->name('schedule');
+
+    Route::get('/project-board', function () {
+        return view('pages.project-board');
+    })->name('project.board');
+
+    Route::get('/document-order-requests', function () {
+        return view('pages.document-order-request');
+    })->name('document.order.requests');
+
+    Route::get('/contingent', function () {
+        return view('pages.contingent');
+    })->name('contingent');
+
+    Route::get('/reports', function () {
+        return view('pages.reports');
+    })->name('reports');
 });
