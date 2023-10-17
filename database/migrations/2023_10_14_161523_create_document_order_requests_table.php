@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('issuer_id')->nullable();
             $table->foreign('issuer_id')->references('id')->on('users')->onDelete('cascade');
             $table->dateTime('request_date');
-            $table->dateTime('issue_date');
+            $table->dateTime('issue_date')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
