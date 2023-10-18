@@ -9,7 +9,7 @@ use Livewire\Component;
 
 class DocumentOrderRequest extends Component
 {
-    public $documentType = 0;
+    public int $documentType = 0;
 
     public function render()
     {
@@ -30,9 +30,9 @@ class DocumentOrderRequest extends Component
                 'request_date' => Carbon::now()
             ]);
 
-            session()->flash('message', 'Ок');
+            session()->flash('message-success', 'Заявка успешно создана!');
         } else {
-            session()->flash('message', 'Ошибка');
+            session()->flash('message-error', 'Ошибка в процессе создания заявки!');
         }
     }
 }

@@ -17,6 +17,8 @@ class UserData extends Model
         return $this->belongsTo(User::class);
     }
 
+    protected $table = 'users_data';
+
     protected $fillable = [
         'last_name',
         'first_name',

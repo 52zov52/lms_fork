@@ -35,8 +35,13 @@
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
         </div>
+
+        <div class="mt-2 flex flex-col items-center font-semibold">
+            <span>{{ auth()->user()->userData->last_name }}</span>
+            <span>{{ auth()->user()->userData->first_name }} {{ auth()->user()->userData->middle_name }}</span>
+        </div>
         
-        <ul class="mt-4 flex flex-col space-y-1">
+        <ul class="mt-2 flex flex-col space-y-1">
             <li class="rounded {{ (request()->routeIs('dashboard')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('dashboard') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                     <i class="fa-solid fa-house"></i>
