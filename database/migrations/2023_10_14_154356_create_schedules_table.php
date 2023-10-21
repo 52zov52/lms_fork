@@ -23,10 +23,10 @@ return new class extends Migration
             $table->string('date', 15);
             $table->string('time', 15);
             $table->string('lesson_place', 10);
-            $table->string('discipline', 50);
+            $table->string('discipline', 255);
             $table->string('lesson_type', 10);
             $table->string('teacher', 50);
-            $table->string('chair', 100);
+            $table->string('chair', 255);
             $table->timestamps();
             $table->softDeletes();
         });
