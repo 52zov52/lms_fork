@@ -1,5 +1,4 @@
 <div class="flex flex-col space-y-2">
-
     @if(session()->has('message-success'))
     <div class="flex items-center bg-green-500 border-t-4 border-green-700 rounded shadow-xl p-4 text-white" role="alert">
         <i class="fa-solid fa-circle-exclamation fa-lg"></i>
@@ -61,7 +60,7 @@
                             <span class="bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен</span>
                             @endif
                         </td>
-                        <td class="w-auto border px-2 py-2 text-center">{{ $item->request_date }}</td>
+                        <td class="w-auto border px-2 py-2 text-center">{{ \Carbon\Carbon::parse($item->request_date)->format('d.m.Y H:i:s') }}</td>
                         <td class="w-auto border px-2 py-2 text-center">
                             @if($item->issue_date != null)
                             <span>{{ \Carbon\Carbon::parse($item->issue_date)->format('d.m.Y H:i:s') }}</span>
