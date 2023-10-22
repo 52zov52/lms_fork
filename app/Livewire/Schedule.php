@@ -2,8 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Models\GroupStudent;
 use App\Models\Schedule as ModelsSchedule;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use XBase\TableReader;
@@ -12,6 +14,13 @@ class Schedule extends Component
 {
     public function render()
     {
+        if (Auth::user()->hasRole('Student')) 
+        {
+            $groupName = GroupStudent::join('groups', 'group_student.group_id', '=', 'groups.id')
+                ->where('group_student.user_id', '=', Auth::user()->id)
+                ->select('groups.group_name')->first();
+        }
+
         return view('livewire.schedule');
     }
 
