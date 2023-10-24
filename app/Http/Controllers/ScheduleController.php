@@ -7,6 +7,16 @@ use Illuminate\Http\Request;
 
 class ScheduleController extends Controller
 {
+    public $daysOfWeek = [
+        ['en' => 'Mon', 'ru' => 'Понедельник'],
+        ['en' => 'Tue', 'ru' => 'Вторник'],
+        ['en' => 'Wen', 'ru' => 'Среда'],
+        ['en' => 'Thu', 'ru' => 'Четверг'],
+        ['en' => 'Fri', 'ru' => 'Пятница'],
+        ['en' => 'Sat', 'ru' => 'Суббота'],
+        ['en' => 'Sun', 'ru' => 'Воскресенье'],
+    ];
+    
     public function getWeeksRange($weeks): array
     {
         $uniqueWeeks = array_unique(array_column($weeks, 'week'));

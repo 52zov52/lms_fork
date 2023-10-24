@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Http\Controllers\ScheduleController;
 use App\Models\GroupStudent;
 use App\Models\Schedule as ModelsSchedule;
 use Carbon\Carbon;
@@ -12,17 +13,110 @@ use XBase\TableReader;
 
 class Schedule extends Component
 {
+    public $teachers = [], $groups = [], $weeksRange = [];
+    public $currentSchedule = [];
+
     public function render()
     {
-        if (Auth::user()->hasRole('Student')) 
-        {
+        $this->teachers = ModelsSchedule::select('teacher')->distinct()->orderBy('teacher', 'ASC')->get();
+
+        $weeks = ModelsSchedule::select('week', 'date')->distinct()->orderBy('week', 'ASC')->orderBy('date', 'ASC')->get()->toArray();
+        $scheduleController = new ScheduleController();
+        $this->weeksRange = $scheduleController->getWeeksRange($weeks);
+
+        $this->groups = ModelsSchedule::select('group')->distinct()->orderBy('group', 'ASC')->get();
+
+        $now = Carbon::now();
+        $weekStartDate = $now->startOfWeek()->format('Y-m-d');
+        $weekEndDate = $now->endOfWeek()->format('Y-m-d');
+
+        $schedule = ModelsSchedule::where('date', '>=', $weekStartDate)
+            ->where('date', '<=', $weekEndDate)
+            ->where('teacher', 'like', '%Мизюков%')
+            ->orderBy('date', 'ASC')
+            ->orderBy('lesson_number', 'ASC')
+            ->get()->toArray();
+
+        $this->currentSchedule = array();
+        $daysOfLesson = array_unique(array_column($schedule, 'date'));
+
+        foreach ($daysOfLesson as $dayOfLesson) {
+            $data = array();
+
+            $scheduleByDayOfLesson = $this->getScheduleByDayOfLesson($schedule, $dayOfLesson);
+            $lessonNumbers = array_unique(array_column($scheduleByDayOfLesson, 'lesson_number'));
+
+            foreach ($lessonNumbers as $lessonNumber) {
+                $scheduleByLessonNumber = $this->getScheduleByLessonNumber($scheduleByDayOfLesson, $lessonNumber);
+                dd($scheduleByLessonNumber);die();
+            }
+
+            
+
+            unset($data);
+        }
+
+        if (Auth::user()->hasRole('Student')) {
             $groupName = GroupStudent::join('groups', 'group_student.group_id', '=', 'groups.id')
                 ->where('group_student.user_id', '=', Auth::user()->id)
                 ->select('groups.group_name')->first();
+
+            //$teacherName = mb_substr(Auth::user()->userData->last_name, 0, -1);
+        } else if (Auth::user()->hasRole('Teacher')) {
+        } else {
         }
 
-        return view('livewire.schedule');
+        return view('livewire.schedule', [
+            'teachers' => $this->teachers,
+            'weeksRange' => $this->weeksRange,
+            'groups' => $this->groups,
+            'daysOfWeek' => $scheduleController->daysOfWeek,
+            'currentSchedule' => $this->currentSchedule
+        ]);
     }
+
+    public function getScheduleByDayOfLesson($schedule, $dayOfLesson) : array
+    {
+        $scheduleByDayOfLesson = array();
+        foreach ($schedule as $value) {
+            if ($value['date'] == $dayOfLesson) {
+                array_push($scheduleByDayOfLesson, [
+                    'group' => $value['group'],
+                    'course' => $value['course'],
+                    'lesson_number' => $value['lesson_number'],
+                    'date' => $value['date'],
+                    'time' => $value['time'],
+                    'lesson_place' => $value['lesson_place'],
+                    'discipline' => $value['discipline'],
+                    'lesson_type' => $value['lesson_type']
+                ]);
+            }
+        }
+
+        return $scheduleByDayOfLesson;
+    }
+
+    public function getScheduleByLessonNumber($scheduleByDayOfLesson, $lessonNumber)
+    {
+        $tmp = array();
+        foreach ($scheduleByDayOfLesson as $value) {
+            if ($value['lesson_number'] == $lessonNumber) {
+                array_push($tmp, [
+                    'group' => $value['group'],
+                    'course' => $value['course'],
+                    'lesson_number' => $value['lesson_number'],
+                    'date' => $value['date'],
+                    'time' => $value['time'],
+                    'lesson_place' => $value['lesson_place'],
+                    'discipline' => $value['discipline'],
+                    'lesson_type' => $value['lesson_type']
+                ]);
+            }
+        }
+
+        return $tmp;
+    }
+
 
     public function uploadSchedule()
     {
