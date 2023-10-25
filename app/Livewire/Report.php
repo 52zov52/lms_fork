@@ -20,26 +20,31 @@ class Report extends Component
     public function teacherModalVisible(): void
     {
         if(count($this->teachers) == 0)
-            $this->teachers = Schedule::select('teacher')->distinct()->orderBy('teacher', 'ASC')->get();
-        
-            $this->isTeacherModalVisible = true;
+        {
+            $scheduleController = new ScheduleController();
+            $this->teachers = $scheduleController->getTeachers();
+        }
+
+        $this->isTeacherModalVisible = true;
     }
 
     public function groupModalVisible(): void
     {
         if(count($this->groups) == 0)
-            $this->groups = Schedule::select('group')->distinct()->orderBy('group', 'ASC')->get();
-        
-            $this->isGroupModalVisible = true;
+        {
+            $scheduleController = new ScheduleController();
+            $this->groups = $scheduleController->getGroups();
+        }
+
+        $this->isGroupModalVisible = true;
     }
 
     public function roomsModalVisible(): void
     {
         if(count($this->weeksRange) == 0)
         {
-            $weeks = Schedule::select('week', 'date')->distinct()->orderBy('week', 'ASC')->orderBy('date', 'ASC')->get()->toArray();
             $scheduleController = new ScheduleController();
-            $this->weeksRange = $scheduleController->getWeeksRange($weeks);
+            $this->weeksRange = $scheduleController->getWeeksRange();
         }
         
         $this->isRoomsModalVisible = true;
