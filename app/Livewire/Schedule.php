@@ -3,10 +3,8 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\ScheduleController;
-use App\Models\GroupStudent;
 use App\Models\Schedule as ModelsSchedule;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use XBase\TableReader;
@@ -16,26 +14,11 @@ class Schedule extends Component
     public $teachers = [], $groups = [], $weeksRange = [];
     public $currentSchedule = [];
     public $week = null, $weekRange = null;
-    public string $data;
 
     public function render()
     {
         $scheduleController = new ScheduleController();
         $this->weeksRange = $scheduleController->getWeeksRange();
-
-        if (Auth::user()->hasRole('Student')) 
-        {
-            $this->data = GroupStudent::join('groups', 'group_student.group_id', '=', 'groups.id')
-                ->where('group_student.user_id', '=', Auth::user()->id)
-                ->select('groups.group_name')->first();
-        } 
-        else if (Auth::user()->hasRole('Teacher')) 
-        {
-            $this->data = Auth::user()->userData->last_name;
-        } 
-        else 
-        {
-        }
 
         $this->currentSchedule = $scheduleController->getCurrentSchedule($this->week);
 

@@ -45,10 +45,10 @@
                                 <td class="w-auto border px-2 py-2">
                                     @foreach($schedule['data'] as $data)
                                         @role('Student')
-                                            {{ $data['group'] }}
+                                            {{ $data['teacher'] }}
                                         @endrole
                                         @role('Teacher')
-                                            {{ $data['teacher'] }}
+                                            {{ $data['group'] }}
                                         @endrole
                                     @endforeach
                                 </td>

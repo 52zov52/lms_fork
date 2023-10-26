@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\ScheduleController;
-use App\Models\Schedule;
 use Livewire\Component;
 
 class Report extends Component
@@ -69,8 +68,8 @@ class Report extends Component
     /**
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function generateRoomsReport()
+    public function generateLoadRoomsReport()
     {
-        return redirect()->route('generate.rooms.report', ['week' => $this->week]);
+        return redirect()->route('generate.load.rooms.report', ['week' => $this->week]);
     }
 }

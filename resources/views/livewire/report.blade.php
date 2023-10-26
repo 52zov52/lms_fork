@@ -91,7 +91,7 @@
                 <button wire:click="$toggle('isRoomsModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
                     {{ __('Закрыть') }}
                 </button>
-                <button wire:click.prevent="generateRoomsReport" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                <button wire:click.prevent="generateLoadRoomsReport" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
                     {{ __('Сформировать отчет') }}
                 </button>
             </x-slot>

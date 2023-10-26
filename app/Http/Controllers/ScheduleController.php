@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GroupStudent;
 use App\Models\Schedule;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ScheduleController extends Controller
 {
@@ -21,7 +22,7 @@ class ScheduleController extends Controller
     /**
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getTeachers() : object
+    public function getTeachers(): object
     {
         return Schedule::select('teacher')->distinct()->orderBy('teacher', 'ASC')->get();
     }
@@ -29,7 +30,15 @@ class ScheduleController extends Controller
     /**
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getGroups() : object
+    public function getTeacherChair($fio): string
+    {
+        return Schedule::select('chair')->where('teacher', '=', $fio)->first()->chair;
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getGroups(): object
     {
         return Schedule::select('group')->distinct()->orderBy('group', 'ASC')->get();
     }
@@ -54,21 +63,35 @@ class ScheduleController extends Controller
         return $weeksRange;
     }
 
-    public function getCurrentSchedule($date) : array
+    public function getCurrentSchedule($date): array
     {
         $currentSchedule = array();
+        $schedule = array();
 
         $now = (is_null($date)) ? Carbon::now() : Carbon::parse($date);
         $weekStartDate = $now->startOfWeek()->format('Y-m-d');
         $weekEndDate = $now->endOfWeek()->format('Y-m-d');
 
-        $schedule = Schedule::where('date', '>=', $weekStartDate)
-            ->where('date', '<=', $weekEndDate)
-            ->where('teacher', 'like', '%Мартынов%')
-            //->where('group', 'like', '%К3И1(9)%')
-            ->orderBy('date', 'ASC')
-            ->orderBy('lesson_number', 'ASC')
-            ->get()->toArray();
+        if (Auth::user()->hasRole('Student')) {
+            $groupName = explode('-', GroupStudent::join('groups', 'group_student.group_id', '=', 'groups.id')
+                ->where('group_student.user_id', '=', Auth::user()->id)
+                ->select('groups.group_name')->first()->group_name);
+
+            $schedule = Schedule::where('date', '>=', $weekStartDate)
+                ->where('date', '<=', $weekEndDate)
+                ->where('group', 'like', '%' . (count($groupName) == 2) ? $groupName[0] . $groupName[1] : $groupName[0] . '%')
+                ->orderBy('date', 'ASC')
+                ->orderBy('lesson_number', 'ASC')
+                ->get()->toArray();
+        } else if (Auth::user()->hasRole('Teacher')) {
+            $schedule = Schedule::where('date', '>=', $weekStartDate)
+                ->where('date', '<=', $weekEndDate)
+                ->where('teacher', 'like', '%' . Auth::user()->userData->last_name . '%')
+                ->orderBy('date', 'ASC')
+                ->orderBy('lesson_number', 'ASC')
+                ->get()->toArray();
+        } else {
+        }
 
         $daysOfLesson = array_unique(array_column($schedule, 'date'));
 
@@ -80,7 +103,7 @@ class ScheduleController extends Controller
 
             foreach ($lessonNumbers as $lessonNumber) {
                 $scheduleByLessonNumber = $this->getScheduleByLessonNumber($scheduleByDayOfLesson, $lessonNumber);
-                
+
                 $times = array_unique(array_column($scheduleByLessonNumber, 'time'));
                 $disciplines = array_unique(array_column($scheduleByLessonNumber, 'discipline'));
                 $lessonsPlace = array_unique(array_column($scheduleByLessonNumber, 'lesson_place'));
@@ -108,9 +131,166 @@ class ScheduleController extends Controller
         return $currentSchedule;
     }
 
-    public function getScheduleByDayOfLesson($schedule, $dayOfLesson) : array
+    public function getScheduleByTeacher($fio): array
+    {
+        $teacherSchedule = array();
+
+        $schedule = Schedule::where('teacher', '=', $fio)
+            ->orderBy('date', 'ASC')
+            ->orderBy('lesson_number', 'ASC')
+            ->get()->toArray();
+
+        $daysOfLesson = array_unique(array_column($schedule, 'date'));
+
+        foreach ($daysOfLesson as $dayOfLesson) {
+            $data = array();
+
+            $scheduleByDayOfLesson = $this->getScheduleByDayOfLesson($schedule, $dayOfLesson);
+            $lessonNumbers = array_unique(array_column($scheduleByDayOfLesson, 'lesson_number'));
+
+            foreach ($lessonNumbers as $lessonNumber) {
+                $scheduleByLessonNumber = $this->getScheduleByLessonNumber($scheduleByDayOfLesson, $lessonNumber);
+
+                $times = array_unique(array_column($scheduleByLessonNumber, 'time'));
+                $disciplines = array_unique(array_column($scheduleByLessonNumber, 'discipline'));
+                $lessonsPlace = array_unique(array_column($scheduleByLessonNumber, 'lesson_place'));
+                $lessonsType = array_unique(array_column($scheduleByLessonNumber, 'lesson_type'));
+
+                array_push($data, [
+                    'lesson_number' => $lessonNumber,
+                    'time' => $times[0],
+                    'discipline' => $disciplines[0],
+                    'lesson_place' => $lessonsPlace[0],
+                    'lesson_type' => $lessonsType[0],
+                    'data' => $scheduleByLessonNumber
+                ]);
+            }
+
+            array_push($teacherSchedule, [
+                'day' => Carbon::parse($dayOfLesson)->shortDayName,
+                'date' => $dayOfLesson,
+                'schedule' => array('data' => $data)
+            ]);
+
+            unset($data);
+        }
+
+        return $teacherSchedule;
+    }
+
+    public function getScheduleByGroup($group): array
+    {
+        $groupSchedule = array();
+
+        $schedule = Schedule::where('group', '=', $group)
+            ->orderBy('date', 'ASC')
+            ->orderBy('lesson_number', 'ASC')
+            ->get()->toArray();
+
+        $weeksOfLesson = array_unique(array_column($schedule, 'week'));
+
+        foreach ($weeksOfLesson as $weekOfLesson) {
+            $data = array();
+
+            $daysOfWeek = $this->getScheduleByWeekAndGroup($weekOfLesson, $group);
+
+            foreach ($daysOfWeek as $dayOfWeek) {
+                $scheduleByDayAndGroup = $this->getScheduleByDayAndGroup($dayOfWeek->date, $group);
+                $lessonNumbers = array_unique(array_column($scheduleByDayAndGroup, 'lesson_number'));
+
+                $lessons = array();
+
+                foreach ($lessonNumbers as $lessonNumber) {
+                    $scheduleByLessonNumber = $this->getScheduleByLessonNumber($scheduleByDayAndGroup, $lessonNumber);
+
+                    $times = array_unique(array_column($scheduleByLessonNumber, 'time'));
+                    $disciplines = array_unique(array_column($scheduleByLessonNumber, 'discipline'));
+                    $teachers = array_unique(array_column($scheduleByLessonNumber, 'teacher'));
+                    $lessonsPlace = array_unique(array_column($scheduleByLessonNumber, 'lesson_place'));
+                    $lessonsType = array_unique(array_column($scheduleByLessonNumber, 'lesson_type'));
+
+                    array_push($lessons, [
+                        'lesson_number' => $lessonNumber,
+                        'time' => $times[0],
+                        'discipline' => $disciplines[0],
+                        'teacher' => $teachers[0],
+                        'lesson_place' => $lessonsPlace[0],
+                        'lesson_type' => $lessonsType[0],
+                    ]);
+                }
+
+                array_push($data, [
+                    'day' => Carbon::parse($dayOfWeek->date)->shortDayName,
+                    'date' => Carbon::parse($dayOfWeek->date)->format('d/m'),
+                    'lessons' => $lessons
+                ]);
+            }
+
+            array_push($groupSchedule, [
+                'week' => $weekOfLesson,
+                'data' => $data
+            ]);
+
+            unset($data);
+        }
+
+        return $groupSchedule;
+    }
+
+    public function getScheduleByWeek($week): array
+    {
+        $weekSchedule = array();
+
+        $weekRange = explode('-', $week);
+
+        $schedule = Schedule::where('date', '>=', Carbon::parse($weekRange[0])->format('Y-m-d'))
+            ->where('date', '<=', Carbon::parse($weekRange[1])->format('Y-m-d'))
+            ->orderBy('date', 'ASC')
+            ->orderBy('lesson_number', 'ASC')
+            ->get()->toArray();
+
+        $daysOfLesson = array_unique(array_column($schedule, 'date'));
+
+        foreach ($daysOfLesson as $dayOfLesson) {
+            $data = array();
+
+            $scheduleByDayOfLesson = $this->getScheduleByDayOfLesson($schedule, $dayOfLesson);
+            $lessonNumbers = array_unique(array_column($scheduleByDayOfLesson, 'lesson_number'));
+
+            foreach ($lessonNumbers as $lessonNumber) {
+                $scheduleByLessonNumber = $this->getScheduleByLessonNumber($scheduleByDayOfLesson, $lessonNumber);
+
+                $times = array_unique(array_column($scheduleByLessonNumber, 'time'));
+                $disciplines = array_unique(array_column($scheduleByLessonNumber, 'discipline'));
+                $lessonsPlace = array_unique(array_column($scheduleByLessonNumber, 'lesson_place'));
+                $lessonsType = array_unique(array_column($scheduleByLessonNumber, 'lesson_type'));
+
+                array_push($data, [
+                    'lesson_number' => $lessonNumber,
+                    'time' => $times[0],
+                    'discipline' => $disciplines[0],
+                    'lesson_place' => $lessonsPlace[0],
+                    'lesson_type' => $lessonsType[0],
+                    'data' => $scheduleByLessonNumber
+                ]);
+            }
+
+            array_push($weekSchedule, [
+                'day' => Carbon::parse($dayOfLesson)->shortDayName,
+                'date' => $dayOfLesson,
+                'schedule' => array('data' => $data)
+            ]);
+
+            unset($data);
+        }
+
+        return $weekSchedule;
+    }
+
+    public function getScheduleByDayOfLesson($schedule, $dayOfLesson): array
     {
         $scheduleByDayOfLesson = array();
+
         foreach ($schedule as $value) {
             if ($value['date'] == $dayOfLesson) {
                 array_push($scheduleByDayOfLesson, [
@@ -133,6 +313,7 @@ class ScheduleController extends Controller
     public function getScheduleByLessonNumber($scheduleByDayOfLesson, $lessonNumber)
     {
         $scheduleByLessonNumber = array();
+
         foreach ($scheduleByDayOfLesson as $value) {
             if ($value['lesson_number'] == $lessonNumber) {
                 array_push($scheduleByLessonNumber, [
@@ -151,7 +332,7 @@ class ScheduleController extends Controller
 
         return $scheduleByLessonNumber;
     }
-    
+
     private function getDataByWeek($data, $week): array
     {
         $dateRange = array();
@@ -166,5 +347,23 @@ class ScheduleController extends Controller
         }
 
         return $dateRange;
+    }
+
+    public function getScheduleByWeekAndGroup($week, $group): object
+    {
+        return Schedule::select('date')
+            ->where('week', '=', $week)
+            ->where('group', '=', $group)
+            ->orderBy('date', 'ASC')
+            ->distinct()
+            ->get();
+    }
+
+    public function getScheduleByDayAndGroup($day, $group): array
+    {
+        return Schedule::where('date', '=', $day)
+            ->where('group', '=', $group)
+            ->orderBy('lesson_number', 'ASC')
+            ->get()->toArray();
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Schedule\ScheduleReportController;
+use App\Http\Controllers\ScheduleReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,5 +45,5 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::get('/generate-teacher-report/{fio}', [ScheduleReportController::class, 'generateTeacherReport'])->name('generate.teacher.report');
     Route::get('/generate-group-report/{group}', [ScheduleReportController::class, 'generateGroupReport'])->name('generate.group.report');
-    Route::get('/generate-rooms-report/{week}', [ScheduleReportController::class, 'generateRoomsReport'])->name('generate.rooms.report');
+    Route::get('/generate-load-rooms-report/{week}', [ScheduleReportController::class, 'generateLoadRoomsReport'])->name('generate.load.rooms.report');
 });
