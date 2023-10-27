@@ -35,6 +35,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.document-order-request');
     })->name('document.order.requests');
 
+    Route::get('/document-retrieval-requests', function () {
+        return view('pages.document-retrieval-request');
+    })->name('document.retrieval.requests');
+
     Route::get('/contingent', function () {
         return view('pages.contingent');
     })->name('contingent');
