@@ -2,8 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Models\ConfirmedDocumentRequest;
 use App\Models\DocumentOrderRequest;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -11,7 +13,7 @@ class DocumentRetrievalRequest extends Component
 {
     public bool $isDocumentOrderRequestModalVisible = false;
     public string $lastName = "", $firstName = "", $middleName = "", $sex = "", $teachingFormName = "", $specialtyCode = "", $specialityName = "", $trainingPeriod = "", $orders = "";
-    public int $course = 0;
+    public int $course = 0, $documentOrderRequestId = 0;
 
     public function render()
     {
@@ -40,6 +42,8 @@ class DocumentRetrievalRequest extends Component
 
     public function documentOrderRequestModalVisible($documentOrderRequestId, $userId): void
     {
+        $this->documentOrderRequestId = $documentOrderRequestId;
+
         $userInfo = DB::table('user_status')
             ->select(
                 'user_status.user_id',
@@ -82,7 +86,7 @@ class DocumentRetrievalRequest extends Component
         $this->firstName = $userInfo->first_name_dative;
         $this->middleName = $userInfo->middle_name_dative;
 
-        $this->sex = (!$userInfo->sex) ? 'муж.' : 'жен.';
+        $this->sex = $userInfo->sex;
         $this->course = $userInfo->course;
         $this->teachingFormName = $userInfo->teaching_form_name;
 
@@ -102,9 +106,33 @@ class DocumentRetrievalRequest extends Component
 
     public function checkRequest()
     {
+        ConfirmedDocumentRequest::create([
+            'last_name' => $this->lastName,
+            'first_name' => $this->firstName,
+            'middle_name' => $this->middleName,
+            'sex' => $this->sex,
+            'course' => $this->course,
+            'teaching_form_name' => $this->teachingFormName,
+            'speciality_name' => $this->specialityName,
+            'specialty_code' => $this->specialtyCode,
+            'orders' => $this->orders,
+            'training_period' => $this->trainingPeriod,
+            'document_order_request_id' => $this->documentOrderRequestId
+        ]);
+
+        $documentOrderRequest = DocumentOrderRequest::findOrFail($this->documentOrderRequestId);
+        $documentOrderRequest->document_number = (DocumentOrderRequest::where('status', '=', 2)->count() + 1);
+        $documentOrderRequest->status = 2;
+        $documentOrderRequest->issuer_id = Auth::user()->id;
+        $documentOrderRequest->issue_date = Carbon::now();
+        $documentOrderRequest->update();
     }
 
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function printDocument($documentOrderRequestId)
     {
+        return redirect()->route('print.document', ['id' => $documentOrderRequestId]);
     }
 }

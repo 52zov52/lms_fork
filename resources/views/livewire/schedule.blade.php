@@ -11,7 +11,7 @@
     <div class="flex items-center bg-sky-500 border-t-4 border-sky-700 rounded shadow-xl p-4 text-white" role="alert">
         <i class="fa-solid fa-circle-exclamation fa-lg"></i>
         <div class="ml-3 text-base font-medium">
-            Дата и время обновления расписания:
+            Дата и время обновления расписания: {{ $lastUpdateDate }}
         </div>
     </div>
     

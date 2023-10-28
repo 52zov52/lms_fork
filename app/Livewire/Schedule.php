@@ -19,12 +19,14 @@ class Schedule extends Component
     {
         $scheduleController = new ScheduleController();
         $this->weeksRange = $scheduleController->getWeeksRange();
+        $lastUpdateDate = $scheduleController->getlastUpdate();
 
         $this->currentSchedule = $scheduleController->getCurrentSchedule($this->week);
 
         return view('livewire.schedule', [
             'weeksRange' => $this->weeksRange,
             'daysOfWeek' => $scheduleController->daysOfWeek,
+            'lastUpdateDate' => $lastUpdateDate,
             'currentSchedule' => $this->currentSchedule
         ]);
     }

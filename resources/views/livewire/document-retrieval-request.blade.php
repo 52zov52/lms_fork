@@ -94,11 +94,7 @@
                             <input wire:model="middleName" type="text" name="middle_name" id="middle-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div>
-                            <label for="sex-id">Пол:</label>
-                            <input wire:model="sex" type="text" name="sex" id="sex-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        </div>
+                    <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label for="course-id">Курс:</label>
                             <input wire:model="course" type="text" name="course" id="course-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">

@@ -43,6 +43,11 @@ class ScheduleController extends Controller
         return Schedule::select('group')->distinct()->orderBy('group', 'ASC')->get();
     }
 
+    public function getlastUpdate(): string
+    {
+        return Carbon::parse(Schedule::select('created_at')->latest('created_at')->first()->created_at)->format('d.m.Y H:i:s');
+    }
+
     public function getWeeksRange(): array
     {
         $weeks = Schedule::select('week', 'date')->distinct()->orderBy('week', 'ASC')->orderBy('date', 'ASC')->get()->toArray();
