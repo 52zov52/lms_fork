@@ -70,7 +70,7 @@ class ProjectBoard extends Component
         foreach ($data as $key => $value) {
             ProjectTaskList::create([
                 'task_list_name' => $value['title'],
-                'due_date' => $value['color'],
+                'color' => $value['color'],
                 'project_board_id' => $projectBoard->id
             ]);
         }
