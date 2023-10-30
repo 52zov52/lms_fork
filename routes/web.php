@@ -46,6 +46,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.contingent');
     })->name('contingent');
 
+    Route::get('/achievement', function () {
+        return view('pages.achievement');
+    })->name('achievement');
+
     Route::get('/reports', function () {
         return view('pages.reports');
     })->name('reports');
