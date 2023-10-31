@@ -23,9 +23,25 @@ class Schedule extends Component
 
         $this->currentSchedule = $scheduleController->getCurrentSchedule($this->week);
 
+        $now = (is_null($this->week)) ? Carbon::now() : Carbon::parse($this->week);
+        $weekStartDate = $now->startOfWeek()->format('Y-m-d');
+
+        $day = $weekStartDate;
+        $daysOfWeek = array();
+
+        for ($i=0; $i < 7; $i++) {
+            array_push($daysOfWeek, [
+                'en' => $scheduleController->daysOfWeek[$i]['en'],
+                'ru' => $scheduleController->daysOfWeek[$i]['ru'],
+                'date' => Carbon::parse($day)->format('d.m.Y')
+            ]);
+
+            $day = Carbon::parse($day)->addDay()->format('Y-m-d');
+        }
+
         return view('livewire.schedule', [
             'weeksRange' => $this->weeksRange,
-            'daysOfWeek' => $scheduleController->daysOfWeek,
+            'daysOfWeek' => $daysOfWeek,
             'lastUpdateDate' => $lastUpdateDate,
             'currentSchedule' => $this->currentSchedule
         ]);

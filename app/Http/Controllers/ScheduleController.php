@@ -12,7 +12,7 @@ class ScheduleController extends Controller
     public $daysOfWeek = [
         ['en' => 'Mon', 'ru' => 'Понедельник'],
         ['en' => 'Tue', 'ru' => 'Вторник'],
-        ['en' => 'Wen', 'ru' => 'Среда'],
+        ['en' => 'Wed', 'ru' => 'Среда'],
         ['en' => 'Thu', 'ru' => 'Четверг'],
         ['en' => 'Fri', 'ru' => 'Пятница'],
         ['en' => 'Sat', 'ru' => 'Суббота'],
@@ -82,16 +82,23 @@ class ScheduleController extends Controller
                 ->where('group_student.user_id', '=', Auth::user()->id)
                 ->select('groups.group_name')->first()->group_name);
 
+            if(count($groupName) == 2){
+                $group = $groupName[0] . $groupName[1];
+            }
+            else {
+                $group = $groupName[0];
+            }
+
             $schedule = Schedule::where('date', '>=', $weekStartDate)
                 ->where('date', '<=', $weekEndDate)
-                ->where('group', 'like', '%' . (count($groupName) == 2) ? $groupName[0] . $groupName[1] : $groupName[0] . '%')
+                ->where('group', 'like', '%' . $group . '%')
                 ->orderBy('date', 'ASC')
                 ->orderBy('lesson_number', 'ASC')
                 ->get()->toArray();
         } else if (Auth::user()->hasRole('Teacher')) {
             $schedule = Schedule::where('date', '>=', $weekStartDate)
                 ->where('date', '<=', $weekEndDate)
-                ->where('teacher', 'like', '%' . Auth::user()->userData->last_name . '%')
+                ->where('teacher', '=', Auth::user()->userData->last_name.' '.mb_substr(Auth::user()->userData->first_name, 0, 1).'.'.mb_substr(Auth::user()->userData->middle_name, 0, 1).'.')
                 ->orderBy('date', 'ASC')
                 ->orderBy('lesson_number', 'ASC')
                 ->get()->toArray();

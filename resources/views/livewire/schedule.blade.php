@@ -32,7 +32,7 @@
         <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
             @foreach($daysOfWeek as $dayOfWeek)
             <tr>
-                <td colspan="5" class="px-4 py-2 font-bold">{{ $dayOfWeek['ru'] }}</td>
+                <td colspan="5" class="px-4 py-2 font-bold">{{ $dayOfWeek['ru'] }} {{ $dayOfWeek['date'] }}</td>
             </tr>
                 @if(in_array($dayOfWeek['en'], array_column($currentSchedule, 'day')))
                     @foreach($currentSchedule as $value)
