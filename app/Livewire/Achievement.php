@@ -25,6 +25,10 @@ class Achievement extends Component
 
     public function addAchievement(): void
     {
+        $this->validate([
+            'achievement' => 'mimes:pdf|max:3072', // 3MB Max
+        ]);
+
         $this->achievement->store('achievement', 'public');
         session()->flash('message-success', 'Документ успешно загружен!');
     }

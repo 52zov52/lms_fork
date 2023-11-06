@@ -45,7 +45,9 @@ class ScheduleController extends Controller
 
     public function getlastUpdate(): string
     {
-        return Carbon::parse(Schedule::select('created_at')->latest('created_at')->first()->created_at)->format('d.m.Y H:i:s');
+        $schedule = Schedule::select('created_at')->latest('created_at')->first();
+        
+        return  (is_null($schedule)) ? '' : Carbon::parse($schedule->created_at)->format('d.m.Y H:i:s');
     }
 
     public function getWeeksRange(): array

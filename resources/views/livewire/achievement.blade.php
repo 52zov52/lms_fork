@@ -22,7 +22,8 @@
             <div class="w-full">
                 <form wire:submit.prevent="addAchievement" enctype="multipart/form-data">
                     <input wire:model="achievement" type="file" name="achievement" id="">
-                    @error('achievement') <span class="error">{{ $message }}</span> @enderror
+                    @error('achievement') <span class="text-red-500">{{ $message }}</span> @enderror
+                    <div wire:loading wire:target="achievement">Uploading...</div>
                     <button wire:click="$toggle('isAchievementModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
                         {{ __('Закрыть') }}
                     </button>

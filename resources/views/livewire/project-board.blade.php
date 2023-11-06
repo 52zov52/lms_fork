@@ -8,6 +8,15 @@
     </div>
     @endif
 
+    @if(session()->has('message-error'))
+    <div class="flex items-center bg-red-500 border-t-4 border-red-700 rounded shadow-xl p-4 text-white" role="alert">
+        <i class="fa-solid fa-circle-exclamation fa-lg"></i>
+        <div class="ml-3 text-base font-medium">
+            {{ session('message-error') }}
+        </div>
+    </div>
+    @endif
+
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
         <select wire:model="projectBoardId" wire:change="changeValue" name="project_doard_id" id="project-doard-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option value="0">Выберите из списка проект</option>
@@ -75,6 +84,7 @@
             <x-slot name="content">
                 <div class="w-full">
                     <input class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" wire:model="boardName" type="text" placeholder="Введите наименование проекта">
+                    @error('boardName')<span class="text-red-500">{{ $message }}</span>@enderror
                 </div>
             </x-slot>
 
@@ -100,9 +110,11 @@
             <x-slot name="content">
                 <div class="w-full">
                     <input class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" wire:model="taskName" type="text" placeholder="Введите наименование задачи">
+                    @error('taskName')<span class="text-red-500">{{ $message }}</span>@enderror
                 </div>
                 <div class="w-full mt-2">
                     <input class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" wire:model="dueDate" type="text" placeholder="Введите срок исполнения (год-месяц-день)">
+                    @error('dueDate')<span class="text-red-500">{{ $message }}</span>@enderror
                 </div>
             </x-slot>
 

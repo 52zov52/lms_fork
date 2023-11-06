@@ -24,6 +24,10 @@ return new class extends Migration
             $table->string('specialty_code', 50);
             $table->string('orders', 5000);
             $table->string('training_period', 50);
+            $table->boolean('is_budget')->default(false);
+
+            $table->unsignedBigInteger('confirmiter_id')->nullable();
+            $table->foreign('confirmiter_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->foreignIdFor(DocumentOrderRequest::class)
                 ->constrained()

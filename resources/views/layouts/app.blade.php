@@ -72,6 +72,7 @@
                     <span>Заказ документов (справок)</span>
                 </a>
             </li>
+            @role('Teacher')
             <li class="rounded {{ (request()->routeIs('document.retrieval.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('document.retrieval.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                     <i class="fa-solid fa-file-import"></i>
@@ -84,6 +85,7 @@
                     <span>Контингент</span>
                 </a>
             </li>
+            @endrole
             <li class="rounded {{ (request()->routeIs('achievement')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('achievement') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                     <i class="fa-solid fa-award"></i>

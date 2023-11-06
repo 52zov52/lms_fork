@@ -22,6 +22,8 @@ class ConfirmedDocumentRequest extends Model
         'specialty_code',
         'orders',
         'training_period',
+        'is_budget',
+        'confirmiter_id',
         'document_order_request_id'
     ];
 }

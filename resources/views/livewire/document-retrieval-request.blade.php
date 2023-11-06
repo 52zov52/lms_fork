@@ -1,4 +1,21 @@
 <div class="flex flex-col space-y-2">
+    @if(session()->has('message-success'))
+    <div class="flex items-center bg-green-500 border-t-4 border-green-700 rounded shadow-xl p-4 text-white" role="alert">
+        <i class="fa-solid fa-circle-exclamation fa-lg"></i>
+        <div class="ml-3 text-base font-medium">
+            {{ session('message-success') }}
+        </div>
+    </div>
+    @endif
+
+    @if(session()->has('message-error'))
+    <div class="flex items-center bg-red-500 border-t-4 border-red-700 rounded shadow-xl p-4 text-white" role="alert">
+        <i class="fa-solid fa-circle-exclamation fa-lg"></i>
+        <div class="ml-3 text-base font-medium">
+            {{ session('message-error') }}
+        </div>
+    </div>
+    @endif
 
     <div class="bg-white rounded shadow-xl p-4">
         @if(!$documentOrderRequest->isEmpty())
@@ -48,8 +65,9 @@
                             @endif
                         </td>
                         <td class="w-auto border px-2 py-2 text-center">
-                            <button wire:click="documentOrderRequestModalVisible({{ $item->id }}, {{ $item->requester_id }})"><i class="fa-solid fa-square-check"></i></button>
-                            <button wire:click="printDocument({{ $item->id }})"><i class="fa-solid fa-print"></i></button>
+                            <button wire:click="documentOrderRequestModalVisible({{ $item->id }}, {{ $item->requester_id }})" title="Подтвердить данные"><i class="fa-solid fa-square-check"></i></button>
+                            <button wire:click="printDocument({{ $item->id }})" title="Распечатать документ"><i class="fa-solid fa-print"></i></button>
+                            <button wire:click="confirmRetrievalRequest({{ $item->id }})" title="Подтвердить выдачу документа"><i class="fa-solid fa-square-arrow-up-right"></i></button>
                         </td>
                     </tr>
                     @endforeach
@@ -84,43 +102,55 @@
                         <div>
                             <label for="last-name-id">Фамилия:</label>
                             <input wire:model="lastName" type="text" name="last_name" id="last-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('lastName')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                         <div>
                             <label for="first-name-id">Имя:</label>
                             <input wire:model="firstName" type="text" name="first_name" id="first-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('firstName')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                         <div>
                             <label for="middle-name-id">Отчество:</label>
                             <input wire:model="middleName" type="text" name="middle_name" id="middle-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('middleName')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label for="course-id">Курс:</label>
                             <input wire:model="course" type="text" name="course" id="course-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('course')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                         <div>
                             <label for="teaching-form-name-id">Форма обучения:</label>
                             <input wire:model="teachingFormName" type="text" name="teaching_form_name" id="teaching-form-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('teachingFormName')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label for="specialty-сode-id">Шифр:</label>
                             <input wire:model="specialtyCode" type="text" name="specialty_сode" id="specialty-сode-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('specialtyCode')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                         <div>
                             <label for="speciality-name-id">Специальность:</label>
                             <input wire:model="specialityName" type="text" name="speciality_name" id="speciality-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('specialityName')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                     </div>
                     <div class="flex flex-col">
                         <label for="orders-id">Приказы:</label>
                         <textarea wire:model="orders" name="orders" id="orders-id" cols="5" rows="5" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">{{ $orders }}</textarea>
+                        @error('orders')<span class="text-red-500">{{ $message }}</span>@enderror
                     </div>
                     <div class="flex flex-col">
                         <label for="training-period-id">Срок обучения:</label>
                         <input wire:model="trainingPeriod" type="text" name="training_period" id="training-period-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        @error('trainingPeriod')<span class="text-red-500">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="flex flex-col py-2">
+                        <label for="is-budget-id"> <input wire:model="isBudget" type="checkbox" name="isBudget" id="is-budget-id"> Обучается на бюджете</label>
                     </div>
                 </div>
             </x-slot>
@@ -129,7 +159,7 @@
                 <button wire:click="$toggle('isDocumentOrderRequestModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
                     {{ __('Закрыть') }}
                 </button>
-                <button wire:click.prevent="checkRequest" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                <button wire:click.prevent="checkRetrievalRequest" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
                     {{ __('Подтвердить') }}
                 </button>
             </x-slot>
