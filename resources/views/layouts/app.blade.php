@@ -40,7 +40,7 @@
             <span>{{ auth()->user()->userData->last_name }}</span>
             <span>{{ auth()->user()->userData->first_name }} {{ auth()->user()->userData->middle_name }}</span>
         </div>
-        
+
         <ul class="mt-2 flex flex-col space-y-1">
             <li class="rounded {{ (request()->routeIs('dashboard')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('dashboard') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
@@ -96,6 +96,12 @@
                 <a href="{{ route('reports') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                     <i class="fa-solid fa-chart-simple"></i>
                     <span>Отчеты и аналитика</span>
+                </a>
+            </li>
+            <li class="rounded {{ (request()->routeIs('feedback')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                <a href="{{ route('feedback') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                    <i class="fa-solid fa-comment"></i>
+                    <span>Поддержка</span>
                 </a>
             </li>
             <li class="rounded hover:bg-blue-500 hover:text-white">
