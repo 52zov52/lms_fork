@@ -21,15 +21,45 @@
         <x-slot name="content">
             <div class="w-full">
                 <form wire:submit.prevent="addAchievement" enctype="multipart/form-data">
-                    <input wire:model="achievement" type="file" name="achievement" id="">
-                    @error('achievement') <span class="text-red-500">{{ $message }}</span> @enderror
-                    <div wire:loading wire:target="achievement">Uploading...</div>
-                    <button wire:click="$toggle('isAchievementModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
-                        {{ __('Закрыть') }}
-                    </button>
-                    <button wire:loading.attr="disabled" type="submit" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
-                        {{ __('Загрузить') }}
-                    </button>
+                    <div class="flex flex-col space-y-2">
+                        <div class="flex flex-col">
+                            <label for="achievement-category-id"></label>
+                            <select wire:model="achievementCategory" name="achievementCategory" id="achievement-category-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option value="0">Выберите категорию</option>
+                                @foreach($achievementCategories as $key => $value)
+                                <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                            @error('achievementCategory') <span class="text-red-500">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="name-id">Наименование</label>
+                            <input wire:model="name" type="text" name="name" id="name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('name') <span class="text-red-500">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="description-id">Описание</label>
+                            <textarea wire:model="description" name="description" id="description-id" cols="5" rows="5" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="year-id">Год</label>
+                            <input wire:model="year" type="text" name="year" id="year-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('year') <span class="text-red-500">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="flex flex-col">
+                            <input wire:model="file" type="file" name="file" id="" class="w-full px-2">
+                            @error('file') <span class="text-red-500">{{ $message }}</span> @enderror
+                            <div wire:loading wire:target="file">Uploading...</div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button wire:click="$toggle('isAchievementModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
+                                {{ __('Закрыть') }}
+                            </button>
+                            <button wire:loading.attr="disabled" type="submit" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                                {{ __('Загрузить') }}
+                            </button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </x-slot>
