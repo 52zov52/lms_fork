@@ -16,7 +16,15 @@
     </div>
     
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-        <select wire:model="weekRange" wire:change="changeValue" name="weekRange" id="week-range-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+        @role('Teacher')
+        <select wire:model="teacher" wire:change="changeTeacher" name="teachers" id="teachers-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            <option value="0">Выберите преподавателя</option>
+            @foreach($teachers as $value)
+            <option value="{{ $value->teacher }}">{{ $value->teacher }}</option>
+            @endforeach
+        </select>
+        @endrole
+        <select wire:model="weekRange" wire:change="changeWeekRange" name="weekRange" id="week-range-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option value="0">Выберите неделю</option>
             @foreach($weeksRange as $weekRange)
             <option value="{{ $weekRange['date'] }}">{{ $weekRange['date'] }}</option>

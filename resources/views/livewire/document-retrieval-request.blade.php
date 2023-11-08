@@ -28,7 +28,7 @@
                         <td class="w-auto border px-2 py-2 font-semibold">ФИО</td>
                         <td class="w-auto border px-2 py-2 font-semibold">Группа</td>
                         <td class="w-auto border px-2 py-2 font-semibold">Тип документа</td>
-                        <td class="w-auto border px-2 py-2 text-center font-semibold">Статус запроса</td>
+                        <td class="w-32 border px-2 py-2 text-center font-semibold">Статус запроса</td>
                         <td class="w-auto border px-2 py-2 text-center font-semibold">Дата и время создания заявки</td>
                         <td class="w-auto border px-2 py-2 text-center font-semibold">Дата и время получения документа</td>
                         <td class="w-auto border px-2 py-2 text-center font-semibold">Действия</td>
@@ -45,7 +45,7 @@
                             <span>Справка об обучении (для транспортных карт)</span>
                             @endif
                         </td>
-                        <td class="w-auto border px-2 py-2 text-center">
+                        <td class="w-32 border px-2 py-2 text-center">
                             @if($item->status == 1)
                             <span class="bg-orange-500 rounded px-2 py-1 text-xs text-white font-bold">В обработке</span>
                             @elseif($item->status == 2)
@@ -75,8 +75,66 @@
             </table>
         </div>
         <!-- Mobile -->
-        <div class="block md:hidden">
-
+        <div class="block md:hidden flex flex-col space-y-2">
+            @foreach($documentOrderRequest as $item)
+            <div class="flex flex-col space-y-2 border shadow-md p-4 text-xs">
+                <div class="flex flex-col">
+                    <span class="font-semibold">ФИО:</span>
+                    <span>{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Группа:</span>
+                    <span>{{ $item->group_name }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Тип документа:</span>
+                    @if($item->document_type == 1)
+                    <span>Справка об обучении</span>
+                    @else
+                    <span>Справка об обучении (для транспортных карт)</span>
+                    @endif
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Статус запроса:
+                        @if($item->status == 1)
+                        <span class="w-24 bg-orange-500 rounded px-2 py-1 text-xs text-white font-bold">В обработке</span>
+                        @elseif($item->status == 2)
+                        <span class="w-28 bg-blue-500 rounded px-2 py-1 text-xs text-white font-bold">Готов к выдаче</span>
+                        @elseif($item->status == 3)
+                        <span class="w-24 bg-red-500 rounded px-2 py-1 text-xs text-white font-bold">Отклонен</span>
+                        @else
+                        <span class="w-24 bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен</span>
+                        @endif
+                    </span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Дата и время создания заявки:</span>
+                    <span>{{ \Carbon\Carbon::parse($item->request_date)->format('d.m.Y H:i:s') }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Дата и время получения документа:</span>
+                    @if($item->issue_date != null)
+                    <span>{{ \Carbon\Carbon::parse($item->issue_date)->format('d.m.Y H:i:s') }}</span>
+                    @else
+                    <span>-</span>
+                    @endif
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Действия:</span>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button wire:click="documentOrderRequestModalVisible({{ $item->id }}, {{ $item->requester_id }})" title="Подтвердить данные" class="w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                            <i class="fa-solid fa-square-check"></i>
+                        </button>
+                        <button wire:click="printDocument({{ $item->id }})" title="Распечатать документ" class="w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                            <i class="fa-solid fa-print"></i>
+                        </button>
+                        <button wire:click="confirmRetrievalRequest({{ $item->id }})" title="Подтвердить выдачу документа" class="w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                            <i class="fa-solid fa-square-arrow-up-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @endforeach
         </div>
         @else
         <div class="flex items-center bg-orange-500 border-t-4 border-orange-700 rounded shadow-xl p-4 text-white" role="alert">

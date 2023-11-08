@@ -30,6 +30,18 @@ class ScheduleController extends Controller
     /**
      * @return \Illuminate\Database\Eloquent\Collection
      */
+    public function getTeachersByLastName($lastName): object
+    {
+        return Schedule::select('teacher')
+            ->where('teacher', 'like', '%' . $lastName . '%')
+            ->distinct()
+            ->orderBy('teacher', 'ASC')
+            ->get();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function getTeacherChair($fio): string
     {
         return Schedule::select('chair')->where('teacher', '=', $fio)->first()->chair;
@@ -46,8 +58,8 @@ class ScheduleController extends Controller
     public function getlastUpdate(): string
     {
         $schedule = Schedule::select('created_at')->latest('created_at')->first();
-        
-        return  (is_null($schedule)) ? '' : Carbon::parse($schedule->created_at)->format('d.m.Y H:i:s');
+
+        return (is_null($schedule)) ? '' : Carbon::parse($schedule->created_at)->format('d.m.Y H:i:s');
     }
 
     public function getWeeksRange(): array
@@ -67,10 +79,12 @@ class ScheduleController extends Controller
             array_push($weeksRange, ['date' => Carbon::parse($min)->format('d.m.Y') . '-' . Carbon::parse($max)->format('d.m.Y')]);
         }
 
+        asort($weeksRange);
+
         return $weeksRange;
     }
 
-    public function getCurrentSchedule($date): array
+    public function getCurrentSchedule($date, $teacher): array
     {
         $currentSchedule = array();
         $schedule = array();
@@ -84,10 +98,9 @@ class ScheduleController extends Controller
                 ->where('group_student.user_id', '=', Auth::user()->id)
                 ->select('groups.group_name')->first()->group_name);
 
-            if(count($groupName) == 2){
+            if (count($groupName) == 2) {
                 $group = $groupName[0] . $groupName[1];
-            }
-            else {
+            } else {
                 $group = $groupName[0];
             }
 
@@ -98,9 +111,16 @@ class ScheduleController extends Controller
                 ->orderBy('lesson_number', 'ASC')
                 ->get()->toArray();
         } else if (Auth::user()->hasRole('Teacher')) {
+
+            if (is_null($teacher)) {
+                $fio = Auth::user()->userData->last_name . ' ' . mb_substr(Auth::user()->userData->first_name, 0, 1) . '.' . mb_substr(Auth::user()->userData->middle_name, 0, 1) . '.';
+            } else {
+                $fio = $teacher;
+            }
+
             $schedule = Schedule::where('date', '>=', $weekStartDate)
                 ->where('date', '<=', $weekEndDate)
-                ->where('teacher', '=', Auth::user()->userData->last_name.' '.mb_substr(Auth::user()->userData->first_name, 0, 1).'.'.mb_substr(Auth::user()->userData->middle_name, 0, 1).'.')
+                ->where('teacher', '=', $fio)
                 ->orderBy('date', 'ASC')
                 ->orderBy('lesson_number', 'ASC')
                 ->get()->toArray();

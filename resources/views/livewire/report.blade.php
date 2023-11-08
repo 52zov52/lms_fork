@@ -4,7 +4,9 @@
         <ul class="list-disc px-4">
             <li><a wire:click="teacherModalVisible" href="#" class="hover:font-semibold hover:underline">Отчет по преподавателям</a></li>
             <li><a wire:click="groupModalVisible" href="#" class="hover:font-semibold hover:underline">Отчет по группе</a></li>
+            @role('Teacher')
             <li><a wire:click="roomsModalVisible" href="#" class="hover:font-semibold hover:underline">Отчет по загруженности аудиторий</a></li>
+            @endrole
         </ul>
     </div>
 

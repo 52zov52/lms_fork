@@ -74,41 +74,44 @@
             </table>
         </div>
         <!-- Mobile -->
-        <div class="block md:hidden">
-            <div class="flex flex-col space-y-2 border shadow-md p-4 text-xs">
-                <div class="flex flex-col">
-                    <span class="font-semibold">Тип документа:</span>
-                    @if($item->document_type == 1)
-                    <span>Справка об обучении</span>
-                    @else
-                    <span>Справка об обучении (для транспортных карт)</span>
-                    @endif
+        <div class="block md:hidden flex flex-col space-y-2">
+            @foreach($documentOrderRequest as $item)
+                <div class="flex flex-col space-y-2 border shadow-md p-4 text-xs">
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Тип документа:</span>
+                        @if($item->document_type == 1)
+                        <span>Справка об обучении</span>
+                        @else
+                        <span>Справка об обучении (для транспортных карт)</span>
+                        @endif
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Статус запроса:
+                            @if($item->status == 1)
+                            <span class="w-24 bg-orange-500 rounded px-2 py-1 text-xs text-white font-bold">В обработке</span>
+                            @elseif($item->status == 2)
+                            <span class="w-28 bg-blue-500 rounded px-2 py-1 text-xs text-white font-bold">Готов к выдаче</span>
+                            @elseif($item->status == 3)
+                            <span class="w-24 bg-red-500 rounded px-2 py-1 text-xs text-white font-bold">Отклонен</span>
+                            @else
+                            <span class="w-24 bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен</span>
+                            @endif
+                        </span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Дата и время создания заявки:</span>
+                        <span>{{ \Carbon\Carbon::parse($item->request_date)->format('d.m.Y H:i:s') }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Дата и время получения документа:</span>
+                        @if($item->issue_date != null)
+                        <span>{{ \Carbon\Carbon::parse($item->issue_date)->format('d.m.Y H:i:s') }}</span>
+                        @else
+                        <span>-</span>
+                        @endif
+                    </div>
                 </div>
-                <div class="flex flex-col">
-                    <span class="font-semibold">Статус запроса:</span>
-                    @if($item->status == 1)
-                    <span class="w-24 bg-orange-500 rounded px-2 py-1 text-xs text-white font-bold">В обработке</span>
-                    @elseif($item->status == 2)
-                    <span class="w-28 bg-blue-500 rounded px-2 py-1 text-xs text-white font-bold">Готов к выдаче</span>
-                    @elseif($item->status == 3)
-                    <span class="w-24 bg-red-500 rounded px-2 py-1 text-xs text-white font-bold">Отклонен</span>
-                    @else
-                    <span class="w-24 bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен</span>
-                    @endif
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-semibold">Дата и время создания заявки</span>
-                    <span>{{ $item->request_date }}</span>
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-semibold">Дата и время получения документа</span>
-                    @if($item->issue_date != null)
-                    <span>{{ \Carbon\Carbon::parse($item->issue_date)->format('d.m.Y H:i:s') }}</span>
-                    @else
-                    <span>-</span>
-                    @endif
-                </div>
-            </div>
+            @endforeach
         </div>
         @else
         <div class="flex items-center bg-orange-500 border-t-4 border-orange-700 rounded shadow-xl p-4 text-white" role="alert">

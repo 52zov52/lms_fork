@@ -11,9 +11,18 @@ class FeedbackMessage extends Component
     public $email = '';
     public $messageText = '';
 
+    public bool $isFeedbackModalVisible = false;
+
     public function render()
     {
-        return view('livewire.feedback-message');
+        $feedbackMessages = ModelsFeedbackMessage::where('sender_id', '=', Auth::user()->id)->get();
+
+        return view('livewire.feedback-message', ['feedbackMessages' => $feedbackMessages]);
+    }
+
+    public function feedbackModalVisible(): void
+    {
+        $this->isFeedbackModalVisible = true;
     }
 
     public function send(): void
@@ -32,6 +41,8 @@ class FeedbackMessage extends Component
 
         $this->email = '';
         $this->messageText = '';
+
+        $this->isFeedbackModalVisible = false;
 
         session()->flash('message-success', 'Сообщение успешно отправлено!');
     }
