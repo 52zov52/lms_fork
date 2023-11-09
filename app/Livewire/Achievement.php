@@ -64,4 +64,12 @@ class Achievement extends Component
 
         session()->flash('message-success', 'Документ успешно загружен!');
     }
+
+    public function destroy($id)
+    {
+        $achievement = ModelsAchievement::findOrFail($id);
+        $achievement->delete();
+        
+        session()->flash('message-success', 'Запись успешно удалена!');
+    }
 }
