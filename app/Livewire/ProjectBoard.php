@@ -117,9 +117,9 @@ class ProjectBoard extends Component
             ]);
 
             $this->isTaskModalVisible = false;
-
             session()->flash('message-success', 'Задача успешно добавлена в группу!');
         } else {
+            $this->isTaskModalVisible = false;
             session()->flash('message-error', 'Доступ к изменению чужих рабочих областей запрещен!');
         }
     }
@@ -146,9 +146,10 @@ class ProjectBoard extends Component
             $projectTask->update();
 
             $this->isTaskModalVisible = false;
-
             session()->flash('message-success', 'Данные задачи успешно изменены!');
         } else {
+
+            $this->isTaskModalVisible = false;
             session()->flash('message-error', 'Доступ к изменению чужих рабочих областей запрещен!');
         }
     }

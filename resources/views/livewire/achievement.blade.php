@@ -9,7 +9,7 @@
     @endif
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-        <button wire:click="achievementModalVisible" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-2 text-white">Добавить индивидуальное достижение</button>
+        <button wire:click="achievementModalVisible(false)" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-2 text-white">Добавить индивидуальное достижение</button>
     </div>
 
     <div class="bg-white rounded shadow-xl p-4">
@@ -25,6 +25,7 @@
                         <td class="w-auto border px-2 py-2 font-semibold">Описание</td>
                         <td class="w-auto border px-2 py-2 text-center font-semibold">Год</td>
                         <td class="w-auto border px-2 py-2 text-center font-semibold">Файл</td>
+                        <td class="w-auto border px-2 py-2 text-center font-semibold">Действия</td>
                     </tr>
                     @foreach($achievements as $item)
                     <tr>
@@ -49,6 +50,14 @@
                         <td class="w-auto border px-2 py-2 text-center">{{ $item->year }}</td>
                         <td class="w-auto border px-2 py-2 text-center">
                             <a href="storage/{{ $item->file_path }}" target="_blank" rel="noopener noreferrer">Скачать</a>
+                        </td>
+                        <td class="w-auto border px-2 py-2 text-center">
+                            <button wire:click="edit({{ $item->id }}, true)" title="Редактировать">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button wire:click="destroy({{ $item->id }})" title="Удалить">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
                     @endforeach
@@ -91,6 +100,17 @@
                     <span class="font-semibold">Файл:</span>
                     <a href="storage/{{ $item->file_path }}" target="_blank" rel="noopener noreferrer">Скачать</a>
                 </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Действия:</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button wire:click="edit({{ $item->id }}, true)" title="Редактировать" class="w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button wire:click="destroy({{ $item->id }})" title="Удалить" class="w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
             @endforeach
         </div>
@@ -109,7 +129,7 @@
         <form enctype="multipart/form-data">
             @csrf
             <x-slot name="title">
-                Форма добавления индивидуального достижения
+                Форма {{ (!$isEdit) ? 'добавления' : 'редактирования' }} индивидуального достижения
             </x-slot>
 
             <x-slot name="content">
@@ -152,9 +172,15 @@
                 <button wire:click="$toggle('isAchievementModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
                     {{ __('Закрыть') }}
                 </button>
-                <button wire:click.prevent="addAchievement" wire:loading.attr="disabled" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                @if(!$isEdit)
+                <button wire:click.prevent="store" wire:loading.attr="disabled" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
                     {{ __('Загрузить') }}
                 </button>
+                @else
+                <button wire:click.prevent="update" wire:loading.attr="disabled" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                    {{ __('Обновить') }}
+                </button>
+                @endif
             </x-slot>
         </form>
     </x-dialog-modal>
