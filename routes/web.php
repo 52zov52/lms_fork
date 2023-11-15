@@ -36,6 +36,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.operating-activity');
     })->name('operating.activity');
 
+    Route::get('/decisions-rectorate-and-council', function () {
+        return view('pages.decisions-rectorate-and-council');
+    })->name('decisions.rectorate.and.council');
+
     Route::get('/document-order-requests', function () {
         return view('pages.document-order-request');
     })->name('document.order.requests');
