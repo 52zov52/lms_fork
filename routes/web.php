@@ -28,10 +28,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.schedule');
     })->name('schedule');
 
-    Route::get('/project-board', function () {
-        return view('pages.project-board');
-    })->name('project.board');
-
     Route::get('/operating-activity', function () {
         return view('pages.operating-activity');
     })->name('operating.activity');

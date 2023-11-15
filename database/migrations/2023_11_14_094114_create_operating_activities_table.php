@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\CategoriesOperatingActivity;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,12 +14,11 @@ return new class extends Migration
     {
         Schema::create('operating_activities', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-
-            $table->foreignIdFor(CategoriesOperatingActivity::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+            $table->string('activity_direction');
+            $table->string('task', 1000);
+            $table->string('description', 1500)->nullable();
+            $table->integer('status')->default(1);
+            $table->string('file_path', 2048)->nullable();
 
             $table->foreignIdFor(User::class)
                 ->constrained()

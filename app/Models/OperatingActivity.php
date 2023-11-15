@@ -12,8 +12,11 @@ class OperatingActivity extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'name',
-        'categories_operating_activity_id',
+        'activity_direction',
+        'task',
+        'description',
+        'status',
+        'file_path',
         'user_id'
     ];
 }

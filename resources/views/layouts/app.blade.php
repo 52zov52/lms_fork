@@ -60,12 +60,6 @@
                     <span>Расписание</span>
                 </a>
             </li>
-            <li class="rounded {{ (request()->routeIs('project.board')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('project.board') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-list-check"></i>
-                    <span>Управление проектами</span>
-                </a>
-            </li>
             <li class="rounded {{ (request()->routeIs('operating.activity')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('operating.activity') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                     <i class="fa-solid fa-list-check"></i>
