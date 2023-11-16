@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('description', 1500)->nullable();
             $table->string('due_date');
             $table->integer('status')->default(1);
+            $table->integer('category')->default(1);
             $table->string('file_path', 2048)->nullable();
 
             $table->foreignIdFor(User::class)

@@ -11,12 +11,15 @@ class DecisionsRectorateAndCouncil extends Model
     use HasFactory;
     use SoftDeletes;
 
+    protected $table = 'decisions_rectorate_and_council';
+
     protected $fillable = [
         'position',
         'task',
         'description',
         'due_date',
         'status',
+        'category',
         'file_path',
         'user_id'
     ];
