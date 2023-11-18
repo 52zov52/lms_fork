@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\DecisionsRectorateAndCouncil as ModelsDecisionsRectorateAndCouncil;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
