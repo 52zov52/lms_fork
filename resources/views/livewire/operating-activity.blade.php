@@ -185,6 +185,7 @@
                             <option value="0">Выберите статус</option>
                             <option value="1">В работе</option>
                             <option value="2">На утверждение</option>
+                            <option value="3">Выполнено</option>
                         </select>
                         @error('status') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
