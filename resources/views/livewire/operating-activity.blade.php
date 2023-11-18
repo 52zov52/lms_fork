@@ -28,49 +28,49 @@
 
     <div class="w-full bg-white rounded shadow-xl p-4">
         <div class="hidden xl:block">
-            <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
+            <table class="w-full bg-white border shadow-md text-xs md:text-sm">
                 <tbody>
                     <tr class="bg-gray-100">
                         <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
-                        <td class="w-auto border px-2 py-2 font-semibold">Направление деятельности</td>
-                        <td class="w-auto border px-2 py-2 font-semibold">Исполнитель</td>
+                        <td class="w-72 border px-2 py-2 font-semibold">Направление деятельности</td>
+                        <td class="w-64 border px-2 py-2 font-semibold">Исполнитель</td>
                         <td class="w-auto border px-2 py-2 font-semibold">Задачи</td>
-                        <td class="w-auto border px-2 py-2 text-center font-semibold">Статус</td>
-                        <td class="w-auto border px-2 py-2 text-center font-semibold">Действия</td>
+                        <td class="w-40 border px-2 py-2 text-center font-semibold">Статус</td>
+                        <td class="w-40 border px-2 py-2 text-center font-semibold">Действия</td>
                     </tr>
                     <tr class="bg-gray-100">
                         <td class="w-12 border px-2"></td>
-                        <td class="w-auto border px-2">
-                            <select wire:model="filterActivityDirection" wire:change="setFilterActivityDirection" name="filterActivityDirection" id="filter-activity-direction-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option value="">Выберите направление деятельности</option>
+                        <td class="w-72 border px-2">
+                            <select wire:model="filterActivityDirection" wire:change="setFilterActivityDirection" name="filterActivityDirection" id="filter-activity-direction-id" class="w-72 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option value="">Все направления деятельности</option>
                                 @foreach($catologActivityDirections as $catologActivityDirection)
                                 <option value="{{ $catologActivityDirection->activity_direction }}">{{ $catologActivityDirection->activity_direction }}</option>
                                 @endforeach
                             </select>
                         </td>
-                        <td class="w-auto border px-2 py-1">
-                            <select wire:model="filterExecutor" wire:change="setFilterExecutor" name="filterExecutor" id="filter-executor-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option value="">Выберите исполнителя</option>
+                        <td class="w-64 border px-2 py-1">
+                            <select wire:model="filterExecutor" wire:change="setFilterExecutor" name="filterExecutor" id="filter-executor-id" class="w-64 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option value="">Все исполнители</option>
                                 @foreach($catologExecutors as $catologExecutor)
-                                <option value="{{ $catologExecutor->last_name }}">{{ $catologExecutor->last_name }} {{ $catologExecutor->first_name }} {{ $catologExecutor->middle_name }}</option>
+                                <option value="{{ $catologExecutor->last_name }} {{ $catologExecutor->first_name }} {{ $catologExecutor->middle_name }}">{{ $catologExecutor->last_name }} {{ $catologExecutor->first_name }} {{ $catologExecutor->middle_name }}</option>
                                 @endforeach
                             </select>
                         </td>
                         <td class="w-auto border px-2"></td>
-                        <td class="w-auto border px-2">
-                            <select wire:model="filterStatus" wire:change="setFilterStatus" name="filterStatus" id="filter-status-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option value="0">Выберите статус</option>
+                        <td class="w-40 border px-2">
+                            <select wire:model="filterStatus" wire:change="setFilterStatus" name="filterStatus" id="filter-status-id" class="w-40 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option value="0">Все статусы</option>
                                 <option value="1">В работе</option>
                                 <option value="2">На утверждение</option>
-                                <option value="3">Исполнено</option>
+                                <option value="3">Выполнено</option>
                             </select>
                         <td class="w-auto border px-2"></td>
                     </tr>
                     @foreach($operatingActivity as $value)
                     <tr>
                         <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                        <td class="w-auto border px-2 py-2">{{ $value->activity_direction }}</td>
-                        <td class="w-auto border px-2 py-2">{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}</td>
+                        <td class="w-72 border px-2 py-2">{{ $value->activity_direction }}</td>
+                        <td class="w-64 border px-2 py-2">{{ $value->fio }}</td>
                         <td class="w-auto border px-2 py-2">{{ $value->task }}</td>
                         <td class="w-auto border px-2 py-2 text-center">
                             @if($value->status == 1)
@@ -78,17 +78,22 @@
                             @elseif($value->status == 2)
                             <span class="bg-blue-500 rounded px-2 py-1 text-xs text-white font-bold">На утверждение</span>
                             @else
-                            <span class="bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Исполнено</span>
+                            <span class="bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Выполнено</span>
                             @endif
                         </td>
-                        <td class="w-auto border px-2 py-2 text-center">
-                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="text-indigo-500" title="Доп. информация">
+                        <td class="w-40 border px-2 py-2 text-center">
+                            @can('confirm-operating-activity')
+                            <button wire:click="confirmActivity({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded-full px-2 py-1.5 text-xs text-white" title="Подтверждение">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                            @endcan
+                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded-full px-2 py-1.5 text-xs text-white" title="Доп. информация">
                                 <i class="fa-solid fa-message"></i>
                             </button>
-                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="text-sky-500" title="Редактировать">
+                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-sky-500 hover:bg-sky-600 rounded-full px-2 py-1.5 text-xs text-white" title="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button wire:click="destroy({{ $value->id }}, {{ $value->user_id }})" class="text-red-500" title="Удалить">
+                            <button wire:click="destroy({{ $value->id }}, {{ $value->user_id }})" class="bg-red-500 hover:bg-red-600 rounded-full px-2 py-1.5 text-xs text-white" title="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </td>
@@ -119,20 +124,25 @@
                         @elseif($value->status == 2)
                         <span class="bg-blue-500 rounded px-2 py-1 text-xs text-white font-bold">На утверждение</span>
                         @else
-                        <span class="bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Исполнено</span>
+                        <span class="bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Выполнено</span>
                         @endif
                     </span>
                 </div>
                 <div class="flex flex-col">
                     <span class="font-semibold">Действия:</span>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button wire:click="descriptionModalFormVisible({{ $value->id }})" title="Доп. информация" class="w-auto bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1 text-white">
+                    <div class="flex flex-row space-x-2">
+                        @can('confirm-operating-activity')
+                        <button wire:click="confirmActivity({{ $value->id }})" title="Подтверждение" class="w-auto grow bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                        @endcan
+                        <button wire:click="descriptionModalFormVisible({{ $value->id }})" title="Доп. информация" class="w-auto grow bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-message"></i>
                         </button>
-                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" title="Редактировать" class="w-auto bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white">
+                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" title="Редактировать" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button wire:click="destroy({{ $value->id }}, {{ $value->user_id }})" title="Удалить" class="w-auto bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white">
+                        <button wire:click="destroy({{ $value->id }}, {{ $value->user_id }})" title="Удалить" class="w-auto grow bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -175,7 +185,6 @@
                             <option value="0">Выберите статус</option>
                             <option value="1">В работе</option>
                             <option value="2">На утверждение</option>
-                            <option value="3">Исполнено</option>
                         </select>
                         @error('status') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
@@ -241,7 +250,7 @@
                 <div class="flex flex-col space-y-2">
                     <div class="flex flex-col">
                         <select wire:model="filterActivityDirection" wire:change="setFilterActivityDirection" name="filterActivityDirection" id="filter-activity-direction-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="">Выберите направление деятельности</option>
+                            <option value="">Все направления деятельности</option>
                             @foreach($catologActivityDirections as $catologActivityDirection)
                             <option value="{{ $catologActivityDirection->activity_direction }}">{{ $catologActivityDirection->activity_direction }}</option>
                             @endforeach
@@ -249,7 +258,7 @@
                     </div>
                     <div class="flex flex-col">
                         <select wire:model="filterExecutor" wire:change="setFilterExecutor" name="filterExecutor" id="filter-executor-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="">Выберите исполнителя</option>
+                            <option value="">Все исполнители</option>
                             @foreach($catologExecutors as $catologExecutor)
                             <option value="{{ $catologExecutor->last_name }}">{{ $catologExecutor->last_name }} {{ $catologExecutor->first_name }} {{ $catologExecutor->middle_name }}</option>
                             @endforeach
@@ -257,10 +266,10 @@
                     </div>
                     <div class="flex flex-col">
                         <select wire:model="filterStatus" wire:change="setFilterStatus" name="filterStatus" id="filter-status-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="0">Выберите статус</option>
+                            <option value="0">Все статусы</option>
                             <option value="1">В работе</option>
                             <option value="2">На утверждение</option>
-                            <option value="3">Исполнено</option>
+                            <option value="3">Выполнено</option>
                         </select>
                     </div>
                 </div>

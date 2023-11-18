@@ -30,41 +30,41 @@
 
     <div class="w-full bg-white rounded shadow-xl p-4">
         <div class="hidden xl:block">
-            <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
+            <table class="w-full bg-white border shadow-md text-xs md:text-sm">
                 <tbody>
                     <tr class="bg-gray-100">
                         <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
                         <td class="w-64 border px-2 py-2 font-semibold">Должность</td>
                         <td class="w-auto border px-2 py-2 font-semibold">Поручение</td>
                         <td class="w-40 border px-2 py-2 font-semibold">Срок исполнения</td>
-                        <td class="w-auto border px-2 py-2 text-center font-semibold">Статус</td>
-                        <td class="w-auto border px-2 py-2 text-center font-semibold">Действия</td>
+                        <td class="w-40 border px-2 py-2 text-center font-semibold">Статус</td>
+                        <td class="w-36 border px-2 py-2 text-center font-semibold">Действия</td>
                     </tr>
                     <tr class="bg-gray-100">
                         <td class="w-12 border px-2"></td>
                         <td class="w-64 border px-2">
-                            <select wire:model="filterPosition" name="filterPosition" wire:change="setFilterPosition" id="filter-position-id" class="w-full md:w-64 border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option value="0">Выберите должность</option>
+                            <select wire:model="filterPosition" name="filterPosition" wire:change="setFilterPosition" id="filter-position-id" class="w-64 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option value="0">Все должности</option>
                                 @foreach($positions as $name)
                                 <option value="{{ $name }}">{{ $name }}</option>
                                 @endforeach
                             </select>
                         </td>
                         <td class="w-auto border px-2"></td>
-                        <td class="w-auto border px-2 py-1">
-                            <select wire:model="filterDueDate" name="filterDueDate" wire:change="setFilterDueDate" id="filter-due-date-id" class="w-full md:w-64 border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option value="0">Выберите срок исполнения</option>
+                        <td class="w-40 border px-2 py-1">
+                            <select wire:model="filterDueDate" name="filterDueDate" wire:change="setFilterDueDate" id="filter-due-date-id" class="w-40 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option value="0">Все сроки исполнения</option>
                                 @foreach($catologDueDates as $catologDueDate)
                                 <option value="{{ $catologDueDate->due_date }}">{{ $catologDueDate->due_date }}</option>
                                 @endforeach
                             </select>
                         </td>
-                        <td class="w-auto border px-2">
-                            <select wire:model="filterStatus" wire:change="setFilterStatus" name="filterStatus" id="filter-status-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option value="0">Выберите статус</option>
+                        <td class="w-40 border px-2">
+                            <select wire:model="filterStatus" wire:change="setFilterStatus" name="filterStatus" id="filter-status-id" class="w-40 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option value="0">Все статусы</option>
                                 <option value="1">В работе</option>
                                 <option value="2">На утверждение</option>
-                                <option value="3">Исполнено</option>
+                                <option value="3">Выполнено</option>
                             </select>
                         <td class="w-auto border px-2"></td>
                     </tr>
@@ -73,25 +73,30 @@
                         <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
                         <td class="w-64 border px-2 py-2">{{ $value->position }}</td>
                         <td class="w-auto border px-2 py-2">{{ $value->task }}</td>
-                        <td class="w-auto border px-2 py-2">{{ $value->due_date }}</td>
+                        <td class="w-40 border px-2 py-2">{{ $value->due_date }}</td>
                         <td class="w-40 border px-2 py-2 text-center">
                             @if($value->status == 1)
                             <span class="bg-orange-500 rounded px-2 py-1 text-xs text-white font-bold">В работе</span>
                             @elseif($value->status == 2)
                             <span class="bg-blue-500 rounded px-2 py-1 text-xs text-white font-bold">На утверждение</span>
                             @else
-                            <span class="bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Исполнено</span>
+                            <span class="bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Выполнено</span>
                             @endif
                         </td>
-                        <td class="w-auto border px-2 py-2 text-center">
-                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="text-indigo-500" title="Доп. информация">
+                        <td class="w-36 border px-2 py-2 text-center">
+                            @can('confirm-decisions-rectorate-and-council')
+                            <button wire:click="confirmDecisions({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded-full px-2 py-1.5 text-xs text-white" title="Подтверждение">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                            @endcan
+                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded-full px-2 py-1.5 text-xs text-white" title="Доп. информация">
                                 <i class="fa-solid fa-message"></i>
                             </button>
                             @can('decisions-rectorate-and-council')
-                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" class="text-sky-500" title="Редактировать">
+                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" class="bg-sky-500 hover:bg-sky-600 rounded-full px-2 py-1.5 text-xs text-white" title="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button wire:click="destroy({{ $value->id }})" class="text-red-500" title="Удалить">
+                            <button wire:click="destroy({{ $value->id }})" class="bg-red-500 hover:bg-red-600 rounded-full px-2 py-1.5 text-xs text-white" title="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                             @endcan
@@ -123,21 +128,26 @@
                         @elseif($value->status == 2)
                         <span class="bg-blue-500 rounded px-2 py-1 text-xs text-white font-bold">На утверждение</span>
                         @else
-                        <span class="bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Исполнено</span>
+                        <span class="bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Выполнено</span>
                         @endif
                     </span>
                 </div>
                 <div class="flex flex-col">
                     <span class="font-semibold">Действия:</span>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button wire:click="descriptionModalFormVisible({{ $value->id }})" title="Доп. информация" class="w-auto bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1 text-white">
+                    <div class="flex flex-row space-x-2">
+                        @can('confirm-decisions-rectorate-and-council')
+                        <button wire:click="confirmDecisions({{ $value->id }})" title="Подтверждение" class="w-auto grow bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                        @endcan
+                        <button wire:click="descriptionModalFormVisible({{ $value->id }})" title="Доп. информация" class="w-auto grow bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-message"></i>
                         </button>
                         @can('decisions-rectorate-and-council')
-                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" title="Редактировать" class="w-auto bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white">
+                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" title="Редактировать" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button wire:click="destroy({{ $value->id }})" title="Удалить" class="w-auto bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white">
+                        <button wire:click="destroy({{ $value->id }})" title="Удалить" class="w-auto grow bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                         @endcan
@@ -191,7 +201,7 @@
                             <option value="0">Выберите статус</option>
                             <option value="1">В работе</option>
                             <option value="2">На утверждение</option>
-                            <option value="3">Исполнено</option>
+                            <option value="3">Выполнено</option>
                         </select>
                         @error('status') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
@@ -256,16 +266,16 @@
             <x-slot name="content">
                 <div class="flex flex-col space-y-2">
                     <div class="flex flex-col">
-                        <select wire:model="filterPosition" name="filterPosition" wire:change="setFilterPosition" id="filter-position-id" class="w-full md:w-64 border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="0">Выберите должность</option>
+                        <select wire:model="filterPosition" name="filterPosition" wire:change="setFilterPosition" id="filter-position-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="0">Все должности</option>
                             @foreach($positions as $name)
                             <option value="{{ $name }}">{{ $name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="flex flex-col">
-                        <select wire:model="filterDueDate" name="filterDueDate" wire:change="setFilterDueDate" id="filter-due-date-id" class="w-full md:w-64 border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="0">Выберите срок исполнения</option>
+                        <select wire:model="filterDueDate" name="filterDueDate" wire:change="setFilterDueDate" id="filter-due-date-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="0">Все сроки исполнения</option>
                             @foreach($catologDueDates as $catologDueDate)
                             <option value="{{ $catologDueDate->due_date }}">{{ $catologDueDate->due_date }}</option>
                             @endforeach
@@ -273,10 +283,10 @@
                     </div>
                     <div class="flex flex-col">
                         <select wire:model="filterStatus" wire:change="setFilterStatus" name="filterStatus" id="filter-status-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="0">Выберите статус</option>
+                            <option value="0">Все статусы</option>
                             <option value="1">В работе</option>
                             <option value="2">На утверждение</option>
-                            <option value="3">Исполнено</option>
+                            <option value="3">Выполнено</option>
                         </select>
                     </div>
                 </div>

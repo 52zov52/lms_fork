@@ -5,12 +5,15 @@ namespace App\Livewire;
 use App\Models\OperatingActivity as ModelsOperatingActivity;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 class OperatingActivity extends Component
 {
     use WithFileUploads;
+    use WithPagination;
 
     public $id = 0;
     public $activityDirection = '';
@@ -27,8 +30,14 @@ class OperatingActivity extends Component
     public $filterExecutor = '';
     public $filterStatus = '';
 
+    public function mount()
+    {
+        $this->filterExecutor = (Auth::user()->id == 2190) ? '' : Auth::user()->userData->last_name . ' ' . Auth::user()->userData->first_name . ' ' . Auth::user()->userData->middle_name;
+    }
+
     public function render()
     {
+
         $catologActivityDirections = ModelsOperatingActivity::select('activity_direction')->distinct()->get();
         $catologExecutors = ModelsOperatingActivity::join('users_data', 'operating_activities.user_id', '=', 'users_data.user_id')
             ->select(
@@ -36,7 +45,6 @@ class OperatingActivity extends Component
                 'users_data.first_name',
                 'users_data.middle_name'
             )->distinct()->get();
-
 
         $operatingActivity = ModelsOperatingActivity::join('users_data', 'operating_activities.user_id', '=', 'users_data.user_id')
             ->select(
@@ -47,9 +55,7 @@ class OperatingActivity extends Component
                 'operating_activities.status',
                 'operating_activities.file_path',
                 'operating_activities.user_id',
-                'users_data.last_name',
-                'users_data.first_name',
-                'users_data.middle_name'
+                DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name) AS fio')
             );
 
         if (!empty($this->filterActivityDirection) && empty($this->filterExecutor) && empty($this->filterStatus)) {
@@ -57,7 +63,7 @@ class OperatingActivity extends Component
         }
 
         if (empty($this->filterActivityDirection) && !empty($this->filterExecutor) && empty($this->filterStatus)) {
-            $operatingActivity->where('users_data.last_name', 'like', '%' . $this->filterExecutor . '%');
+            $operatingActivity->where(DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name)'), 'like', '%' . $this->filterExecutor . '%');
         }
 
         if (empty($this->filterActivityDirection) && empty($this->filterExecutor) && !empty($this->filterStatus)) {
@@ -66,21 +72,21 @@ class OperatingActivity extends Component
 
         if (!empty($this->filterActivityDirection) && !empty($this->filterExecutor) && empty($this->filterStatus)) {
             $operatingActivity->where('operating_activities.activity_direction', '=', $this->filterActivityDirection);
-            $operatingActivity->where('users_data.last_name', 'like', '%' . $this->filterExecutor . '%');
+            $operatingActivity->where(DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name)'), 'like', '%' . $this->filterExecutor . '%');
         }
 
         if (empty($this->filterActivityDirection) && !empty($this->filterExecutor) && !empty($this->filterStatus)) {
-            $operatingActivity->where('users_data.last_name', 'like', '%' . $this->filterExecutor . '%');
+            $operatingActivity->where(DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name)'), 'like', '%' . $this->filterExecutor . '%');
             $operatingActivity->where('operating_activities.status', '=', $this->filterStatus);
         }
 
         if (!empty($this->filterActivityDirection) && !empty($this->filterExecutor) && !empty($this->filterStatus)) {
             $operatingActivity->where('operating_activities.activity_direction', '=', $this->filterActivityDirection);
-            $operatingActivity->where('users_data.last_name', 'like', '%' . $this->filterExecutor . '%');
+            $operatingActivity->where(DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name)'), 'like', '%' . $this->filterExecutor . '%');
             $operatingActivity->where('operating_activities.status', '=', $this->filterStatus);
         }
 
-        $operatingActivity = $operatingActivity->simplePaginate(50);
+        $operatingActivity = $operatingActivity->orderBy('fio')->simplePaginate(50);
 
         return view('livewire.operating-activity', [
             'operatingActivity' => $operatingActivity,
@@ -115,17 +121,17 @@ class OperatingActivity extends Component
         $this->isFilterModalFormVisible = true;
     }
 
-    public function setFilterActivityDirection()
+    public function setFilterActivityDirection(): void
     {
         $this->filterActivityDirection = $this->filterActivityDirection;
     }
 
-    public function setFilterExecutor()
+    public function setFilterExecutor(): void
     {
         $this->filterExecutor = $this->filterExecutor;
     }
 
-    public function setFilterStatus()
+    public function setFilterStatus(): void
     {
         $this->filterStatus = $this->filterStatus;
     }
@@ -237,6 +243,15 @@ class OperatingActivity extends Component
         } else {
             session()->flash('message-error', 'Ошибка удаления записи! У вас нет прав на удаление записи!');
         }
+    }
+
+    public function confirmActivity($id): void
+    {
+        $operatingActivity = ModelsOperatingActivity::findOrFail($id);
+        $operatingActivity->status = 3;
+        $operatingActivity->update();
+
+        session()->flash('message-success', 'Запись успешно обновлена!');
     }
 
     public function resetFields(): void

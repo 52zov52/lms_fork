@@ -5,12 +5,15 @@ namespace App\Livewire;
 use App\Models\DecisionsRectorateAndCouncil as ModelsDecisionsRectorateAndCouncil;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 class DecisionsRectorateAndCouncil extends Component
 {
     use WithFileUploads;
+    use WithPagination;
 
     public $positions = [
         'Первый проректор',
@@ -115,7 +118,7 @@ class DecisionsRectorateAndCouncil extends Component
             $decisionsRectorateAndCouncil->where('status', '=', $this->filterStatus);
         }
 
-        $decisionsRectorateAndCouncil = $decisionsRectorateAndCouncil->simplePaginate(50);
+        $decisionsRectorateAndCouncil = $decisionsRectorateAndCouncil->orderBy('position')->paginate(50);
 
         return view('livewire.decisions-rectorate-and-council', [
             'decisionsRectorateAndCouncil' => $decisionsRectorateAndCouncil,
@@ -150,17 +153,17 @@ class DecisionsRectorateAndCouncil extends Component
         $this->isFilterModalFormVisible = true;
     }
 
-    public function setFilterPosition()
+    public function setFilterPosition(): void
     {
         $this->filterPosition = $this->filterPosition;
     }
 
-    public function setFilterDueDate()
+    public function setFilterDueDate(): void
     {
         $this->filterDueDate = $this->filterDueDate;
     }
 
-    public function setFilterStatus()
+    public function setFilterStatus(): void
     {
         $this->filterStatus = $this->filterStatus;
     }
@@ -267,6 +270,15 @@ class DecisionsRectorateAndCouncil extends Component
         $decisionsRectorateAndCouncil->delete();
 
         session()->flash('message-success', 'Запись успешно удалена!');
+    }
+
+    public function confirmDecisions($id): void
+    {
+        $decisionsRectorateAndCouncil = ModelsDecisionsRectorateAndCouncil::findOrFail($id);
+        $decisionsRectorateAndCouncil->status = 3;
+        $decisionsRectorateAndCouncil->update();
+
+        session()->flash('message-success', 'Запись успешно обновлена!');
     }
 
     public function resetFields(): void
