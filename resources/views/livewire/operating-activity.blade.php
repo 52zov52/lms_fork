@@ -18,6 +18,12 @@
     @endif
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 items-center">
+        <select wire:model="filterWeeks" wire:change="setFilterWeeks" name="filter-weeks" id="filter-week-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            <option value="0">Выберите неделю</option>
+            @foreach($weeksRange as $weekRange)
+            <option value="{{ $weekRange['date'] }}">{{ $weekRange['date'] }}</option>
+            @endforeach
+        </select>
         <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-2 text-white">
             Добавить запись
         </button>
@@ -83,17 +89,17 @@
                         </td>
                         <td class="w-40 border px-2 py-2 text-center">
                             @can('confirm-operating-activity')
-                            <button wire:click="confirmActivity({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded-full px-2 py-1.5 text-xs text-white" title="Подтверждение">
+                            <button wire:click="confirmActivity({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-2 py-1.5 text-xs text-white" title="Подтверждение">
                                 <i class="fa-solid fa-check"></i>
                             </button>
                             @endcan
-                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded-full px-2 py-1.5 text-xs text-white" title="Доп. информация">
+                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1.5 text-xs text-white" title="Доп. информация">
                                 <i class="fa-solid fa-message"></i>
                             </button>
-                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-sky-500 hover:bg-sky-600 rounded-full px-2 py-1.5 text-xs text-white" title="Редактировать">
+                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-sky-500 hover:bg-sky-600 rounded px-2 py-1.5 text-xs text-white" title="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button wire:click="destroy({{ $value->id }}, {{ $value->user_id }})" class="bg-red-500 hover:bg-red-600 rounded-full px-2 py-1.5 text-xs text-white" title="Удалить">
+                            <button wire:click="destroy({{ $value->id }}, {{ $value->user_id }})" class="bg-red-500 hover:bg-red-600 rounded px-2 py-1.5 text-xs text-white" title="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </td>
@@ -172,7 +178,7 @@
                     </div>
                     <div class="flex flex-col">
                         <label for="task-id">Задача</label>
-                        <input wire:model="task" type="text" name="task" id="task-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <textarea wire:model="task" name="task" id="task-id" cols="5" rows="2" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
                         @error('task') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
                     <div class="flex flex-col">
@@ -185,7 +191,6 @@
                             <option value="0">Выберите статус</option>
                             <option value="1">В работе</option>
                             <option value="2">На утверждение</option>
-                            <option value="3">Выполнено</option>
                         </select>
                         @error('status') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>

@@ -22,10 +22,12 @@ class OperatingActivity extends Component
     public $status = 0;
     public $file = null;
     public $userId = 0;
+    public $week = '';
 
     public $isCreatingAndEditingModalFormVisible = false, $isDescriptionModalFormVisible = false, $isFilterModalFormVisible = false;
     public $isEdit = false;
 
+    public $filterWeeks = '';
     public $filterActivityDirection = '';
     public $filterExecutor = '';
     public $filterStatus = '';
@@ -37,6 +39,7 @@ class OperatingActivity extends Component
 
     public function render()
     {
+        $weeksRange = $this->getWeeksRange();
 
         $catologActivityDirections = ModelsOperatingActivity::select('activity_direction')->distinct()->get();
         $catologExecutors = ModelsOperatingActivity::join('users_data', 'operating_activities.user_id', '=', 'users_data.user_id')
@@ -86,10 +89,23 @@ class OperatingActivity extends Component
             $operatingActivity->where('operating_activities.status', '=', $this->filterStatus);
         }
 
-        $operatingActivity = $operatingActivity->orderBy('fio')->simplePaginate(50);
+        if (!empty($this->week) && $this->week != 0) {
+            $now = Carbon::parse($this->week);
+            $weekStartDate = $now->startOfWeek()->format('Y-m-d');
+            $weekEndDate = $now->endOfWeek()->format('Y-m-d');
+
+            $operatingActivity
+                ->where('operating_activities.created_at', '>=', Carbon::parse($weekStartDate)->format('Y-m-d'))
+                ->where('operating_activities.created_at', '<=', Carbon::parse($weekEndDate)->format('Y-m-d'));
+        }
+
+        $operatingActivity = $operatingActivity
+            ->orderBy('fio')
+            ->paginate(50);
 
         return view('livewire.operating-activity', [
             'operatingActivity' => $operatingActivity,
+            'weeksRange' => $weeksRange,
             'catologActivityDirections' => $catologActivityDirections,
             'catologExecutors' => $catologExecutors,
         ]);
@@ -261,5 +277,39 @@ class OperatingActivity extends Component
         $this->description = '';
         $this->status = 0;
         $this->file = null;
+    }
+
+    public function getWeeksRange(): array
+    {
+        $weeksRange = array();
+
+        $dates = ModelsOperatingActivity::select(DB::raw("DATE_FORMAT(created_at, '%d.%m.%Y') as date"))
+            ->distinct()
+            ->orderBy('date', 'ASC')
+            ->get()
+            ->toArray();
+
+        foreach ($dates as $value) {
+            $now = Carbon::parse($value['date']);
+            $weekStartDate = $now->startOfWeek()->format('Y-m-d');
+            $weekEndDate = $now->endOfWeek()->format('Y-m-d');
+
+            array_push($weeksRange, ['date' => Carbon::parse($weekStartDate)->format('d.m.Y') . '-' . Carbon::parse($weekEndDate)->format('d.m.Y')]);
+        }
+
+        asort($weeksRange);
+
+        return $weeksRange;
+    }
+
+    public function setFilterWeeks(): void
+    {
+        $this->week = $this->splitWeekRange();
+    }
+
+    public function splitWeekRange(): string
+    {
+        $data = explode('-', $this->filterWeeks);
+        return $data[0];
     }
 }

@@ -85,18 +85,18 @@
                         </td>
                         <td class="w-36 border px-2 py-2 text-center">
                             @can('confirm-decisions-rectorate-and-council')
-                            <button wire:click="confirmDecisions({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded-full px-2 py-1.5 text-xs text-white" title="Подтверждение">
+                            <button wire:click="confirmDecisions({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-2 py-1.5 text-xs text-white" title="Подтверждение">
                                 <i class="fa-solid fa-check"></i>
                             </button>
                             @endcan
-                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded-full px-2 py-1.5 text-xs text-white" title="Доп. информация">
+                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1.5 text-xs text-white" title="Доп. информация">
                                 <i class="fa-solid fa-message"></i>
                             </button>
                             @can('decisions-rectorate-and-council')
-                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" class="bg-sky-500 hover:bg-sky-600 rounded-full px-2 py-1.5 text-xs text-white" title="Редактировать">
+                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" class="bg-sky-500 hover:bg-sky-600 rounded px-2 py-1.5 text-xs text-white" title="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button wire:click="destroy({{ $value->id }})" class="bg-red-500 hover:bg-red-600 rounded-full px-2 py-1.5 text-xs text-white" title="Удалить">
+                            <button wire:click="destroy({{ $value->id }})" class="bg-red-500 hover:bg-red-600 rounded px-2 py-1.5 text-xs text-white" title="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                             @endcan
