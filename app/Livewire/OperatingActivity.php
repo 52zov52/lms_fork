@@ -312,4 +312,15 @@ class OperatingActivity extends Component
         $data = explode('-', $this->filterWeeks);
         return $data[0];
     }
+
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function generateOperatingActivityReport()
+    {
+        return redirect()->route('generate.operating.activity.report', [
+            'week' =>  !empty($this->week) ? $this->week : 0,
+            'fio' => !empty($this->filterExecutor) ? $this->filterExecutor : 0
+        ]);
+    }
 }

@@ -30,6 +30,10 @@
         <button wire:click="filterModalFormVisible" class="block xl:hidden w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-2 text-white">
             Фильтры
         </button>
+        <button wire:click="generateOperatingActivityReport" class="block xl:hidden w-full md:w-auto bg-green-500 hover:bg-green-600 rounded px-2 py-2 text-white">
+            <i class="fa-solid fa-file-excel"></i>
+            Скачать отчет
+        </button>
     </div>
 
     <div class="w-full bg-white rounded shadow-xl p-4">
@@ -70,7 +74,12 @@
                                 <option value="2">На утверждение</option>
                                 <option value="3">Выполнено</option>
                             </select>
-                        <td class="w-auto border px-2"></td>
+                        <td class="w-auto border px-2 text-center">
+                            <button wire:click="generateOperatingActivityReport" class="bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white">
+                                <i class="fa-solid fa-file-excel"></i>
+                                Скачать отчет
+                            </button>
+                        </td>
                     </tr>
                     @foreach($operatingActivity as $value)
                     <tr>

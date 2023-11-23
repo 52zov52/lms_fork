@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Group;
-use App\Models\StudentStatusType;
+use App\Models\State;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -14,7 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('student_statuses', function (Blueprint $table) {
+        Schema::create('student_state', function (Blueprint $table) {
             $table->id();
 
             $table->foreignIdFor(User::class)
@@ -22,7 +22,7 @@ return new class extends Migration
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
 
-            $table->foreignIdFor(StudentStatusType::class)
+            $table->foreignIdFor(State::class)
                 ->constrained()
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
@@ -32,7 +32,7 @@ return new class extends Migration
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
 
-            $table->unsignedBigInteger('student_status_kis_id'); //Table name in IMBL BD dbo.Student_State
+            $table->unsignedBigInteger('student_state_kis_id'); //Table name in IMBL BD dbo.Student_State
             $table->timestamps();
             $table->softDeletes();
         });
@@ -43,6 +43,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('student_statuses');
+        Schema::dropIfExists('student_state');
     }
 };

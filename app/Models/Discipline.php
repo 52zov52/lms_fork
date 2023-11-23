@@ -12,7 +12,7 @@ class Discipline extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'discipline_name',
-        'discipline_short_name'
+        'name',
+        'short_name'
     ];
 }

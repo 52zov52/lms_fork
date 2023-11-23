@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('student_status_types', function (Blueprint $table) {
+        Schema::create('states', function (Blueprint $table) {
             $table->id();
-            $table->string('status_type_name');
-            $table->unsignedBigInteger('student_status_type_kis_id'); //Table name in IMBL BD dbo.Student_StateType
+            $table->string('name');
+            $table->unsignedBigInteger('state_kis_id'); //Table name in IMBL BD dbo.Student_StateType
             $table->timestamps();
             $table->softDeletes();
         });
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('student_status_types');
+        Schema::dropIfExists('states');
     }
 };

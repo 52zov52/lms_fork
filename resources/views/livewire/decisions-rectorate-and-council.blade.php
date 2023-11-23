@@ -18,7 +18,7 @@
     @endif
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 items-center">
-        @can('decisions-rectorate-and-council')
+        @can('create-edit-delete-decisions-rectorate-and-council')
         <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-2 text-white">
             Добавить запись
         </button>

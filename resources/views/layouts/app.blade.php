@@ -60,7 +60,7 @@
                     <span>Расписание</span>
                 </a>
             </li>
-            @role('Teacher')
+            @can('show-operating-activity-and-decisions-rectorate-and-council')
             <li class="rounded {{ (request()->routeIs('operating.activity')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('operating.activity') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                     <i class="fa-solid fa-list-check"></i>
@@ -73,7 +73,7 @@
                     <span>Решение ректората и уч. совета</span>
                 </a>
             </li>
-            @endrole
+            @endcan
             @role('Student')
             <li class="rounded {{ (request()->routeIs('document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('document.order.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
