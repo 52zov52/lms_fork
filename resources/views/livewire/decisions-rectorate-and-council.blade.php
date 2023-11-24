@@ -143,7 +143,7 @@
                         <button wire:click="descriptionModalFormVisible({{ $value->id }})" title="Доп. информация" class="w-auto grow bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-message"></i>
                         </button>
-                        @can('decisions-rectorate-and-council')
+                        @can('create-edit-delete-decisions-rectorate-and-council')
                         <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" title="Редактировать" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-pen"></i>
                         </button>
