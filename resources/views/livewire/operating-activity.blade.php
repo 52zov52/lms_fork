@@ -126,7 +126,7 @@
                 </div>
                 <div class="flex flex-col">
                     <span class="font-semibold">Исполнитель:</span>
-                    <span>{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}</span>
+                    <span>{{ $value->fio }}</span>
                 </div>
                 <div class="flex flex-col">
                     <span class="font-semibold">Задача:</span>
