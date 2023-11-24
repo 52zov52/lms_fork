@@ -294,7 +294,11 @@ class OperatingActivity extends Component
             $weekStartDate = $now->startOfWeek()->format('Y-m-d');
             $weekEndDate = $now->endOfWeek()->format('Y-m-d');
 
-            array_push($weeksRange, ['date' => Carbon::parse($weekStartDate)->format('d.m.Y') . '-' . Carbon::parse($weekEndDate)->format('d.m.Y')]);
+            $week = Carbon::parse($weekStartDate)->format('d.m.Y') . '-' . Carbon::parse($weekEndDate)->format('d.m.Y');
+            
+            if(!in_array($week, $weeksRange)) {
+                array_push($weeksRange, $week);
+            }
         }
 
         asort($weeksRange);
