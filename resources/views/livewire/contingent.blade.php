@@ -15,13 +15,15 @@
                 <tr class="bg-gray-100">
                     <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
                     <td class="w-auto border px-2 py-2 font-semibold">ФИО</td>
-                    <td class="w-auto border px-2 py-2 font-semibold">№ зачетки</td>
+                    <td class="w-64 border px-2 py-2 font-semibold">№ зачетки</td>
+                    <td class="w-64 border px-2 py-2 font-semibold">Статус</td>
                 </tr>
                 @foreach($contingent as $item)
                 <tr>
                     <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="w-auto border px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
-                    <td class="w-auto border px-2 py-2">{{ $item->ticket_number }}</td>
+                    <td class="w-64 border px-2 py-2">{{ $item->ticket_number }}</td>
+                    <td class="w-64 border px-2 py-2">{{ $item->state_name }}</td>
                 </tr>
                 @endforeach
             </tbody>

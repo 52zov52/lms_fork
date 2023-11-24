@@ -22,7 +22,6 @@ class DocumentRetrievalRequest extends Component
             ->join('groups', 'group_student.group_id', '=', 'groups.id')
             ->select(
                 'document_order_requests.id',
-                'document_order_requests.id',
                 'document_order_requests.document_type',
                 'document_order_requests.status',
                 'document_order_requests.requester_id',
