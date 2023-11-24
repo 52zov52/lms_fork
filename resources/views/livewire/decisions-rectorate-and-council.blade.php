@@ -84,7 +84,7 @@
                             @endif
                         </td>
                         <td class="w-36 border px-2 py-2 text-center">
-                            @can('confirm-decisions-rectorate-and-council')
+                            @can('create-edit-delete-decisions-rectorate-and-council')
                             <button wire:click="confirmDecisions({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-2 py-1.5 text-xs text-white" title="Подтверждение">
                                 <i class="fa-solid fa-check"></i>
                             </button>
