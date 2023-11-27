@@ -341,11 +341,11 @@ class ScheduleReportController extends Controller
             $sheet->setCellValue('A' . $offset, $value['day'] . ' ' . Carbon::parse($value['date'])->format('d/m'));
             foreach ($value['schedule']['data'] as $schedule) {
                 $sheet->setCellValue('B' . $offset, $schedule['time']);
-
-                $key = array_search($schedule['lesson_place'], $rooms);
-                if ($key != false)
-                    $sheet->setCellValue($key . $offset, 'x');
-
+                foreach ($schedule['data'] as $item) {
+                    $key = array_search($item['lesson_place'], $rooms);
+                    if ($key != false)
+                        $sheet->setCellValue($key . $offset, 'x');
+                }
                 $offset++;
             }
             $lastMergeIndex = $offset;
