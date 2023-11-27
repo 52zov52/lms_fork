@@ -32,7 +32,7 @@ class OperatingActivityReportController extends Controller
         if (!empty($week) && $week != 0) {
             $now = Carbon::parse($week);
             $weekStartDate = $now->startOfWeek()->format('Y-m-d');
-            $weekEndDate = $now->endOfWeek()->format('Y-m-d');
+            $weekEndDate = $now->endOfWeek()->addDay()->format('Y-m-d');
 
             $operatingActivity
                 ->where('operating_activities.created_at', '>=', Carbon::parse($weekStartDate)->format('Y-m-d'))

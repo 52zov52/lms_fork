@@ -92,7 +92,7 @@ class OperatingActivity extends Component
         if (!empty($this->week) && $this->week != 0) {
             $now = Carbon::parse($this->week);
             $weekStartDate = $now->startOfWeek()->format('Y-m-d');
-            $weekEndDate = $now->endOfWeek()->format('Y-m-d');
+            $weekEndDate = $now->endOfWeek()->addDay()->format('Y-m-d');
 
             $operatingActivity
                 ->where('operating_activities.created_at', '>=', Carbon::parse($weekStartDate)->format('Y-m-d'))
@@ -100,6 +100,7 @@ class OperatingActivity extends Component
         }
 
         $operatingActivity = $operatingActivity
+            ->orderBy('id')
             ->orderBy('fio')
             ->paginate(50);
 
