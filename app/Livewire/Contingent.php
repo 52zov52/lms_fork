@@ -37,7 +37,6 @@ class Contingent extends Component
             ->join('users_data', 'students_academic_leaves.user_id', '=', 'users_data.user_id')
             ->join('groups', 'students_academic_leaves.group_id', '=', 'groups.id')
             ->where('is_academic_leave', '=', 1)
-            ->where('students_academic_leaves.academic_leave_end_date', '=', Carbon::now()->format('Y-m-d'))
             ->orderBy('students_academic_leaves.academic_leave_end_date')
             ->get();
 
