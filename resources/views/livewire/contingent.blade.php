@@ -9,32 +9,68 @@
     </div>
 
     <div class="bg-white rounded shadow-xl p-4">
-        @if(!is_null($contingent) && count($contingent) != 0)
-        <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
-            <tbody>
-                <tr class="bg-gray-100">
-                    <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
-                    <td class="w-auto border px-2 py-2 font-semibold">ФИО</td>
-                    <td class="w-64 border px-2 py-2 font-semibold">№ зачетки</td>
-                    <td class="w-64 border px-2 py-2 font-semibold">Статус</td>
-                </tr>
-                @foreach($contingent as $item)
-                <tr>
-                    <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                    <td class="w-auto border px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
-                    <td class="w-64 border px-2 py-2">{{ $item->ticket_number }}</td>
-                    <td class="w-64 border px-2 py-2">{{ $item->state_name }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-        @else
-        <div class="flex items-center bg-orange-500 border-t-4 border-orange-700 rounded shadow-xl p-4 text-white" role="alert">
-            <i class="fa-solid fa-circle-exclamation fa-lg"></i>
-            <div class="ml-3 text-base font-medium">
-                Информация отсутсвует. Для отображения данных выберите группу из списка.
+        <div class="tab-wrapper px-2 py-4" x-data="{ activeTab:  0 }">
+            <ul class="flex bg-white text-sm md:text-base lg:text-base xl:text-base font-medium text-center divide-x divide-gray-200 border rounded-lg shadow-md">
+                <li class="w-full">
+                    <a href="#" @click="activeTab = 0" :class="{ 'active bg-gray-100': activeTab === 0 }" class="inline-block h-full w-full p-4 rounded-l-lg hover:bg-gray-100" aria-current="page">Списочный состав групп</a>
+                </li>
+                <li class="w-full">
+                    <a href="#" @click="activeTab = 1" :class="{ 'active bg-gray-100': activeTab === 1 }" class="inline-block h-full w-full p-4 rounded-r-lg hover:bg-gray-100" aria-current="page">В академическом отпуске</a>
+                </li>
+            </ul>
+
+            <div class="tab-panel mt-4" :class="{ 'active': activeTab === 0 }" x-show.transition.in.opacity.duration.600="activeTab === 0">
+                @if(!is_null($contingent) && count($contingent) != 0)
+                <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
+                    <tbody>
+                        <tr class="bg-gray-100">
+                            <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
+                            <td class="w-auto border px-2 py-2 font-semibold">ФИО</td>
+                            <td class="w-64 border px-2 py-2 font-semibold">№ зачетки</td>
+                            <td class="w-64 border px-2 py-2 font-semibold">Статус</td>
+                        </tr>
+                        @foreach($contingent as $item)
+                        <tr>
+                            <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
+                            <td class="w-auto border px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
+                            <td class="w-64 border px-2 py-2">{{ $item->ticket_number }}</td>
+                            <td class="w-64 border px-2 py-2">{{ $item->state_name }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                @else
+                <div class="flex items-center bg-orange-500 border-t-4 border-orange-700 rounded shadow-xl p-4 text-white" role="alert">
+                    <i class="fa-solid fa-circle-exclamation fa-lg"></i>
+                    <div class="ml-3 text-base font-medium">
+                        Информация отсутсвует. Для отображения данных выберите группу из списка.
+                    </div>
+                </div>
+                @endif
+            </div>
+
+            <div class="tab-panel mt-4" :class="{ 'active': activeTab === 1 }" x-show.transition.in.opacity.duration.600="activeTab === 1">
+                <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
+                    <tbody>
+                        <tr class="bg-gray-100">
+                            <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
+                            <td class="w-auto border px-2 py-2 font-semibold">ФИО</td>
+                            <td class="w-64 border px-2 py-2 font-semibold">Группа</td>
+                            <td class="w-64 border px-2 py-2 font-semibold">Дата выхода из академ. отпуска</td>
+                            <td class="w-64 border px-2 py-2 font-semibold">Комментарий</td>
+                        </tr>
+                        @foreach($studentsAcademicLeaves as $student)
+                        <tr>
+                            <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
+                            <td class="w-auto border px-2 py-2">{{ $student->last_name }} {{ $student->first_name }} {{ $student->middle_name }}</td>
+                            <td class="w-64 border px-2 py-2">{{ $student->group_name }}</td>
+                            <td class="w-64 border px-2 py-2">{{ \Carbon\Carbon::parse($student->academic_leave_end_date)->format('d.m.Y') }}</td>
+                            <td class="w-64 border px-2 py-2">{{ $student->description }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
-        @endif
     </div>
 </div>

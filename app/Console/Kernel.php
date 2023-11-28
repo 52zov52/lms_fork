@@ -18,7 +18,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('app:daily-report-students-academic-leave')
-            ->hourly();
+            ->dailyAt('09:00');
     }
 
     /**
