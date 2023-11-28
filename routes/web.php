@@ -25,6 +25,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('dashboard');
     })->name('dashboard');
 
+    Route::get('/elibrary', function () {
+        return view('pages.elibrary');
+    })->name('elibrary');
+
     Route::get('/schedule', function () {
         return view('pages.schedule');
     })->name('schedule');

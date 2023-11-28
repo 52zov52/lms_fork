@@ -54,6 +54,12 @@
                     <span>Система онлайн-обучения</span>
                 </a>
             </li>
+            <li class="rounded {{ (request()->routeIs('elibrary')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                <a href="{{ route('elibrary') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Электронные библиотечные системы</span>
+                </a>
+            </li>
             <li class="rounded {{ (request()->routeIs('schedule')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('schedule') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                     <i class="fa-solid fa-calendar-days"></i>
@@ -69,7 +75,7 @@
             </li>
             <li class="rounded {{ (request()->routeIs('decisions.rectorate.and.council')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('decisions.rectorate.and.council') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                <i class="fa-solid fa-feather-pointed"></i>
+                    <i class="fa-solid fa-feather-pointed"></i>
                     <span>Решение ректората и уч. совета</span>
                 </a>
             </li>
