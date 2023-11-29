@@ -9,6 +9,7 @@ class Kernel extends ConsoleKernel
 {
     protected $commands = [
         Commands\DailyReportStudentsAcademicLeave::class,
+        Commands\DailyUpdateSchedule::class,
     ];
 
     /**
@@ -19,6 +20,9 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->command('app:daily-report-students-academic-leave')
             ->dailyAt('09:00');
+
+        $schedule->command('app:daily-update-schedule')
+            ->twiceDaily(8, 18);
     }
 
     /**

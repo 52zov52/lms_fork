@@ -40,7 +40,8 @@ class DailyReportStudentsAcademicLeave extends Command
             ->join('users_data', 'students_academic_leaves.user_id', '=', 'users_data.user_id')
             ->join('groups', 'students_academic_leaves.group_id', '=', 'groups.id')
             ->where('is_academic_leave', '=', 1)
-            ->where('students_academic_leaves.academic_leave_end_date', '=', Carbon::now()->format('Y-m-d'))
+            ->where('students_academic_leaves.academic_leave_end_date', '>=', Carbon::now()->format('Y-m-d'))
+            ->where('students_academic_leaves.academic_leave_end_date', '<=', Carbon::now()->addDays(2)->format('Y-m-d'))
             ->orderBy('students_academic_leaves.academic_leave_end_date')
             ->get();
 
@@ -48,8 +49,8 @@ class DailyReportStudentsAcademicLeave extends Command
             Mail::send('emails.daily-report-students-academic-leave', [
                 'studentsAcademicLeaves' => $studentsAcademicLeaves
             ], function ($message) {
-                $message->from('iubip@mg-lab.ru', 'ИУБиП');
-                $message->to('g.miziukov@yandex.ru')->subject('Тест.');
+                $message->from('iubip@mg-lab.ru', 'ИУБиП отчет');
+                $message->to('g.miziukov@yandex.ru')->subject('Список студентов, которые должны выйти из академ. отпуска на '. Carbon::now()->format('d.m.Y'));
             });
 
             $this->info('Successfully sent report.');

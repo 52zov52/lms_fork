@@ -18,38 +18,47 @@
             margin: 0;
             width: 100%;
             font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-            font-size: 1rem;
+            font-size: 0.8rem;
             font-weight: 400;
             line-height: 1.5;
             color: #212529;
             text-align: left;
             background-color: #fafafa;
         }
+
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 0.25rem;
+        }
+        th {
+            font-weight: 600;
+        }
     </style>
 </head>
 
 <body>
-    <div style="margin-top: 50px;">
-        <table border="1">
+    <div style="margin: 0.25rem;">
+        <table style="width: 100%;">
             <body>
                 <tr>
-                    <td>№</td>
-                    <td>ФИО</td>
-                    <td>Группа</td>
-                    <td>Дата выхода из академ. отпуска</td>
-                    <td>Комментарий</td>
+                    <th>ФИО</th>
+                    <th>Группа*</th>
+                    <th>Дата выхода из академ. отпуска</th>
+                    <th>Статус</th>
                 </tr>
                 @foreach($studentsAcademicLeaves as $student)
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
                     <td>{{ $student->last_name }} {{ $student->first_name }} {{ $student->middle_name }}</td>
                     <td>{{ $student->group_name }}</td>
                     <td>{{ \Carbon\Carbon::parse($student->academic_leave_end_date)->format('d.m.Y') }}</td>
-                    <td>{{ $student->description }}</td>
+                    <td>{{ ($student->academic_leave_end_date == \Carbon\Carbon::now()->format('Y-m-d')) ? 'Сегодня' : 'Ближайшие дни' }}</td>
                 </tr>
+                <tr><td colspan="4">Комментарий: {{ $student->description }}</td></tr>
                 @endforeach
             </body>
         </table>
+        <p style="font-size: 0.75rem; line-height: 1.25rem; color: rgb(239 68 68);">*группа, в которой был студент, но с актуальным наименованием</p>
     </div>
 </body>
 
