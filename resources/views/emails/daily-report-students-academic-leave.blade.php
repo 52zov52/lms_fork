@@ -18,7 +18,7 @@
             margin: 0;
             width: 100%;
             font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-            font-size: 0.8rem;
+            font-size: 0.70rem;
             font-weight: 400;
             line-height: 1.5;
             color: #212529;
@@ -39,7 +39,7 @@
 
 <body>
     <div style="margin: 0.25rem;">
-        <table style="width: 100%;">
+        <table style="width: 100%;" border="1">
             <body>
                 <tr>
                     <th>ФИО</th>
@@ -58,7 +58,7 @@
                 @endforeach
             </body>
         </table>
-        <p style="font-size: 0.75rem; line-height: 1.25rem; color: rgb(239 68 68);">*группа, в которой был студент, но с актуальным наименованием</p>
+        <p style="line-height: 1.25rem; color: rgb(239 68 68);">*группа, в которой был студент, но с актуальным наименованием</p>
     </div>
 </body>
 
