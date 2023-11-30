@@ -17,6 +17,7 @@ class Achievement extends Model
         'description',
         'year',
         'file_path',
+        'score',
         'user_id'
     ];
 }

@@ -21,7 +21,7 @@ class Achievement extends Component
         6 => 'Прочее'
     ];
 
-    public $id, $achievementCategory, $name, $description = '', $year, $file = null;
+    public $id, $achievementCategory, $name, $description = '', $year, $file = null, $score = 0;
 
     public bool $isAchievementModalVisible = false, $isEdit = false;
 
@@ -29,9 +29,22 @@ class Achievement extends Component
     {
         $achievements = ModelsAchievement::where('user_id', '=', Auth::user()->id)->get();
 
+        $educationalScore = ModelsAchievement::where('achievement_category', '=', 1)
+            ->where('user_id', '=', Auth::user()->id)->sum('score');
+        $scientificScore = ModelsAchievement::whereIn('achievement_category', [2, 3])
+            ->where('user_id', '=', Auth::user()->id)->sum('score');
+        $extracurricularScore = ModelsAchievement::whereIn('achievement_category', [4, 5])
+            ->where('user_id', '=', Auth::user()->id)->sum('score');
+        $otherScore = ModelsAchievement::where('achievement_category', '=', 6)
+            ->where('user_id', '=', Auth::user()->id)->sum('score');
+
         return view('livewire.achievement', [
             'achievementCategories' => $this->achievementCategories,
-            'achievements' => $achievements
+            'achievements' => $achievements,
+            'educationalScore' => $educationalScore,
+            'scientificScore' => $scientificScore,
+            'extracurricularScore' => $extracurricularScore,
+            'otherScore' => $otherScore,
         ]);
     }
 
@@ -57,12 +70,34 @@ class Achievement extends Component
 
         $filename = $this->file->store('achievement' . '/' . Carbon::now()->format('Y-m-d'), 'public');
 
+        switch ($this->achievementCategory) {
+            case 1:
+                $this->score = 10;
+                break;
+            case 2:
+                $this->score = 5;
+                break;
+            case 3:
+                $this->score = 5;
+                break;
+            case 4:
+                $this->score = 5;
+                break;
+            case 5:
+                $this->score = 15;
+                break;
+            default:
+                $this->score = 1;
+                break;
+        }
+
         ModelsAchievement::create([
             'achievement_category' => $this->achievementCategory,
             'name' => $this->name,
             'description' => $this->description,
             'year' => $this->year,
             'file_path' => $filename,
+            'score' => $this->score,
             'user_id' => Auth::user()->id
         ]);
 
@@ -102,6 +137,27 @@ class Achievement extends Component
             ]);
         }
 
+        switch ($this->achievementCategory) {
+            case 1:
+                $this->score = 10;
+                break;
+            case 2:
+                $this->score = 5;
+                break;
+            case 3:
+                $this->score = 5;
+                break;
+            case 4:
+                $this->score = 5;
+                break;
+            case 5:
+                $this->score = 15;
+                break;
+            default:
+                $this->score = 1;
+                break;
+        }
+
         $achievement = ModelsAchievement::findOrFail($this->id);
         $achievement->achievement_category = $this->achievementCategory;
         $achievement->name = $this->name;
@@ -114,6 +170,7 @@ class Achievement extends Component
             $achievement->file_path = $filename;
         }
 
+        $achievement->score = $this->score;
         $achievement->update();
 
         $this->resetFields();

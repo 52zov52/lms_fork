@@ -11,12 +11,21 @@
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
         <button wire:click="achievementModalVisible(false)" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-2 text-white">Добавить индивидуальное достижение</button>
     </div>
+    
+    @role('Student')
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+        <span class="bg-green-500 rounded px-2 py-1 text-white font-semibold">Учебная: {{ $educationalScore }} балл(ов)</span>
+        <span class="bg-blue-500 rounded px-2 py-1 text-white font-semibold">Научна: {{ $scientificScore }} балл(ов)</span>
+        <span class="bg-orange-500 rounded px-2 py-1 text-white font-semibold">Внеучебная: {{ $extracurricularScore }} балл(ов)</span>
+        <span class="bg-gray-500 rounded px-2 py-1 text-white font-semibold">Прочее: {{ $otherScore }} балл(ов)</span>
+    </div>
+    @endrole
 
     <div class="bg-white rounded shadow-xl p-4">
         @if(!$achievements->isEmpty())
         <!-- PC, notebook, tablet -->
         <div class="hidden md:block">
-            <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
+            <table class="w-full bg-white border shadow-md text-xs md:text-sm">
                 <tbody>
                     <tr class="bg-gray-100">
                         <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
@@ -24,8 +33,7 @@
                         <td class="w-auto border px-2 py-2 font-semibold">Наименование</td>
                         <td class="w-auto border px-2 py-2 font-semibold">Описание</td>
                         <td class="w-auto border px-2 py-2 text-center font-semibold">Год</td>
-                        <td class="w-auto border px-2 py-2 text-center font-semibold">Файл</td>
-                        <td class="w-auto border px-2 py-2 text-center font-semibold">Действия</td>
+                        <td class="w-36 border px-2 py-2 text-center font-semibold">Действия</td>
                     </tr>
                     @foreach($achievements as $item)
                     <tr>
@@ -48,14 +56,14 @@
                         <td class="w-auto border px-2 py-2">{{ $item->name }}</td>
                         <td class="w-auto border px-2 py-2">{{ $item->description }}</td>
                         <td class="w-auto border px-2 py-2 text-center">{{ $item->year }}</td>
-                        <td class="w-auto border px-2 py-2 text-center">
-                            <a href="storage/{{ $item->file_path }}" target="_blank" rel="noopener noreferrer">Скачать</a>
-                        </td>
-                        <td class="w-auto border px-2 py-2 text-center">
-                            <button wire:click="edit({{ $item->id }}, true)" title="Редактировать">
+                        <td class="w-36 border px-2 py-2 text-center">
+                            <a href="storage/{{ $item->file_path }}" target="_blank" class="mr-1 bg-violet-500 hover:bg-violet-600 rounded px-2 py-1.5 text-xs text-white" title="Скачать">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </a>
+                            <button wire:click="edit({{ $item->id }}, true)" class="bg-sky-500 hover:bg-sky-600 rounded px-2 py-1.5 text-xs text-white" title="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button wire:click="destroy({{ $item->id }})" title="Удалить">
+                            <button wire:click="destroy({{ $item->id }})" class="bg-red-500 hover:bg-red-600 rounded px-2 py-1.5 text-xs text-white" title="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </td>
@@ -102,11 +110,14 @@
                 </div>
                 <div class="flex flex-col">
                     <span class="font-semibold">Действия:</span>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button wire:click="edit({{ $item->id }}, true)" title="Редактировать" class="w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                    <div class="grid grid-cols-3 gap-2">
+                        <a href="storage/{{ $item->file_path }}" target="_blank" class="w-auto grow bg-violet-500 hover:bg-violet-600 rounded px-2 py-1.5 text-xs text-white text-center" title="Скачать">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </a>
+                        <button wire:click="edit({{ $item->id }}, true)" title="Редактировать" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button wire:click="destroy({{ $item->id }})" title="Удалить" class="w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                        <button wire:click="destroy({{ $item->id }})" title="Удалить" class="w-auto grow bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>

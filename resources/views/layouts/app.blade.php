@@ -36,9 +36,14 @@
             </button>
         </div>
 
-        <div class="mt-2 flex flex-col items-center font-semibold">
-            <span>{{ auth()->user()->userData->last_name }}</span>
-            <span>{{ auth()->user()->userData->first_name }} {{ auth()->user()->userData->middle_name }}</span>
+        <div class="mt-2 flex flex-col space-y-2 items-center font-semibold">
+            <div class="flex flex-col items-center font-semibold">
+                <span>{{ auth()->user()->userData->last_name }}</span>
+                <span>{{ auth()->user()->userData->first_name }} {{ auth()->user()->userData->middle_name }}</span>
+            </div>
+            @role('Student')
+                @livewire('components.portfolio-rating')
+            @endrole
         </div>
 
         <ul class="mt-2 flex flex-col space-y-1">
