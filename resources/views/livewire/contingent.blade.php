@@ -58,6 +58,7 @@
                             <td class="w-64 border px-2 py-2 font-semibold">Группа</td>
                             <td class="w-64 border px-2 py-2 font-semibold">Дата выхода из академ. отпуска</td>
                             <td class="w-64 border px-2 py-2 font-semibold">Комментарий</td>
+                            <td>Действия</td>
                         </tr>
                         @foreach($studentsAcademicLeaves as $student)
                         <tr>
@@ -66,6 +67,7 @@
                             <td class="w-64 border px-2 py-2">{{ $student->group_name }}</td>
                             <td class="w-64 border px-2 py-2">{{ \Carbon\Carbon::parse($student->academic_leave_end_date)->format('d.m.Y') }}</td>
                             <td class="w-64 border px-2 py-2">{{ $student->description }}</td>
+                            <td><button wire:click="spravka301({{ $student->id }})">print 301</button></td>
                         </tr>
                         @endforeach
                     </tbody>

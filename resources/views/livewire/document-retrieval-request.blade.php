@@ -40,9 +40,9 @@
                         <td class="w-auto border px-2 py-2">{{ $item->group_name }}</td>
                         <td class="w-auto border px-2 py-2">
                             @if($item->document_type == 1)
-                            <span>Справка об обучении</span>
+                            <span>Справка о статусе студента</span>
                             @else
-                            <span>Справка об обучении (для транспортных карт)</span>
+                            <span>Справка о статусе студента (для транспортных карт)</span>
                             @endif
                         </td>
                         <td class="w-32 border px-2 py-2 text-center">
@@ -89,9 +89,9 @@
                 <div class="flex flex-col">
                     <span class="font-semibold">Тип документа:</span>
                     @if($item->document_type == 1)
-                    <span>Справка об обучении</span>
+                    <span>Справка о статусе студента</span>
                     @else
-                    <span>Справка об обучении (для транспортных карт)</span>
+                    <span>Справка о статусе студента (для транспортных карт)</span>
                     @endif
                 </div>
                 <div class="flex flex-col">

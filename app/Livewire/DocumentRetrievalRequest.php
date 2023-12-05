@@ -118,6 +118,18 @@ class DocumentRetrievalRequest extends Component
             $this->isBudget = $confirmedDocumentRequest->is_budget;
         }
 
+        switch ($this->teachingFormName) {
+            case 'Очная':
+                $this->teachingFormName = 'очной';
+                break;
+            case 'Заочная':
+                $this->teachingFormName = 'заочной';
+                break;
+            default:
+                $this->teachingFormName = 'очно-заочной';
+                break;
+        }
+
         $this->isDocumentOrderRequestModalVisible = true;
     }
 
@@ -156,8 +168,9 @@ class DocumentRetrievalRequest extends Component
             ]);
 
             $documentOrderRequest = DocumentOrderRequest::findOrFail($this->documentOrderRequestId);
-            $documentOrderRequest->document_number = (DocumentOrderRequest::where('status', '=', 2)->count() + 1);
+            $documentOrderRequest->document_number = (DocumentOrderRequest::where('status', '=', 2)->orWhere('status', '=', 4)->count() + 1);
             $documentOrderRequest->status = 2;
+            $documentOrderRequest->confirmed_date = Carbon::now();
             $documentOrderRequest->update();
 
             session()->flash('message-success', 'Заявка успешно подтверждена!');
@@ -173,18 +186,24 @@ class DocumentRetrievalRequest extends Component
      */
     public function printDocument($documentOrderRequestId)
     {
-        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('id', '=', $documentOrderRequestId)->first();
+        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('document_order_request_id', '=', $documentOrderRequestId)->first();
 
         if (is_null($confirmedDocumentRequest)) {
             session()->flash('message-error', 'Перед печатью бланка заявка должна быть подтверждена!');
         } else {
+            $documentOrderRequest = DocumentOrderRequest::findOrFail($documentOrderRequestId);
+            if (is_null($documentOrderRequest->print_date)) {
+                $documentOrderRequest->print_date = Carbon::now();
+                $documentOrderRequest->update();
+            }
+
             return redirect()->route('print.document', ['id' => $documentOrderRequestId]);
         }
     }
 
     public function confirmRetrievalRequest($documentOrderRequestId): void
     {
-        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('id', '=', $documentOrderRequestId)->first();
+        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('document_order_request_id', '=', $documentOrderRequestId)->first();
 
         if (is_null($confirmedDocumentRequest)) {
             session()->flash('message-error', 'Перед подтверждением выдачи документа, должны быть подтверждены данные в заявке!');

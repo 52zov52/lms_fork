@@ -20,7 +20,7 @@
 <body class="min-h-screen bg-gray-100 text-gray-600 font-sans font-light antialiased relative lg:flex" x-data="{open: false}">
 
     <!-- Nav -->
-    <nav class="absolute lg:relative z-10 lg:z-0 flex-shrink-0 w-72 h-screen bg-white border border-r-gray-300 shadow-xl px-2 py-4 inset-0 transform lg:transform-none lg:opacity-100 duration-200" :class="{'translate-x-0 ease-in opacity-100':open === true, '-translate-x-full ease-out opacity-0':open === false}">
+    <nav class="absolute lg:relative z-10 lg:z-0 flex-shrink-0 w-80 h-screen bg-white border border-r-gray-300 shadow-xl px-1 py-4 inset-0 transform lg:transform-none lg:opacity-100 duration-200" :class="{'translate-x-0 ease-in opacity-100':open === true, '-translate-x-full ease-out opacity-0':open === false}">
         <!-- Logo -->
         <div class="hidden lg:block">
             <a class="flex flex-col items-center" href="{{ route('login') }}">
@@ -85,19 +85,17 @@
                 </a>
             </li>
             @endcan
-            @role('Admin')
+            @can('confirm-retrieval-doc')
             <li class="rounded {{ (request()->routeIs('document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('document.order.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                     <i class="fa-solid fa-file-invoice"></i>
                     <span>Заказ документов (справок)</span>
                 </a>
             </li>
-            @endrole
-            @can('confirm-retrieval-doc')
             <li class="rounded {{ (request()->routeIs('document.retrieval.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                 <a href="{{ route('document.retrieval.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                     <i class="fa-solid fa-file-import"></i>
-                    <span>Заявки на документы (справки)</span>
+                    <span class="flex">Заявки на документы (справки) @livewire('components.application-counter')</span>
                 </a>
             </li>
             @endcan

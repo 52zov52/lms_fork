@@ -4,10 +4,14 @@ namespace App\Livewire;
 
 use App\Models\Group;
 use App\Models\GroupStudent;
+use App\Models\Speciality;
 use App\Models\StudentsAcademicLeave;
+use App\Models\StudyPlan;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use PhpOffice\PhpWord\TemplateProcessor;
 use PHPUnit\Framework\Constraint\IsEmpty;
 
 class Contingent extends Component
@@ -41,7 +45,7 @@ class Contingent extends Component
             ->get();
 
         return view('livewire.contingent', [
-            'groups' => $groups, 
+            'groups' => $groups,
             'contingent' => $this->contingent,
             'studentsAcademicLeaves' => $studentsAcademicLeaves
         ]);
@@ -62,5 +66,10 @@ class Contingent extends Component
             ->where('group_student.group_id', '=', $this->groupId)
             ->orderBy('users_data.last_name', 'asc')
             ->get();
+    }
+
+    public function spravka301($id)
+    {
+        return redirect()->route('spravka301', ['id' => $id]);
     }
 }

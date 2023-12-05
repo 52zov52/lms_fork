@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\OperatingActivityReportController;
 use App\Http\Controllers\PrintConfirmedDocumentRequestsController;
+use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleReportController;
 
@@ -54,6 +55,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/contingent', function () {
         return view('pages.contingent');
     })->name('contingent');
+
+    Route::get('/print-spravka301/{id}', [PrintDocumentsStudentsAcademicLeaves::class, 'spravka301'])->name('spravka301');
 
     Route::get('/achievement', function () {
         return view('pages.achievement');
