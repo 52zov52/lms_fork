@@ -47,7 +47,7 @@
                 </tr>
                 <tr>
                     <td>{{ $countRequestSPO }}</td>
-                    <td>{{ $scountRequestVO }}</td>
+                    <td>{{ $countRequestVO }}</td>
                 </tr>
             </body>
         </table>
