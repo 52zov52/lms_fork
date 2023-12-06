@@ -23,6 +23,9 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('app:daily-update-schedule')
             ->twiceDaily(8, 18);
+
+        $schedule->command('app:daily-report-on-student-certificates')
+            ->dailyAt('15:30');
     }
 
     /**

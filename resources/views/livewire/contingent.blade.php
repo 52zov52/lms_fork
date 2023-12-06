@@ -50,7 +50,7 @@
             </div>
 
             <div class="tab-panel mt-4" :class="{ 'active': activeTab === 1 }" x-show.transition.in.opacity.duration.600="activeTab === 1">
-                @can('confirm-retrieval-doc')
+                @can('access-to-data-on-students-academic-leaves')
                 <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
                     <tbody>
                         <tr class="bg-gray-100">

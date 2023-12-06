@@ -42,99 +42,101 @@
                 <span>{{ auth()->user()->userData->first_name }} {{ auth()->user()->userData->middle_name }}</span>
             </div>
             @role('Student')
-                @livewire('components.portfolio-rating')
+            @livewire('components.portfolio-rating')
             @endrole
         </div>
 
-        <ul class="mt-2 flex flex-col space-y-1">
-            <li class="rounded {{ (request()->routeIs('dashboard')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('dashboard') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-house"></i>
-                    <span>Главная</span>
-                </a>
-            </li>
-            <li class="rounded hover:bg-blue-500 hover:text-white">
-                <a href="https://eiosiubip.ru/login/index.php" target="_blank" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                    <span>Система онлайн-обучения</span>
-                </a>
-            </li>
-            <li class="rounded {{ (request()->routeIs('elibrary')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('elibrary') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-book"></i>
-                    <span>Электронные библиотечные системы</span>
-                </a>
-            </li>
-            <li class="rounded {{ (request()->routeIs('schedule')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('schedule') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    <span>Расписание</span>
-                </a>
-            </li>
-            @can('show-operating-activity-and-decisions-rectorate-and-council')
-            <li class="rounded {{ (request()->routeIs('operating.activity')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('operating.activity') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-list-check"></i>
-                    <span>Операционная деятельность</span>
-                </a>
-            </li>
-            <li class="rounded {{ (request()->routeIs('decisions.rectorate.and.council')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('decisions.rectorate.and.council') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-feather-pointed"></i>
-                    <span>Решение ректората и уч. совета</span>
-                </a>
-            </li>
-            @endcan
-            @can('confirm-retrieval-doc')
-            <li class="rounded {{ (request()->routeIs('document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('document.order.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-file-invoice"></i>
-                    <span>Заказ документов (справок)</span>
-                </a>
-            </li>
-            <li class="rounded {{ (request()->routeIs('document.retrieval.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('document.retrieval.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-file-import"></i>
-                    <span class="flex">Заявки на документы (справки) @livewire('components.application-counter')</span>
-                </a>
-            </li>
-            @endcan
-            @role('Teacher')
-            <li class="rounded {{ (request()->routeIs('contingent')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('contingent') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-user-group"></i>
-                    <span>Контингент</span>
-                </a>
-            </li>
-            @endrole
-            <li class="rounded {{ (request()->routeIs('achievement')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('achievement') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-award"></i>
-                    <span>Портфолио</span>
-                </a>
-            </li>
-            <li class="rounded {{ (request()->routeIs('reports')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('reports') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-chart-simple"></i>
-                    <span>Отчеты и аналитика</span>
-                </a>
-            </li>
-            <li class="rounded {{ (request()->routeIs('feedback')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                <a href="{{ route('feedback') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                    <i class="fa-solid fa-comment"></i>
-                    <span>Поддержка</span>
-                </a>
-            </li>
-            <li class="rounded hover:bg-blue-500 hover:text-white">
-                <form method="POST" action="{{ route('logout') }}" x-data>
-                    @csrf
-                    <a @click.prevent="$root.submit();" href="{{ route('logout') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span>Выход</span>
+        <div style="height: calc(100vh - 160px);" class="overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+            <ul class="mt-2 flex flex-col space-y-1">
+                <li class="rounded {{ (request()->routeIs('dashboard')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('dashboard') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Главная</span>
                     </a>
-                </form>
-            </li>
-        </ul>
+                </li>
+                <li class="rounded hover:bg-blue-500 hover:text-white">
+                    <a href="https://eiosiubip.ru/login/index.php" target="_blank" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>Система онлайн-обучения</span>
+                    </a>
+                </li>
+                <li class="rounded {{ (request()->routeIs('elibrary')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('elibrary') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-book"></i>
+                        <span>Электронные библиотечные системы</span>
+                    </a>
+                </li>
+                <li class="rounded {{ (request()->routeIs('schedule')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('schedule') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <span>Расписание</span>
+                    </a>
+                </li>
+                @can('show-operating-activity-and-decisions-rectorate-and-council')
+                <li class="rounded {{ (request()->routeIs('operating.activity')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('operating.activity') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Операционная деятельность</span>
+                    </a>
+                </li>
+                <li class="rounded {{ (request()->routeIs('decisions.rectorate.and.council')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('decisions.rectorate.and.council') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-feather-pointed"></i>
+                        <span>Решение ректората и уч. совета</span>
+                    </a>
+                </li>
+                @endcan
+                @canany(['access-to-student-requests-for-certificates-full', 'access-to-student-requests-for-certificates-spo', 'access-to-student-requests-for-certificates-vo'])
+                <li class="rounded {{ (request()->routeIs('document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('document.order.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <span>Заказ документов (справок)</span>
+                    </a>
+                </li>
+                <li class="rounded {{ (request()->routeIs('document.retrieval.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('document.retrieval.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-file-import"></i>
+                        <span class="flex">Заявки на документы (справки) @livewire('components.application-counter')</span>
+                    </a>
+                </li>
+                @endcan
+                @role('Teacher')
+                <li class="rounded {{ (request()->routeIs('contingent')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('contingent') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-user-group"></i>
+                        <span>Контингент</span>
+                    </a>
+                </li>
+                @endrole
+                <li class="rounded {{ (request()->routeIs('achievement')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('achievement') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-award"></i>
+                        <span>Портфолио</span>
+                    </a>
+                </li>
+                <li class="rounded {{ (request()->routeIs('reports')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('reports') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        <span>Отчеты и аналитика</span>
+                    </a>
+                </li>
+                <li class="rounded {{ (request()->routeIs('feedback')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('feedback') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-comment"></i>
+                        <span>Поддержка</span>
+                    </a>
+                </li>
+                <li class="rounded hover:bg-blue-500 hover:text-white">
+                    <form method="POST" action="{{ route('logout') }}" x-data>
+                        @csrf
+                        <a @click.prevent="$root.submit();" href="{{ route('logout') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Выход</span>
+                        </a>
+                    </form>
+                </li>
+            </ul>
+        </div>
     </nav>
 
     <div class="relative z-0 h-screen lg:flex-grow overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
