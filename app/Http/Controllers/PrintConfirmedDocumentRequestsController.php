@@ -24,7 +24,7 @@ class PrintConfirmedDocumentRequestsController extends Controller
         $filename = time() . '.docx';
 
         $templateProcessor = new TemplateProcessor($path);
-        $templateProcessor->setValue('date', Carbon::parse($documentOrderRequest->issue_date)->format('d.m.Y'));
+        $templateProcessor->setValue('date', Carbon::parse($documentOrderRequest->confirmed_date)->format('d.m.Y'));
         $templateProcessor->setValue('number', $documentOrderRequest->document_number . '-эл.');
         $templateProcessor->setValue('last_name', $confirmedDocumentRequest->last_name);
         $templateProcessor->setValue('first_name', $confirmedDocumentRequest->first_name);
