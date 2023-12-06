@@ -26,6 +26,10 @@
             background-color: #fafafa;
         }
 
+        .text-center {
+            text-align: center;
+        }
+
         table, th, td {
             border: 1px solid black;
             border-collapse: collapse;
@@ -46,8 +50,8 @@
                     <th>Кол-во заявок ВО</th>
                 </tr>
                 <tr>
-                    <td>{{ $countRequestSPO }}</td>
-                    <td>{{ $countRequestVO }}</td>
+                    <td class="text-center">{{ $countRequestSPO }}</td>
+                    <td class="text-center">{{ $countRequestVO }}</td>
                 </tr>
             </body>
         </table>

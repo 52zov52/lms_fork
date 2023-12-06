@@ -35,7 +35,7 @@ class DailyReportOnStudentCertificates extends Command
             ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
             ->where('specialities.level_education_id', '=', 2)
             ->where('document_order_requests.status', '=', 1)
-            ->where('document_order_requests.created_at', '=', Carbon::now()->format('Y-m-d'))
+            ->where('document_order_requests.created_at', '=', Carbon::now()->format('Y-m-d').'%')
             ->count();
 
         $countRequestVO = DocumentOrderRequest::join('users', 'document_order_requests.requester_id', '=', 'users.id')
@@ -44,7 +44,7 @@ class DailyReportOnStudentCertificates extends Command
             ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
             ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
             ->where('specialities.level_education_id', '<>', 2)
-            ->where('document_order_requests.created_at', '=', Carbon::now()->format('Y-m-d'))
+            ->where('document_order_requests.created_at', '=', Carbon::now()->format('Y-m-d').'%')
             ->where('document_order_requests.status', '=', 1)
             ->count();
 
