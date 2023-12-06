@@ -48,12 +48,14 @@ class DailyReportOnStudentCertificates extends Command
             ->where('document_order_requests.status', '=', 1)
             ->count();
 
-        Mail::send('emails.daily-report-students-academic-leave', [
+        Mail::send('emails.daily-report-on-student-certificates', [
             'countRequestSPO' => $countRequestSPO,
             'countRequestVO' => $countRequestVO
         ], function ($message) {
             $message->from('iubip@mg-lab.ru', 'ИУБиП отчет по справкам о статусе студента');
             $message->to('miziukov@iubip.ru')->subject('Количество заявок от студентов на справки о статусе студента на ' . Carbon::now()->format('d.m.Y'));
         });
+
+        $this->info('Successfully sent report.');
     }
 }
