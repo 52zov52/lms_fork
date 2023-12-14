@@ -72,4 +72,12 @@ class Report extends Component
     {
         return redirect()->route('generate.load.rooms.report', ['week' => $this->week]);
     }
+
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function generateContingentReport()
+    {
+        return redirect()->route('generate.contingent.report');
+    }
 }

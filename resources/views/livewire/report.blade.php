@@ -8,6 +8,10 @@
             <li><a wire:click="roomsModalVisible" href="#" class="hover:font-semibold hover:underline">Отчет по загруженности аудиторий</a></li>
             @endrole
         </ul>
+        <h2 class="font-semibold">Контингент:</h2>
+        <ul class="list-disc px-4">
+            <li><a wire:click="generateContingentReport" href="#">Отчет по контингенту</a></li>
+        </ul>
     </div>
 
     <!-- Modal dialog schedule by teacher -->

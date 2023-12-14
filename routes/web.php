@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\ContingentReportController;
 use App\Http\Controllers\OperatingActivityReportController;
 use App\Http\Controllers\PrintConfirmedDocumentRequestsController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
+use App\Http\Controllers\QrCodeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleReportController;
 
@@ -70,9 +72,13 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.feedback-message');
     })->name('feedback');
 
+    Route::get('/generate-qr-code', [QrCodeController::class, 'generateQrCode'])->name('generate.qr.code');
+
     Route::get('/generate-teacher-report/{fio}', [ScheduleReportController::class, 'generateTeacherReport'])->name('generate.teacher.report');
     Route::get('/generate-group-report/{group}', [ScheduleReportController::class, 'generateGroupReport'])->name('generate.group.report');
     Route::get('/generate-load-rooms-report/{week}', [ScheduleReportController::class, 'generateLoadRoomsReport'])->name('generate.load.rooms.report');
 
     Route::get('/generate-operating-activity-report/{week}/{fio}', [OperatingActivityReportController::class, 'generateOperatingActivityReport'])->name('generate.operating.activity.report');
+
+    Route::get('/generate-contingent-report', [ContingentReportController::class, 'generateContingentReport'])->name('generate.contingent.report');
 });
