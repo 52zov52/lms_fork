@@ -56,7 +56,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
 
             $table->string('users_address_kis_id'); //Table name in IMBL BD dbo.UserAdress
-            $table->unsignedBigInteger('adress_kis_id'); //Table name in IMBL BD dbo.Adress
+            $table->unsignedBigInteger('address_kis_id'); //Table name in IMBL BD dbo.Adress
             $table->timestamps();
             $table->softDeletes();
         });
