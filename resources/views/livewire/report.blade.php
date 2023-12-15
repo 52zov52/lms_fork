@@ -8,9 +8,9 @@
             <li><a wire:click="roomsModalVisible" href="#" class="hover:font-semibold hover:underline">Отчет по загруженности аудиторий</a></li>
             @endrole
         </ul>
-        <h2 class="font-semibold">Контингент:</h2>
+        <h2 class="mt-2 font-semibold">Контингент:</h2>
         <ul class="list-disc px-4">
-            <li><a wire:click="generateContingentReport" href="#">Отчет по контингенту</a></li>
+            <li><a wire:click="generateContingentReport" href="#"  class="hover:font-semibold hover:underline">Отчет по контингенту</a></li>
         </ul>
     </div>
 

@@ -21,154 +21,185 @@ class ContingentReportController extends Controller
 
     ];
 
-    public $firstCourseGroupId = array();
-    public $secondCourseGroupId = array();
-    public $thirdCourseGroupId = array();
-    public $fourthCourseGroupId = array();
-    public $fiveCourseGroupId = array();
-    public $sixCourseGroupId = array();
-
-    public $firstYearStudents = 0, $secondYearStudents = 0, $thirdYearStudents = 0, $fourthYearStudents = 0, $fiveYearStudents = 0, $sixYearStudents = 0;
-    public $totalStudentsOnCourses = 0;
-
-    public $collegeGroupId = array();
-    public $bachelorGroupId = array();
-    public $masterGroupId = array();
-
-    public $collegeFullTimeGroupId = array();
-
-    public $bachelorFullTimeGroupId = array();
-    public $bachelorPartTimeGroupId = array();
-    public $bachelorFullPartTimeGroupId = array();
-
-    public $masterFullTimeGroupId = array();
-    public $masterPartTimeGroupId = array();
-    public $masterFullPartTimeGroupId = array();
+    public $sumFirstCourse = 0, $sumSecondCourse = 0, $sumThirdCourse = 0, $sumFourthCourse = 0, $sumFiveCourse = 0;
+    public $totalSumFirstCourse = 0, $totalSumSecondCourse = 0, $totalSumThirdCourse = 0, $totalSumFourthCourse = 0, $totalSumFiveCourse = 0;
 
     public function generateContingentReport()
     {
-        /*
-        $data = Group::select('groups.id', 'groups.course', 'specialities.level_education_id', 'study_plans.teaching_form_id')
+        $data = DB::table('groups')
+            ->leftJoin('group_student', 'groups.id', '=', 'group_student.group_id')
             ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
             ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
-            ->whereIn('groups.id', $this->groupId)
-            ->get();
-        */
-
-        $data = DB::table('groups')->select(
-            'groups.group_name',
-            'groups.course',
-            DB::raw("(SELECT COUNT(group_student.id) FROM group_student INNER JOIN groups ON group_student.group_id = groups.id WHERE group_student.group_id = groups.id) as count_students")
-        )
-            ->whereIn('groups.id', $this->groupId)
-            ->get();
-
-        $results = DB::table('groups')
-            ->join('group_student', 'groups.id', '=', 'group_student.group_id')
-            ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
-            ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
-            ->select('groups.id', 'groups.group_name', 'groups.course', DB::raw('COUNT(group_student.user_id) as student_count'), 'specialities.level_education_id', 'study_plans.teaching_form_id')
+            ->select(
+                'groups.id',
+                'groups.group_name',
+                'groups.course',
+                DB::raw('COUNT(group_student.user_id) as student_count'),
+                'specialities.speciality_name',
+                'specialities.specialty_code',
+                'specialities.level_education_id',
+                'study_plans.teaching_form_id'
+            )
             ->whereIn('groups.id', $this->groupId)
             ->groupBy('groups.id', 'groups.group_name', 'groups.course')
+            ->orderBy('specialities.specialty_code')
+            ->orderBy('groups.course')
             ->get();
 
-        dd($results);
-        die();
-        /*
-            2 - СПО
-            6 - Бак
-            7 - Маг 
-        */
+        $bachelor = $this->getDataBylevelEducation($data, 6);
+        $master = $this->getDataBylevelEducation($data, 7);
+        $college = $this->getDataBylevelEducation($data, 2);
+
+        $results = array($bachelor, $master, $college);
+
+        //dd($results);die();
+
+        $filename = time() . '.xlsx';
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $offsetStart = 1;
+        $offsetCurrent = 1;
+
+        $lastRecord = "";
+
+        for ($i = 0; $i < count($results); $i++) {
+            $sheet->setCellValue('A' . $offsetCurrent, 'Группа');
+            $sheet->setCellValue('B' . $offsetCurrent, '1 курс');
+            $sheet->setCellValue('C' . $offsetCurrent, '2 курс');
+            $sheet->setCellValue('D' . $offsetCurrent, '3 курс');
+            $sheet->setCellValue('E' . $offsetCurrent, '4 курс');
+            $sheet->setCellValue('F' . $offsetCurrent, '5 курс');
+
+            $sheet->getStyle('A' . $offsetCurrent . ':F' . $offsetCurrent)->getFont()->setBold(true);
+
+            $offsetCurrent++;
+            foreach ($results[$i] as $key => $value) {
+
+                if ($lastRecord == "") {
+                    $lastRecord = $value->specialty_code . ' ' . $value->speciality_name;
+                } elseif ($lastRecord != $value->specialty_code . ' ' . $value->speciality_name) {
+                    $sheet->setCellValue('A' . $offsetCurrent, $lastRecord);
+                    $sheet->setCellValue('B' . $offsetCurrent, $this->sumFirstCourse);
+                    $sheet->setCellValue('C' . $offsetCurrent, $this->sumSecondCourse);
+                    $sheet->setCellValue('D' . $offsetCurrent, $this->sumThirdCourse);
+                    $sheet->setCellValue('E' . $offsetCurrent, $this->sumFourthCourse);
+                    $sheet->setCellValue('F' . $offsetCurrent, $this->sumFiveCourse);
+
+                    $this->sumFirstCourse = 0; $this->sumSecondCourse = 0; $this->sumThirdCourse = 0; $this->sumFourthCourse = 0; $this->sumFiveCourse = 0;
+
+                    $offsetCurrent++;
+
+                    $lastRecord = "";
+                }
+
+                $sheet->setCellValue('A' . $offsetCurrent, $value->group_name);
+                switch ($value->course) {
+                    case 1:
+                        $sheet->setCellValue('B' . $offsetCurrent, $value->student_count);
+                        $this->sumFirstCourse += $value->student_count;
+                        $this->totalSumFirstCourse += $value->student_count;
+                        break;
+                    case 2:
+                        $sheet->setCellValue('C' . $offsetCurrent, $value->student_count);
+                        $this->sumSecondCourse += $value->student_count;
+                        $this->totalSumSecondCourse += $value->student_count;
+                        break;
+                    case 3:
+                        $sheet->setCellValue('D' . $offsetCurrent, $value->student_count);
+                        $this->sumThirdCourse += $value->student_count;
+                        $this->totalSumThirdCourse += $value->student_count;
+                        break;
+                    case 4:
+                        $sheet->setCellValue('E' . $offsetCurrent, $value->student_count);
+                        $this->sumFourthCourse += $value->student_count;
+                        $this->totalSumFourthCourse += $value->student_count;
+                        break;
+                    case 5:
+                        $sheet->setCellValue('F' . $offsetCurrent, $value->student_count);
+                        $this->sumFiveCourse += $value->student_count;
+                        $this->totalSumFiveCourse += $value->student_count;
+                        break;
+                    default:
+                        break;
+                }
+
+                $offsetCurrent++;
+            }
+
+            $sheet->setCellValue('A' . $offsetCurrent, $lastRecord);
+            $sheet->setCellValue('B' . $offsetCurrent, $this->sumFirstCourse);
+            $sheet->setCellValue('C' . $offsetCurrent, $this->sumSecondCourse);
+            $sheet->setCellValue('D' . $offsetCurrent, $this->sumThirdCourse);
+            $sheet->setCellValue('E' . $offsetCurrent, $this->sumFourthCourse);
+            $sheet->setCellValue('F' . $offsetCurrent, $this->sumFiveCourse);
+
+            $this->sumFirstCourse = 0; $this->sumSecondCourse = 0; $this->sumThirdCourse = 0; $this->sumFourthCourse = 0; $this->sumFiveCourse = 0;
+
+            $offsetCurrent++;
+
+            $lastRecord = "";
+
+            $sheet->setCellValue('A' . $offsetCurrent, 'Всего');
+            $sheet->setCellValue('B' . $offsetCurrent, $this->totalSumFirstCourse);
+            $sheet->setCellValue('C' . $offsetCurrent, $this->totalSumSecondCourse);
+            $sheet->setCellValue('D' . $offsetCurrent, $this->totalSumThirdCourse);
+            $sheet->setCellValue('E' . $offsetCurrent, $this->totalSumFourthCourse);
+            $sheet->setCellValue('F' . $offsetCurrent, $this->totalSumFiveCourse);
+
+            $this->totalSumFirstCourse = 0; $this->totalSumSecondCourse = 0; $this->totalSumThirdCourse = 0; $this->totalSumFourthCourse = 0; $this->totalSumFiveCourse = 0;
+
+            $sheet->getStyle('A' . $offsetCurrent . ':F' . $offsetCurrent)->getFont()->setBold(true);
+
+            //Стиль для рамки
+            $sheet->getStyle('A'. $offsetStart .':F' . $offsetCurrent)
+                ->getBorders()
+                ->getAllBorders()
+                ->applyFromArray(array(
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => array('rgb' => '808080')
+                ));
+
+            $offsetCurrent = $offsetCurrent + 2;
+            $offsetStart = $offsetCurrent;
+        }
+
+        $sheet->getStyle('A1:A' . $offsetCurrent)->getAlignment()->setWrapText(true);
+
+        //Выравнивание текста в ячейке
+        $sheet->getStyle('B1:F' . ($offsetCurrent - 1))
+            ->applyFromArray(array('alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+            ]));
+
+        //Устанавливаем ширину полей
+        $sheet->getColumnDimension('A')->setWidth(35);
+        $sheet->getColumnDimension('B')->setWidth(10);
+        $sheet->getColumnDimension('C')->setWidth(10);
+        $sheet->getColumnDimension('D')->setWidth(10);
+        $sheet->getColumnDimension('E')->setWidth(10);
+        $sheet->getColumnDimension('F')->setWidth(10);
+
+        $writer = new Xlsx($spreadsheet);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        $writer->save('php://output');
+    }
+
+    protected function getDataBylevelEducation($data, $levelEducationId): array
+    {
+        $tmp = array();
+
         foreach ($data as $key => $value) {
-            switch ($value->level_education_id) {
-                case 2:
-                    $this->collegeGroupId[] = $value->id;
-
-                    if ($value->teaching_form_id == 1) {
-                        $this->collegeFullTimeGroupId = $value->id;
-                    } elseif ($value->teaching_form_id == 2) {
-                    } else {
-                    }
-                    break;
-                case 6:
-                    $this->bachelorGroupId[] = $value->id;
-
-                    if ($value->teaching_form_id == 1) {
-                        $this->bachelorFullTimeGroupId = $value->id;
-                    } elseif ($value->teaching_form_id == 2) {
-                        $this->bachelorPartTimeGroupId = $value->id;
-                    } else {
-                        $this->bachelorFullPartTimeGroupId = $value->id;
-                    }
-                    break;
-                case 7:
-                    $this->masterGroupId[] = $value->id;
-
-                    if ($value->teaching_form_id == 1) {
-                        $this->masterFullTimeGroupId = $value->id;
-                    } elseif ($value->teaching_form_id == 2) {
-                        $this->masterPartTimeGroupId = $value->id;
-                    } else {
-                        $this->masterFullPartTimeGroupId = $value->id;
-                    }
-                    break;
-                default:
-                    break;
+            if ($value->level_education_id == $levelEducationId) {
+                $tmp[] = $value;
             }
         }
 
-
-
-        foreach ($this->collegeGroupId as $key => $value) {
-            # code...
-        }
-
-        $countStudentsInCollege = GroupStudent::whereIn('group_id', $this->collegeGroupId)->count();
-        $countStudentsInBachelor = GroupStudent::whereIn('group_id', $this->bachelorGroupId)->count();
-        $countStudentsInMaster = GroupStudent::whereIn('group_id', $this->masterGroupId)->count();
-
-        $total = $countStudentsInCollege + $countStudentsInBachelor + $countStudentsInMaster;
-
-        echo "Колледж: $countStudentsInCollege, Бак: $countStudentsInBachelor, Маг: $countStudentsInMaster, Всего: $total";
-
-        /*
-        $data = Group::whereIn('id', $this->groupId)->get();
-
-        foreach ($data as $value) {
-            switch ($value->course) {
-                case 1:
-                    $this->firstCourseGroupId[] = $value->id;
-                    break;
-                case 2:
-                    $this->secondCourseGroupId[] = $value->id;
-                    break;
-                case 3:
-                    $this->thirdCourseGroupId[] = $value->id;
-                    break;
-                case 4:
-                    $this->fourthCourseGroupId[] = $value->id;
-                    break;
-                case 5:
-                    $this->fiveCourseGroupId[] = $value->id;
-                    break;
-                case 6:
-                    $this->sixCourseGroupId[] = $value->id;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        $this->firstYearStudents = GroupStudent::whereIn('group_id', $this->firstCourseGroupId)->count();
-        $this->secondYearStudents = GroupStudent::whereIn('group_id', $this->secondCourseGroupId)->count();
-        $this->thirdYearStudents = GroupStudent::whereIn('group_id', $this->thirdCourseGroupId)->count();
-        $this->fourthYearStudents = GroupStudent::whereIn('group_id', $this->fourthCourseGroupId)->count();
-        $this->fiveYearStudents = GroupStudent::whereIn('group_id', $this->fiveCourseGroupId)->count();
-        $this->sixYearStudents = GroupStudent::whereIn('group_id', $this->sixCourseGroupId)->count();
-
-        $this->totalStudentsOnCourses = $this->firstYearStudents + $this->secondYearStudents + $this->thirdYearStudents + $this->fourthYearStudents + $this->fiveYearStudents + $this->sixYearStudents;
-
-        dd($this->totalStudentsOnCourses);die();
-        */
+        return $tmp;
     }
 }
