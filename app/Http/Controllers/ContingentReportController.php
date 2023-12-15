@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Group;
 use App\Models\GroupStudent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -30,11 +31,106 @@ class ContingentReportController extends Controller
     public $firstYearStudents = 0, $secondYearStudents = 0, $thirdYearStudents = 0, $fourthYearStudents = 0, $fiveYearStudents = 0, $sixYearStudents = 0;
     public $totalStudentsOnCourses = 0;
 
+    public $collegeGroupId = array();
+    public $bachelorGroupId = array();
+    public $masterGroupId = array();
+
+    public $collegeFullTimeGroupId = array();
+
+    public $bachelorFullTimeGroupId = array();
+    public $bachelorPartTimeGroupId = array();
+    public $bachelorFullPartTimeGroupId = array();
+
+    public $masterFullTimeGroupId = array();
+    public $masterPartTimeGroupId = array();
+    public $masterFullPartTimeGroupId = array();
+
     public function generateContingentReport()
     {
-        $data = Group::join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
+        /*
+        $data = Group::select('groups.id', 'groups.course', 'specialities.level_education_id', 'study_plans.teaching_form_id')
+            ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
             ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
+            ->whereIn('groups.id', $this->groupId)
             ->get();
+        */
+
+        $data = DB::table('groups')->select(
+            'groups.group_name',
+            'groups.course',
+            DB::raw("(SELECT COUNT(group_student.id) FROM group_student INNER JOIN groups ON group_student.group_id = groups.id WHERE group_student.group_id = groups.id) as count_students")
+        )
+            ->whereIn('groups.id', $this->groupId)
+            ->get();
+
+        $results = DB::table('groups')
+            ->join('group_student', 'groups.id', '=', 'group_student.group_id')
+            ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
+            ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
+            ->select('groups.id', 'groups.group_name', 'groups.course', DB::raw('COUNT(group_student.user_id) as student_count'), 'specialities.level_education_id', 'study_plans.teaching_form_id')
+            ->whereIn('groups.id', $this->groupId)
+            ->groupBy('groups.id', 'groups.group_name', 'groups.course')
+            ->get();
+
+        dd($results);
+        die();
+        /*
+            2 - СПО
+            6 - Бак
+            7 - Маг 
+        */
+        foreach ($data as $key => $value) {
+            switch ($value->level_education_id) {
+                case 2:
+                    $this->collegeGroupId[] = $value->id;
+
+                    if ($value->teaching_form_id == 1) {
+                        $this->collegeFullTimeGroupId = $value->id;
+                    } elseif ($value->teaching_form_id == 2) {
+                    } else {
+                    }
+                    break;
+                case 6:
+                    $this->bachelorGroupId[] = $value->id;
+
+                    if ($value->teaching_form_id == 1) {
+                        $this->bachelorFullTimeGroupId = $value->id;
+                    } elseif ($value->teaching_form_id == 2) {
+                        $this->bachelorPartTimeGroupId = $value->id;
+                    } else {
+                        $this->bachelorFullPartTimeGroupId = $value->id;
+                    }
+                    break;
+                case 7:
+                    $this->masterGroupId[] = $value->id;
+
+                    if ($value->teaching_form_id == 1) {
+                        $this->masterFullTimeGroupId = $value->id;
+                    } elseif ($value->teaching_form_id == 2) {
+                        $this->masterPartTimeGroupId = $value->id;
+                    } else {
+                        $this->masterFullPartTimeGroupId = $value->id;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+
+
+        foreach ($this->collegeGroupId as $key => $value) {
+            # code...
+        }
+
+        $countStudentsInCollege = GroupStudent::whereIn('group_id', $this->collegeGroupId)->count();
+        $countStudentsInBachelor = GroupStudent::whereIn('group_id', $this->bachelorGroupId)->count();
+        $countStudentsInMaster = GroupStudent::whereIn('group_id', $this->masterGroupId)->count();
+
+        $total = $countStudentsInCollege + $countStudentsInBachelor + $countStudentsInMaster;
+
+        echo "Колледж: $countStudentsInCollege, Бак: $countStudentsInBachelor, Маг: $countStudentsInMaster, Всего: $total";
+
         /*
         $data = Group::whereIn('id', $this->groupId)->get();
 
