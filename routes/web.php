@@ -66,7 +66,13 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.contingent');
     })->name('contingent');
 
-    Route::get('/print-spravka301/{id}', [PrintDocumentsStudentsAcademicLeaves::class, 'spravka301'])->name('spravka301');
+    Route::get('/documents-students-academic-leaves/{user_id}/{group_id}', function ($user_id, $group_id) {
+        return view('pages.documents-students-academic-leaves', ['user_id' => $user_id, 'group_id' => $group_id]);
+    })->name('documents.students.academic.leaves');
+
+    Route::get('/print-document-academic-leaves-301/{user_id}/{group_id}', [PrintDocumentsStudentsAcademicLeaves::class, 'printDocumentAcademicLeaves301'])->name('print.document.academic.leaves.301');
+    Route::get('/print-document-academic-leaves-aa-01/{user_id}/{group_id}', [PrintDocumentsStudentsAcademicLeaves::class, 'printDocumentAcademicLeavesAA01'])->name('print.document.academic.leaves.aa.01');
+    Route::get('/print-personal-file-verification-sheet/{user_id}/{group_id}', [PrintDocumentsStudentsAcademicLeaves::class, 'printPersonalFileVerificationSheet'])->name('print.personal.file.verification.sheet');
 
     Route::get('/achievement', function () {
         return view('pages.achievement');

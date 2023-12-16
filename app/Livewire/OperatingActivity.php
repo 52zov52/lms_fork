@@ -161,7 +161,7 @@ class OperatingActivity extends Component
                 'task' => 'required|string|max:1000',
                 'description' => 'string|max:1500',
                 'status' => 'required|numeric|min:1',
-                'file' => 'file|mimes:pdf,doc,docx|max:3072',
+                'file' => 'file|mimes:pdf,doc,docx,jpg,bmp,png|max:3072',
             ]);
         } else {
             $this->validate([
@@ -210,7 +210,7 @@ class OperatingActivity extends Component
                     'task' => 'required|string|max:1000',
                     'description' => 'string|max:1500',
                     'status' => 'required|numeric|min:1',
-                    'file' => 'file|mimes:pdf,doc,docx|max:3072',
+                    'file' => 'file|mimes:pdf,doc,docx,jpg,bmp,png|max:3072',
                 ]);
             } else {
                 $this->validate([
