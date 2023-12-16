@@ -23,6 +23,14 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/qr-code-document-order-requests', function () {
+    return view('qr-code-document-order-requests');
+})->name('qr.code.document.order.requests');
+
+Route::get('/qr-code-document-verifications/{verificationCode}', function ($verificationCode) {
+    return view('qr-code-document-verifications', compact('verificationCode'));
+})->name('qr.code.document.verifications');
+
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
