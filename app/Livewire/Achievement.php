@@ -7,10 +7,12 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 class Achievement extends Component
 {
     use WithFileUploads;
+    use WithPagination;
 
     public $achievementCategories = [
         1 => 'Образование и профессиональное развитие',
@@ -21,30 +23,20 @@ class Achievement extends Component
         6 => 'Прочее'
     ];
 
-    public $id, $achievementCategory, $name, $description = '', $year, $file = null, $score = 0;
+    public $id, $achievementCategory = 0, $name, $description = '', $year, $file = null, $score = 0;
 
-    public bool $isAchievementModalVisible = false, $isEdit = false;
+    public bool $isAchievementModalVisible = false, $isEdit = false, $isAlertVisible = false;
+
+    public string $filename = '';
+    public int $rand = 1;
 
     public function render()
     {
-        $achievements = ModelsAchievement::where('user_id', '=', Auth::user()->id)->get();
-
-        $educationalScore = ModelsAchievement::where('achievement_category', '=', 1)
-            ->where('user_id', '=', Auth::user()->id)->sum('score');
-        $scientificScore = ModelsAchievement::whereIn('achievement_category', [2, 3])
-            ->where('user_id', '=', Auth::user()->id)->sum('score');
-        $extracurricularScore = ModelsAchievement::whereIn('achievement_category', [4, 5])
-            ->where('user_id', '=', Auth::user()->id)->sum('score');
-        $otherScore = ModelsAchievement::where('achievement_category', '=', 6)
-            ->where('user_id', '=', Auth::user()->id)->sum('score');
+        $achievements = ModelsAchievement::where('user_id', '=', Auth::user()->id)->paginate(25);
 
         return view('livewire.achievement', [
             'achievementCategories' => $this->achievementCategories,
-            'achievements' => $achievements,
-            'educationalScore' => $educationalScore,
-            'scientificScore' => $scientificScore,
-            'extracurricularScore' => $extracurricularScore,
-            'otherScore' => $otherScore,
+            'achievements' => $achievements
         ]);
     }
 
@@ -59,10 +51,15 @@ class Achievement extends Component
         $this->isAchievementModalVisible = true;
     }
 
+    public function alertVisible(): void
+    {
+        $this->isAlertVisible = false;
+    }
+
     public function store(): void
     {
         $this->validate([
-            'achievementCategory' => 'required|min:1',
+            'achievementCategory' => 'required|numeric|min:1',
             'name' => 'required|string|max:255',
             'year' => 'required|numeric',
             'file' => 'file|mimes:pdf,jpg,bmp,png|max:3072', // 3MB Max
@@ -72,19 +69,19 @@ class Achievement extends Component
 
         switch ($this->achievementCategory) {
             case 1:
-                $this->score = 10;
+                $this->score = 2;
                 break;
             case 2:
-                $this->score = 5;
+                $this->score = 2;
                 break;
             case 3:
-                $this->score = 5;
+                $this->score = 1;
                 break;
             case 4:
-                $this->score = 5;
+                $this->score = 2;
                 break;
             case 5:
-                $this->score = 15;
+                $this->score = 2;
                 break;
             default:
                 $this->score = 1;
@@ -102,19 +99,30 @@ class Achievement extends Component
         ]);
 
         $this->isAchievementModalVisible = false;
+        $this->isAlertVisible = true;
+
+        $this->resetFields();
 
         session()->flash('message-success', 'Документ успешно загружен!');
     }
 
     public function edit($id, $isEdit): void
     {
+        $this->resetFields();
+
         $this->id = $id;
         $achievement = ModelsAchievement::findOrFail($id);
         $this->achievementCategory = $achievement->achievement_category;
         $this->name = $achievement->name;
         $this->description = $achievement->description;
         $this->year = $achievement->year;
-
+        $this->file = $achievement->file_path;
+        
+        if(!is_null($achievement->file_path)) {
+            $data = explode('/', $achievement->file_path);
+            $this->filename = $data[2];
+        }
+            
         $this->isEdit = $isEdit;
 
         $this->achievementModalVisible($isEdit);
@@ -124,14 +132,14 @@ class Achievement extends Component
     {
         if (!is_null($this->file)) {
             $this->validate([
-                'achievementCategory' => 'required|min:1',
+                'achievementCategory' => 'required|numeric|min:1',
                 'name' => 'required|string|max:255',
                 'year' => 'required|numeric',
                 'file' => 'file|mimes:pdf,jpg,bmp,png|max:3072', // 3MB Max
             ]);
         } else {
             $this->validate([
-                'achievementCategory' => 'required|min:1',
+                'achievementCategory' => 'required|numeric|min:1',
                 'name' => 'required|string|max:255',
                 'year' => 'required|numeric',
             ]);
@@ -139,19 +147,19 @@ class Achievement extends Component
 
         switch ($this->achievementCategory) {
             case 1:
-                $this->score = 10;
+                $this->score = 2;
                 break;
             case 2:
-                $this->score = 5;
+                $this->score = 2;
                 break;
             case 3:
-                $this->score = 5;
+                $this->score = 1;
                 break;
             case 4:
-                $this->score = 5;
+                $this->score = 2;
                 break;
             case 5:
-                $this->score = 15;
+                $this->score = 2;
                 break;
             default:
                 $this->score = 1;
@@ -173,9 +181,10 @@ class Achievement extends Component
         $achievement->score = $this->score;
         $achievement->update();
 
-        $this->resetFields();
-
         $this->isAchievementModalVisible = false;
+        $this->isAlertVisible = true;
+
+        $this->resetFields();
 
         session()->flash('message-success', 'Запись успешно обновлена!');
     }
@@ -188,6 +197,8 @@ class Achievement extends Component
 
         $achievement->delete();
 
+        $this->isAlertVisible = true;
+
         session()->flash('message-success', 'Запись успешно удалена!');
     }
 
@@ -198,5 +209,10 @@ class Achievement extends Component
         $this->description = '';
         $this->year = '';
         $this->file = null;
+
+        $this->rand++;
+
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 }
