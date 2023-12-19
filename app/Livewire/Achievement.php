@@ -23,9 +23,9 @@ class Achievement extends Component
         6 => 'Прочее'
     ];
 
-    public $id, $achievementCategory = 0, $name, $description = '', $year, $file = null, $score = 0;
+    public $id, $achievementCategory = 0, $name, $description = '', $year, $file_path, $file = null, $score = 0;
 
-    public bool $isAchievementModalVisible = false, $isEdit = false, $isAlertVisible = false;
+    public bool $isAchievementModalVisible = false, $isEdit = false, $isAlertVisible = false, $isDescriptionCategoriesModalVisible = false, $isConfirmDeleteRecordModalVisible = false;
 
     public string $filename = '';
     public int $rand = 1;
@@ -56,6 +56,17 @@ class Achievement extends Component
         $this->isAlertVisible = false;
     }
 
+    public function descriptionCategoriesModalVisible()
+    {
+        $this->isDescriptionCategoriesModalVisible = true;
+    }
+
+    public function confirmDeleteRecordModalVisible($id)
+    {
+        $this->id = $id;
+        $this->isConfirmDeleteRecordModalVisible = true;
+    }
+    
     public function store(): void
     {
         $this->validate([
@@ -116,7 +127,7 @@ class Achievement extends Component
         $this->name = $achievement->name;
         $this->description = $achievement->description;
         $this->year = $achievement->year;
-        $this->file = $achievement->file_path;
+        $this->file_path = $achievement->file_path;
         
         if(!is_null($achievement->file_path)) {
             $data = explode('/', $achievement->file_path);
@@ -189,14 +200,15 @@ class Achievement extends Component
         session()->flash('message-success', 'Запись успешно обновлена!');
     }
 
-    public function destroy($id): void
+    public function destroy(): void
     {
-        $achievement = ModelsAchievement::findOrFail($id);
+        $achievement = ModelsAchievement::findOrFail($this->id);
 
         unlink(storage_path('app/public/' . $achievement->file_path));
 
         $achievement->delete();
 
+        $this->isConfirmDeleteRecordModalVisible = false;
         $this->isAlertVisible = true;
 
         session()->flash('message-success', 'Запись успешно удалена!');
@@ -204,10 +216,12 @@ class Achievement extends Component
 
     private function resetFields(): void
     {
+        $this->id = 0;
         $this->achievementCategory = 0;
         $this->name = '';
         $this->description = '';
         $this->year = '';
+        $this->file_path = '';
         $this->file = null;
 
         $this->rand++;

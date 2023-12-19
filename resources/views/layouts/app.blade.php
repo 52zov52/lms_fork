@@ -24,7 +24,7 @@
         <!-- Logo -->
         <div class="hidden lg:block">
             <a class="flex flex-col items-center" href="{{ route('login') }}">
-                <img class="w-20" src="{{ asset('storage/logo.svg') }}" alt="logo">
+                <img class="w-20" src="{{ asset('storage/logo.png') }}" alt="logo">
                 <p class="text-xl">{{ __('ИУБиП|Digital') }}</p>
             </a>
         </div>
