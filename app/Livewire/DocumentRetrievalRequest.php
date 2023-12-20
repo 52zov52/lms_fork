@@ -8,10 +8,13 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class DocumentRetrievalRequest extends Component
 {
-    public bool $isDocumentOrderRequestModalVisible = false, $isBudget = false;
+    use WithPagination;
+
+    public bool $isDocumentOrderRequestModalVisible = false, $isBudget = false, $isAlertVisible = false;
     public string $lastName = "", $firstName = "", $middleName = "", $sex = "", $teachingFormName = "", $specialtyCode = "", $specialityName = "", $trainingPeriod = "", $orders = "";
     public int $course = 0, $documentOrderRequestId = 0;
 
@@ -32,11 +35,16 @@ class DocumentRetrievalRequest extends Component
                 'users_data.middle_name',
                 'groups.group_name'
             )
-            ->get();
+            ->paginate(25);
 
         return view('livewire.document-retrieval-request', [
             'documentOrderRequest' => $documentOrderRequest
         ]);
+    }
+
+    public function alertVisible(): void
+    {
+        $this->isAlertVisible = false;
     }
 
     public function documentOrderRequestModalVisible($documentOrderRequestId, $userId): void
@@ -173,9 +181,11 @@ class DocumentRetrievalRequest extends Component
             $documentOrderRequest->confirmed_date = Carbon::now();
             $documentOrderRequest->update();
 
+            $this->isAlertVisible = true;
             session()->flash('message-success', 'Заявка успешно подтверждена!');
         } else {
-            session()->flash('message-error', 'Заявка уже была подтверждена!');
+            $this->isAlertVisible = true;
+            session()->flash('message-error', 'Повторное подтверждение заявки запрещено!');
         }
 
         $this->isDocumentOrderRequestModalVisible = false;
@@ -189,7 +199,8 @@ class DocumentRetrievalRequest extends Component
         $confirmedDocumentRequest = ConfirmedDocumentRequest::where('document_order_request_id', '=', $documentOrderRequestId)->first();
 
         if (is_null($confirmedDocumentRequest)) {
-            session()->flash('message-error', 'Перед печатью бланка заявка должна быть подтверждена!');
+            $this->isAlertVisible = true;
+            session()->flash('message-error', 'Перед печатью бланка, данные в заявке должны быть подтверждены!');
         } else {
             $documentOrderRequest = DocumentOrderRequest::findOrFail($documentOrderRequestId);
             if (is_null($documentOrderRequest->print_date)) {
@@ -206,7 +217,8 @@ class DocumentRetrievalRequest extends Component
         $confirmedDocumentRequest = ConfirmedDocumentRequest::where('document_order_request_id', '=', $documentOrderRequestId)->first();
 
         if (is_null($confirmedDocumentRequest)) {
-            session()->flash('message-error', 'Перед подтверждением выдачи документа, должны быть подтверждены данные в заявке!');
+            $this->isAlertVisible = true;
+            session()->flash('message-error', 'Перед подтверждением выдачи документа (справки), должны быть подтверждены данные в заявке!');
         } else {
             $documentOrderRequest = DocumentOrderRequest::findOrFail($documentOrderRequestId);
             $documentOrderRequest->status = 4;

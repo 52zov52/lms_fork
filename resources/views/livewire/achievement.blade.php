@@ -27,7 +27,7 @@
         @if(!$achievements->isEmpty())
         <!-- PC, notebook, tablet -->
         <div class="hidden md:block">
-            <table class="w-full bg-white border shadow-md text-xs md:text-sm">
+            <table class="w-full bg-white border shadow-md text-xs">
                 <tbody>
                     <tr class="bg-gray-100">
                         <td class="w-14 border px-2 py-2 text-center font-semibold">№ пп</td>
@@ -86,7 +86,7 @@
         <!-- Mobile -->
         <div class="block md:hidden flex flex-col space-y-2">
             @foreach($achievements as $item)
-            <div class="flex flex-col space-y-2 border shadow-md p-4 text-xs">
+            <div class="flex flex-col space-y-2 border rounded shadow-md p-4 text-xs">
                 <div class="flex flex-col">
                     <span class="font-semibold">Категория:</span>
                     @if($item->achievement_category == 1)
