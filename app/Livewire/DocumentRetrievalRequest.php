@@ -14,7 +14,7 @@ class DocumentRetrievalRequest extends Component
 {
     use WithPagination;
 
-    public bool $isDocumentOrderRequestModalVisible = false, $isBudget = false, $isAlertVisible = false;
+    public bool $isDocumentOrderRequestModalVisible = false, $isBudget = false, $isAlertVisible = false, $isConfirmDocumentIssuanceModalVisible = false;
     public string $lastName = "", $firstName = "", $middleName = "", $sex = "", $teachingFormName = "", $specialtyCode = "", $specialityName = "", $trainingPeriod = "", $orders = "";
     public int $course = 0, $documentOrderRequestId = 0;
 
@@ -29,6 +29,7 @@ class DocumentRetrievalRequest extends Component
                 'document_order_requests.status',
                 'document_order_requests.requester_id',
                 'document_order_requests.request_date',
+                'document_order_requests.confirmed_date',
                 'document_order_requests.issue_date',
                 'users_data.last_name',
                 'users_data.first_name',
@@ -47,11 +48,17 @@ class DocumentRetrievalRequest extends Component
         $this->isAlertVisible = false;
     }
 
-    public function documentOrderRequestModalVisible($documentOrderRequestId, $userId): void
+    public function confirmDocumentIssuanceModalVisible($documentOrderRequestId): void
+    {
+        $this->documentOrderRequestId = $documentOrderRequestId;
+        $this->isConfirmDocumentIssuanceModalVisible = true;
+    }
+
+    public function edit($documentOrderRequestId, $userId): void
     {
         $this->documentOrderRequestId = $documentOrderRequestId;
 
-        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('id', '=', $documentOrderRequestId)->first();
+        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('document_order_request_id', '=', $this->documentOrderRequestId)->first();
 
         if (is_null($confirmedDocumentRequest)) {
             $this->orders = '';
@@ -141,9 +148,9 @@ class DocumentRetrievalRequest extends Component
         $this->isDocumentOrderRequestModalVisible = true;
     }
 
-    public function checkRetrievalRequest(): void
+    public function store(): void
     {
-        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('id', '=', $this->documentOrderRequestId)->first();
+        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('document_order_request_id', '=', $this->documentOrderRequestId)->first();
 
         if (is_null($confirmedDocumentRequest)) {
 
@@ -212,19 +219,31 @@ class DocumentRetrievalRequest extends Component
         }
     }
 
-    public function confirmRetrievalRequest($documentOrderRequestId): void
+    public function confirmDocumentIssuance(): void
     {
-        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('document_order_request_id', '=', $documentOrderRequestId)->first();
+        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('document_order_request_id', '=', $this->documentOrderRequestId)->first();
 
         if (is_null($confirmedDocumentRequest)) {
+            $this->isConfirmDocumentIssuanceModalVisible = false;
             $this->isAlertVisible = true;
             session()->flash('message-error', 'Перед подтверждением выдачи документа (справки), должны быть подтверждены данные в заявке!');
         } else {
-            $documentOrderRequest = DocumentOrderRequest::findOrFail($documentOrderRequestId);
-            $documentOrderRequest->status = 4;
-            $documentOrderRequest->issuer_id = Auth::user()->id;
-            $documentOrderRequest->issue_date = Carbon::now();
-            $documentOrderRequest->update();
+            $documentOrderRequest = DocumentOrderRequest::findOrFail($this->documentOrderRequestId);
+            if(is_null($documentOrderRequest->issue_date)) {
+                $documentOrderRequest->status = 4;
+                $documentOrderRequest->issuer_id = Auth::user()->id;
+                $documentOrderRequest->issue_date = Carbon::now();
+                $documentOrderRequest->update();
+
+                $this->isConfirmDocumentIssuanceModalVisible = false;
+                $this->isAlertVisible = true;
+                session()->flash('message-success', 'Выдача документа (справки) успешно подтверждена!');
+            }
+            else {
+                $this->isConfirmDocumentIssuanceModalVisible = false;
+                $this->isAlertVisible = true;
+                session()->flash('message-error', 'Повторное подтверждение выдачи документа (справки) запрещено!');
+            }
         }
     }
 }

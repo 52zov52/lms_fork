@@ -116,7 +116,7 @@
                         @elseif($item->status == 3)
                             <span class="w-24 bg-red-500 rounded px-2 py-1 text-xs text-white font-bold">Отказано</span>
                         @else
-                            <span class="w-24 bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен</span>
+                            <span class="w-20 bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен</span>
                         @endif
                     </div>
                     <div class="flex flex-col">

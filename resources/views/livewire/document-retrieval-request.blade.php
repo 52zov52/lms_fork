@@ -81,13 +81,13 @@
                             @endif
                         </td>
                         <td class="w-36 border px-2 py-2 text-center">
-                            <button wire:click="documentOrderRequestModalVisible({{ $item->id }}, {{ $item->requester_id }})" class="bg-orange-500 hover:bg-orange-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Подтвердить данные в заявке">
+                            <button wire:click="edit({{ $item->id }}, {{ $item->requester_id }})" class="bg-orange-500 hover:bg-orange-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Подтвердить данные в заявке">
                                 <i class="fa-solid fa-file-circle-check"></i>
                             </button>
-                            <button wire:click="printDocument({{ $item->id }})" class="bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Подтвердить выдачу документа" title="Распечатать документ (справку)">
+                            <button wire:click="printDocument({{ $item->id }})" class="bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Распечатать документ (справку)">
                                 <i class="fa-solid fa-print"></i>
                             </button>
-                            <button wire:click="confirmRetrievalRequest({{ $item->id }})" class="bg-green-500 hover:bg-green-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Подтвердить выдачу документа (справки)">
+                            <button wire:click="confirmDocumentIssuanceModalVisible({{ $item->id }})" class="bg-green-500 hover:bg-green-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Подтвердить выдачу документа (справки)">
                                 <i class="fa-solid fa-check"></i>
                             </button>
                         </td>
@@ -128,7 +128,7 @@
                     @elseif($item->status == 3)
                         <span class="w-24 bg-red-500 rounded px-2 py-1 text-xs text-white font-bold">Отказано</span>
                     @else
-                        <span class="w-24 bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен</span>
+                        <span class="w-20 bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен</span>
                     @endif
                 </div>
                 <div class="flex flex-col">
@@ -146,14 +146,14 @@
                 <div class="flex flex-col">
                     <span class="font-semibold">Действия:</span>
                     <div class="grid grid-cols-3 gap-2">
-                        <button wire:click="documentOrderRequestModalVisible({{ $item->id }}, {{ $item->requester_id }})" title="Подтвердить данные" class="w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
-                            <i class="fa-solid fa-square-check"></i>
+                        <button wire:click="edit({{ $item->id }}, {{ $item->requester_id }})" class="w-auto bg-orange-500 hover:bg-orange-600 rounded px-2 py-1 text-white" title="Подтвердить данные в заявке">
+                            <i class="fa-solid fa-file-circle-check"></i>
                         </button>
-                        <button wire:click="printDocument({{ $item->id }})" title="Распечатать документ" class="w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                        <button wire:click="printDocument({{ $item->id }})"  class="w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white" title="Распечатать документ (справку)">
                             <i class="fa-solid fa-print"></i>
                         </button>
-                        <button wire:click="confirmRetrievalRequest({{ $item->id }})" title="Подтвердить выдачу документа" class="w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
-                            <i class="fa-solid fa-square-arrow-up-right"></i>
+                        <button wire:click="confirmDocumentIssuanceModalVisible({{ $item->id }})" class="w-auto bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white" title="Подтвердить выдачу документа (справки)">
+                            <i class="fa-solid fa-check"></i>
                         </button>
                     </div>
                 </div>
@@ -185,52 +185,52 @@
                 <div class="w-full">
                     <div class="grid grid-cols-3 gap-2">
                         <div>
-                            <label for="last-name-id">Фамилия:</label>
+                            <label for="last-name-id" class="font-semibold">Фамилия<span class="ml-1 text-red-500">*</span></label>
                             <input wire:model="lastName" type="text" name="last_name" id="last-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('lastName')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                         <div>
-                            <label for="first-name-id">Имя:</label>
+                            <label for="first-name-id" class="font-semibold">Имя<span class="ml-1 text-red-500">*</span></label>
                             <input wire:model="firstName" type="text" name="first_name" id="first-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('firstName')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                         <div>
-                            <label for="middle-name-id">Отчество:</label>
+                            <label for="middle-name-id" class="font-semibold">Отчество<span class="ml-1 text-red-500">*</span></label>
                             <input wire:model="middleName" type="text" name="middle_name" id="middle-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('middleName')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label for="course-id">Курс:</label>
+                            <label for="course-id" class="font-semibold">Курс<span class="ml-1 text-red-500">*</span></label>
                             <input wire:model="course" type="text" name="course" id="course-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('course')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                         <div>
-                            <label for="teaching-form-name-id">Форма обучения:</label>
+                            <label for="teaching-form-name-id" class="font-semibold">Форма обучения<span class="ml-1 text-red-500">*</span></label>
                             <input wire:model="teachingFormName" type="text" name="teaching_form_name" id="teaching-form-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('teachingFormName')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label for="specialty-сode-id">Шифр:</label>
+                            <label for="specialty-сode-id" class="font-semibold">Шифр<span class="ml-1 text-red-500">*</span></label>
                             <input wire:model="specialtyCode" type="text" name="specialty_сode" id="specialty-сode-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('specialtyCode')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                         <div>
-                            <label for="speciality-name-id">Специальность:</label>
+                            <label for="speciality-name-id" class="font-semibold">Специальность<span class="ml-1 text-red-500">*</span></label>
                             <input wire:model="specialityName" type="text" name="speciality_name" id="speciality-name-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('specialityName')<span class="text-red-500">{{ $message }}</span>@enderror
                         </div>
                     </div>
                     <div class="flex flex-col">
-                        <label for="orders-id">Приказы:</label>
+                        <label for="orders-id"class="font-semibold">Приказы<span class="ml-1 text-red-500">*</span></label>
                         <textarea wire:model="orders" name="orders" id="orders-id" cols="5" rows="5" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">{{ $orders }}</textarea>
                         @error('orders')<span class="text-red-500">{{ $message }}</span>@enderror
                     </div>
                     <div class="flex flex-col">
-                        <label for="training-period-id">Срок обучения:</label>
+                        <label for="training-period-id" class="font-semibold">Срок обучения<span class="ml-1 text-red-500">*</span></label>
                         <input wire:model="trainingPeriod" type="text" name="training_period" id="training-period-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         @error('trainingPeriod')<span class="text-red-500">{{ $message }}</span>@enderror
                     </div>
@@ -241,13 +241,35 @@
             </x-slot>
 
             <x-slot name="footer">
-                <button wire:click="$toggle('isDocumentOrderRequestModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
+                <button wire:click="$toggle('isDocumentOrderRequestModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1 text-white">
                     {{ __('Закрыть') }}
                 </button>
-                <button wire:click.prevent="checkRetrievalRequest" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                <button wire:click.prevent="store" type="button" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 shadow-xl rounded px-2 py-1 text-white">
                     {{ __('Подтвердить') }}
                 </button>
             </x-slot>
         </form>
+    </x-dialog-modal>
+
+    <!-- Modal dialog to confirm document issuance -->
+    <x-dialog-modal wire:model="isConfirmDocumentIssuanceModalVisible" maxWidth="md">
+        <x-slot name="title">
+            Подтверждение выдачи документа (справки)
+        </x-slot>
+
+        <x-slot name="content">
+            <div class="w-full flex flex-col">
+                <h2 class="text-lg">Вы действительно хотите подтвердить выдачу документа (справки)?</h2>
+            </div>
+        </x-slot>
+
+        <x-slot name="footer">
+            <button type="button" wire:click="$toggle('isConfirmDocumentIssuanceModalVisible')" class="w-full sm:w-12 bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1 text-white">
+                Нет
+            </button>
+            <button type="button" wire:click="confirmDocumentIssuance" class="ml-2 w-full sm:w-12 bg-green-500 hover:bg-green-600 shadow-xl rounded px-2 py-1 text-white">
+                Да
+            </button>
+        </x-slot>
     </x-dialog-modal>
 </div>
