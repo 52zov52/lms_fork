@@ -5,27 +5,46 @@ namespace App\Livewire;
 use App\Models\FeedbackMessage as ModelsFeedbackMessage;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class FeedbackMessage extends Component
 {
+    use WithPagination;
+
     public $email = '';
     public $messageText = '';
 
-    public bool $isFeedbackModalVisible = false;
+    public bool $isFeedbackMessageModalVisible = false, $isFeedbackResponsModalVisible = false, $isAlertVisible = false;
 
     public function render()
     {
-        $feedbackMessages = ModelsFeedbackMessage::where('sender_id', '=', Auth::user()->id)->get();
+        $feedbackMessages = ModelsFeedbackMessage::where('sender_id', '=', Auth::user()->id)->paginate(5);
 
         return view('livewire.feedback-message', ['feedbackMessages' => $feedbackMessages]);
     }
 
-    public function feedbackModalVisible(): void
+    public function feedbackMessageModalVisible(): void
     {
-        $this->isFeedbackModalVisible = true;
+        $this->resetErrorBag();
+        $this->resetValidation();
+
+        $this->isFeedbackMessageModalVisible = true;
     }
 
-    public function send(): void
+    public function feedbackResponsModalVisible(): void
+    {
+        $this->resetErrorBag();
+        $this->resetValidation();
+
+        $this->isFeedbackResponsModalVisible = true;
+    }
+
+    public function alertVisible(): void
+    {
+        $this->isAlertVisible = false;
+    }
+
+    public function sendMessage(): void
     {
         $this->validate([
             'email' => 'required|string|email',
@@ -42,8 +61,17 @@ class FeedbackMessage extends Component
         $this->email = '';
         $this->messageText = '';
 
-        $this->isFeedbackModalVisible = false;
+        $this->isFeedbackMessageModalVisible = false;
+        $this->isAlertVisible = true;
 
         session()->flash('message-success', 'Сообщение успешно отправлено!');
+    }
+
+    public function sendRespons(): void
+    {
+        $this->isFeedbackResponsModalVisible = false;
+        $this->isAlertVisible = true;
+
+        session()->flash('message-success', 'Ответ на сообщение успешно отправлен!');
     }
 }

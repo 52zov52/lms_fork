@@ -65,13 +65,13 @@
                         </td>
                         <td class="w-24 border px-2 py-2 text-center">{{ $item->year }}</td>
                         <td class="w-36 border px-2 py-2 text-center">
-                            <a href="storage/{{ $item->file_path }}" target="_blank" class="mr-1 bg-violet-500 hover:bg-violet-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Скачать файл">
+                            <a href="storage/{{ $item->file_path }}" target="_blank" class="mr-1 bg-violet-500 hover:bg-violet-600 rounded shadow-xl px-2 py-1.5 text-xs text-white" title="Скачать файл">
                                 <i class="fa-solid fa-paperclip"></i>
                             </a>
-                            <button wire:click="edit({{ $item->id }}, true)" class="bg-sky-500 hover:bg-sky-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Редактировать запись">
+                            <button wire:click="edit({{ $item->id }}, true)" class="bg-sky-500 hover:bg-sky-600 rounded shadow-xl px-2 py-1.5 text-xs text-white" title="Редактировать запись">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button wire:click="confirmDeleteRecordModalVisible({{ $item->id }})" class="bg-red-500 hover:bg-red-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Удалить запись">
+                            <button wire:click="confirmDeleteRecordModalVisible({{ $item->id }})" class="bg-red-500 hover:bg-red-600 rounded shadow-xl px-2 py-1.5 text-xs text-white" title="Удалить запись">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </td>
@@ -118,13 +118,13 @@
                 <div class="flex flex-col">
                     <span class="font-semibold">Действия:</span>
                     <div class="grid grid-cols-3 gap-2">
-                        <a href="storage/{{ $item->file_path }}" target="_blank" class="w-auto grow bg-violet-500 hover:bg-violet-600 shadow-xl rounded px-2 py-1.5 text-xs text-white text-center" title="Скачать файл">
+                        <a href="storage/{{ $item->file_path }}" target="_blank" class="w-auto grow bg-violet-500 hover:bg-violet-600 rounded shadow-xl px-2 py-1.5 text-xs text-white text-center" title="Скачать файл">
                             <i class="fa-solid fa-paperclip"></i>
                         </a>
-                        <button wire:click="edit({{ $item->id }}, true)" title="Редактировать запись" class="w-auto grow bg-sky-500 hover:bg-sky-600 shadow-xl rounded px-2 py-1 text-white">
+                        <button wire:click="edit({{ $item->id }}, true)" title="Редактировать запись" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded shadow-xl px-2 py-1 text-white">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button wire:click="confirmDeleteRecordModalVisible({{ $item->id }})" title="Удалить запись" class="w-auto grow bg-red-500 hover:bg-red-600 shadow-xl rounded px-2 py-1 text-white">
+                        <button wire:click="confirmDeleteRecordModalVisible({{ $item->id }})" title="Удалить запись" class="w-auto grow bg-red-500 hover:bg-red-600 rounded shadow-xl px-2 py-1 text-white">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -202,15 +202,15 @@
             </x-slot>
 
             <x-slot name="footer">
-                <button type="button" wire:click="$toggle('isAchievementModalVisible')" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1 text-white">
+                <button type="button" wire:click="$toggle('isAchievementModalVisible')" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                     Закрыть
                 </button>
                 @if(!$isEdit)
-                <button type="button" wire:click.prevent="store" wire:loading.class="disabled" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 shadow-xl rounded px-2 py-1 text-white">
+                <button type="button" wire:click.prevent="store" wire:loading.class="disabled" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1 text-white">
                     Добавить
                 </button>
                 @else
-                <button type="button" wire:click.prevent="update" wire:loading.class="disabled" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 shadow-xl rounded px-2 py-1 text-white">
+                <button type="button" wire:click.prevent="update" wire:loading.class="disabled" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1 text-white">
                     Обновить
                 </button>
                 @endif
@@ -262,7 +262,7 @@
         </x-slot>
 
         <x-slot name="footer">
-            <button type="button" wire:click="$toggle('isDescriptionCategoriesModalVisible')" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1 text-white">
+            <button type="button" wire:click="$toggle('isDescriptionCategoriesModalVisible')" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                 Закрыть
             </button>
         </x-slot>
@@ -281,10 +281,10 @@
         </x-slot>
 
         <x-slot name="footer">
-            <button type="button" wire:click="$toggle('isConfirmDeleteRecordModalVisible')" class="w-full sm:w-12 bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1 text-white">
+            <button type="button" wire:click="$toggle('isConfirmDeleteRecordModalVisible')" class="w-full sm:w-12 bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                 Нет
             </button>
-            <button type="button" wire:click="destroy" class="ml-2 w-full sm:w-12 bg-red-500 hover:bg-red-600 shadow-xl rounded px-2 py-1 text-white">
+            <button type="button" wire:click="destroy" class="ml-2 w-full sm:w-12 bg-red-500 hover:bg-red-600 rounded shadow-xl px-2 py-1 text-white">
                 Да
             </button>
         </x-slot>

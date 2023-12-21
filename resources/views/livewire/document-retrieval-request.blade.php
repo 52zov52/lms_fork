@@ -81,13 +81,13 @@
                             @endif
                         </td>
                         <td class="w-36 border px-2 py-2 text-center">
-                            <button wire:click="edit({{ $item->id }}, {{ $item->requester_id }})" class="bg-orange-500 hover:bg-orange-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Подтвердить данные в заявке">
+                            <button wire:click="edit({{ $item->id }}, {{ $item->requester_id }})" class="bg-orange-500 hover:bg-orange-600 rounded shadow-xl px-2 py-1.5 text-xs text-white" title="Подтвердить данные в заявке">
                                 <i class="fa-solid fa-file-circle-check"></i>
                             </button>
-                            <button wire:click="printDocument({{ $item->id }})" class="bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Распечатать документ (справку)">
+                            <button wire:click="printDocument({{ $item->id }})" class="bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1.5 text-xs text-white" title="Распечатать документ (справку)">
                                 <i class="fa-solid fa-print"></i>
                             </button>
-                            <button wire:click="confirmDocumentIssuanceModalVisible({{ $item->id }})" class="bg-green-500 hover:bg-green-600 shadow-xl rounded px-2 py-1.5 text-xs text-white" title="Подтвердить выдачу документа (справки)">
+                            <button wire:click="confirmDocumentIssuanceModalVisible({{ $item->id }})" class="bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1.5 text-xs text-white" title="Подтвердить выдачу документа (справки)">
                                 <i class="fa-solid fa-check"></i>
                             </button>
                         </td>
@@ -241,10 +241,10 @@
             </x-slot>
 
             <x-slot name="footer">
-                <button wire:click="$toggle('isDocumentOrderRequestModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1 text-white">
+                <button wire:click="$toggle('isDocumentOrderRequestModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                     {{ __('Закрыть') }}
                 </button>
-                <button wire:click.prevent="store" type="button" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 shadow-xl rounded px-2 py-1 text-white">
+                <button wire:click.prevent="store" type="button" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1 text-white">
                     {{ __('Подтвердить') }}
                 </button>
             </x-slot>
@@ -264,10 +264,10 @@
         </x-slot>
 
         <x-slot name="footer">
-            <button type="button" wire:click="$toggle('isConfirmDocumentIssuanceModalVisible')" class="w-full sm:w-12 bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1 text-white">
+            <button type="button" wire:click="$toggle('isConfirmDocumentIssuanceModalVisible')" class="w-full sm:w-12 bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                 Нет
             </button>
-            <button type="button" wire:click="confirmDocumentIssuance" class="ml-2 w-full sm:w-12 bg-green-500 hover:bg-green-600 shadow-xl rounded px-2 py-1 text-white">
+            <button type="button" wire:click="confirmDocumentIssuance" class="ml-2 w-full sm:w-12 bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1 text-white">
                 Да
             </button>
         </x-slot>

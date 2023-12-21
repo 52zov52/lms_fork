@@ -36,7 +36,7 @@
             </button>
         </div>
 
-        <div class="mt-2 flex flex-col space-y-2 items-center font-semibold">
+        <div class="mt-1 flex flex-col space-y-2 items-center font-semibold">
             <div class="flex flex-col items-center font-semibold">
                 <span>{{ auth()->user()->userData->last_name }}</span>
                 <span>{{ auth()->user()->userData->first_name }} {{ auth()->user()->userData->middle_name }}</span>

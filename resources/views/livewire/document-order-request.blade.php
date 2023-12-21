@@ -160,10 +160,10 @@
         </x-slot>
 
         <x-slot name="footer">
-            <button type="button" wire:click="$toggle('isConfirmOrderDocumentModalVisible')" class="w-full sm:w-12 bg-gray-500 hover:bg-gray-600 shadow-xl rounded px-2 py-1 text-white">
+            <button type="button" wire:click="$toggle('isConfirmOrderDocumentModalVisible')" class="w-full sm:w-12 bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                 Нет
             </button>
-            <button type="button" wire:click="store" class="ml-2 w-full sm:w-12 bg-green-500 hover:bg-green-600 shadow-xl rounded px-2 py-1 text-white">
+            <button type="button" wire:click="store" class="ml-2 w-full sm:w-12 bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1 text-white">
                 Да
             </button>
         </x-slot>
