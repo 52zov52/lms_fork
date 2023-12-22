@@ -14,6 +14,8 @@ class DecisionsRectorateAndCouncil extends Model
     protected $table = 'decisions_rectorate_and_council';
 
     protected $fillable = [
+        'date_decision',
+        'number_decision',
         'position',
         'task',
         'description',

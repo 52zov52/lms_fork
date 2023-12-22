@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\DecisionsRectorateAndCouncil as ModelsDecisionsRectorateAndCouncil;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -18,7 +19,7 @@ class DecisionsRectorateAndCouncil extends Component
         'Первый проректор',
         'Проректор по общим вопросам',
         'Проректор по непрерывному образованию',
-        'Проректор по науке и инновациям',
+        'Проректор по науке',
         'Проректор по международной деятельности',
         'Проректор по цифровой трансформации',
         'Проректор по евразийской интеграции',
@@ -73,6 +74,8 @@ class DecisionsRectorateAndCouncil extends Component
     ];
 
     public $id = 0;
+    public $dateDecision = 0;
+    public $numberDecision = 0;
     public $position = '';
     public $task = '';
     public $description = '';
@@ -88,8 +91,14 @@ class DecisionsRectorateAndCouncil extends Component
     public $filterDueDate = '';
     public $filterStatus = '';
 
+    public $isVisibleDateDecisionField = false;
+    public $isVisibleNumberDecisionField = false;
+
     public function render()
     {
+        $listOfDateDecision = ModelsDecisionsRectorateAndCouncil::select(DB::raw("DATE_FORMAT(date_decision, '%d.%m.%Y') as date_decision"))->whereNotNull('date_decision')->distinct()->get();
+        $listOfNumberDecision = ModelsDecisionsRectorateAndCouncil::select('number_decision')->whereNotNull('number_decision')->distinct()->get();
+
         $catologDueDates = ModelsDecisionsRectorateAndCouncil::select('due_date')->distinct()->get();
 
         $decisionsRectorateAndCouncil = ModelsDecisionsRectorateAndCouncil::select("*");
@@ -120,10 +129,22 @@ class DecisionsRectorateAndCouncil extends Component
         $decisionsRectorateAndCouncil = $decisionsRectorateAndCouncil->orderBy('position')->paginate(50);
 
         return view('livewire.decisions-rectorate-and-council', [
+            'listOfDateDecision' => $listOfDateDecision,
+            'listOfNumberDecision' => $listOfNumberDecision,
             'decisionsRectorateAndCouncil' => $decisionsRectorateAndCouncil,
             'positions' => $this->positions,
             'catologDueDates' => $catologDueDates
         ]);
+    }
+
+    public function visibleDateDecisionField(): void
+    {
+        $this->isVisibleDateDecisionField = ($this->isVisibleDateDecisionField) ? false : true;
+    }
+
+    public function visibleNumberDecisionField(): void
+    {
+        $this->isVisibleNumberDecisionField = ($this->isVisibleNumberDecisionField) ? false : true;
     }
 
     public function creatingAndEditingModalFormVisible($isEdit, $id = 0): void
@@ -191,6 +212,8 @@ class DecisionsRectorateAndCouncil extends Component
         $filename = (!is_null($this->file)) ? $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public') : null;
 
         ModelsDecisionsRectorateAndCouncil::create([
+            'date_decision' => Carbon::parse($this->dateDecision)->format('Y-m-d'),
+            'number_decision' => $this->numberDecision,
             'position' => $this->position,
             'task' => $this->task,
             'description' =>  $this->description,
@@ -211,6 +234,8 @@ class DecisionsRectorateAndCouncil extends Component
         $this->id = $id;
 
         $decisionsRectorateAndCouncil = ModelsDecisionsRectorateAndCouncil::findOrFail($this->id);
+        $this->dateDecision = $decisionsRectorateAndCouncil->date_decision;
+        $this->numberDecision = $decisionsRectorateAndCouncil->number_decision;
         $this->position = $decisionsRectorateAndCouncil->position;
         $this->task = $decisionsRectorateAndCouncil->task;
         $this->description = $decisionsRectorateAndCouncil->description;
@@ -240,6 +265,8 @@ class DecisionsRectorateAndCouncil extends Component
         }
 
         $decisionsRectorateAndCouncil = ModelsDecisionsRectorateAndCouncil::findOrFail($this->id);
+        $decisionsRectorateAndCouncil->date_decision = Carbon::parse($this->dateDecision)->format('Y-m-d');
+        $decisionsRectorateAndCouncil->number_decision = $this->numberDecision;
         $decisionsRectorateAndCouncil->position = $this->position;
         $decisionsRectorateAndCouncil->task = $this->task;
         $decisionsRectorateAndCouncil->description = $this->description;
@@ -282,11 +309,19 @@ class DecisionsRectorateAndCouncil extends Component
 
     public function resetFields(): void
     {
+        $this->dateDecision = 0;
+        $this->numberDecision = 0;
         $this->position = '';
         $this->task = '';
         $this->description = '';
         $this->dueDate = '';
         $this->status = 0;
         $this->file = null;
+
+        $this->isVisibleDateDecisionField = false;
+        $this->isVisibleNumberDecisionField = false;
+
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\ContingentReportController;
 use App\Http\Controllers\OperatingActivityReportController;
 use App\Http\Controllers\PrintConfirmedDocumentRequestsController;
+use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
 use Illuminate\Support\Facades\Route;
@@ -51,6 +52,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/decisions-rectorate-and-council', function () {
         return view('pages.decisions-rectorate-and-council');
     })->name('decisions.rectorate.and.council');
+
+    Route::get('/print-decisions',[PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
 
     Route::group(['middleware' => ['role:Student']], function () {
         Route::get('/document-order-requests', function () {

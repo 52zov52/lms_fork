@@ -171,6 +171,38 @@
 
             <x-slot name="content">
                 <div class="flex flex-col space-y-2">
+                    <div class="flex flex-row">
+                        <div>
+                            <label for=""></label>
+                            @if(!$isVisibleDateDecisionField)
+                            <select wire:model="dateDecision" name="" id="">
+                                <option value="0">Выберите дату решения</option>
+                                @foreach($listOfDateDecision as $dateDecision)
+                                <option value="{{ $dateDecision->date_decision }}">
+                                    {{ $dateDecision->date_decision }}
+                                </option>
+                                @endforeach
+                            </select>
+                            @else
+                            <input wire:model="dateDecision" type="text" name="" id="">
+                            @endif
+                            <button wire:click="visibleDateDecisionField">+</button>
+                        </div>
+                        <div>
+                            <label for=""></label>
+                            @if(!$isVisibleNumberDecisionField)
+                            <select wire:model="numberDecision" name="" id="">
+                                <option value="0">Выберите номер решения</option>
+                                @foreach($listOfNumberDecision as $numberDecision)
+                                <option value="{{ $numberDecision->number_decision }}">{{ $numberDecision->number_decision }}</option>
+                                @endforeach
+                            </select>
+                            @else
+                            <input wire:model="numberDecision" type="text" name="" id="">
+                            @endif
+                            <button wire:click="visibleNumberDecisionField">+</button>
+                        </div>
+                    </div>
                     <div class="flex flex-col">
                         <label for="position-id">Должность</label>
                         <select wire:model="position" name="position" id="position-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
