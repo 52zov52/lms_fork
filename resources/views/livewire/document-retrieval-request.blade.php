@@ -24,25 +24,25 @@
     </div>
     @endif
 
-    <div class="bg-white rounded shadow-xl p-4">
+    <div class="bg-white rounded shadow-xl p-2">
         @if(!$documentOrderRequest->isEmpty())
         <!-- PC, notebook, tablet -->
         <div class="hidden md:block">
-            <table class="w-full bg-white border shadow-md text-xs md:text-sm">
+            <table class="w-full bg-white border shadow-md text-xs">
                 <tbody>
                     <tr class="bg-gray-100">
-                        <td class="w-14 border px-2 py-2 text-center font-semibold">№ пп</td>
+                        <td class="w-10 border px-2 py-2 text-center font-semibold">№ пп</td>
                         <td class="w-auto border px-2 py-2 font-semibold">ФИО</td>
                         <td class="w-14 border px-2 py-2 font-semibold">Группа</td>
                         <td class="w-48 border px-2 py-2 font-semibold">Тип документа</td>
                         <td class="w-48 border px-2 py-2 text-center font-semibold">Статус запроса</td>
-                        <td class="w-48 border px-2 py-2 text-center font-semibold">Дата и время создания заявки</td>
-                        <td class="w-48 border px-2 py-2 text-center font-semibold">Дата и время получения документа</td>
-                        <td class="w-36 border px-2 py-2 text-center font-semibold">Действия</td>
+                        <td class="w-40 border px-2 py-2 text-center font-semibold">Дата и время создания заявки</td>
+                        <td class="w-40 border px-2 py-2 text-center font-semibold">Дата и время получения документа</td>
+                        <td class="w-28 border px-2 py-2 text-center font-semibold">Действия</td>
                     </tr>
                     @foreach($documentOrderRequest as $item)
                     <tr>
-                        <td class="w-14 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
+                        <td class="w-10 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
                         <td class="w-auto border px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
                         <td class="w-14 border px-2 py-2">{{ $item->group_name }}</td>
                         <td class="w-48 border px-2 py-2">
@@ -72,22 +72,22 @@
                                 </div>
                             @endif
                         </td>
-                        <td class="w-48 border px-2 py-2 text-center">{{ \Carbon\Carbon::parse($item->request_date)->format('d.m.Y H:i:s') }}</td>
-                        <td class="w-48 border px-2 py-2 text-center">
+                        <td class="w-40 border px-2 py-2 text-center">{{ \Carbon\Carbon::parse($item->request_date)->format('d.m.Y H:i:s') }}</td>
+                        <td class="w-40 border px-2 py-2 text-center">
                             @if($item->issue_date != null)
                                 <span>{{ \Carbon\Carbon::parse($item->issue_date)->format('d.m.Y H:i:s') }}</span>
                             @else
                                 <span>-</span>
                             @endif
                         </td>
-                        <td class="w-36 border px-2 py-2 text-center">
-                            <button wire:click="edit({{ $item->id }}, {{ $item->requester_id }})" class="bg-orange-500 hover:bg-orange-600 rounded shadow-xl px-2 py-1.5 text-xs text-white" title="Подтвердить данные в заявке">
+                        <td class="w-28 border py-2 text-center">
+                            <button wire:click="edit({{ $item->id }}, {{ $item->requester_id }})" class="bg-orange-500 hover:bg-orange-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="Подтвердить данные в заявке">
                                 <i class="fa-solid fa-file-circle-check"></i>
                             </button>
-                            <button wire:click="printDocument({{ $item->id }})" class="bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1.5 text-xs text-white" title="Распечатать документ (справку)">
+                            <button wire:click="printDocument({{ $item->id }})" class="bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="Распечатать документ (справку)">
                                 <i class="fa-solid fa-print"></i>
                             </button>
-                            <button wire:click="confirmDocumentIssuanceModalVisible({{ $item->id }})" class="bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1.5 text-xs text-white" title="Подтвердить выдачу документа (справки)">
+                            <button wire:click="confirmDocumentIssuanceModalVisible({{ $item->id }})" class="bg-green-500 hover:bg-green-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="Подтвердить выдачу документа (справки)">
                                 <i class="fa-solid fa-check"></i>
                             </button>
                         </td>

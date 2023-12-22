@@ -84,8 +84,9 @@ class DecisionsRectorateAndCouncil extends Component
     public $file = null;
     public $userId = 0;
 
-    public $isCreatingAndEditingModalFormVisible = false, $isDescriptionModalFormVisible = false, $isFilterModalFormVisible = false;
+    public $isCreatingAndEditingModalFormVisible = true, $isDescriptionModalFormVisible = false, $isFilterModalFormVisible = false;
     public $isEdit = false;
+    public $isAlertVisible = false;
 
     public $filterPosition = '';
     public $filterDueDate = '';
@@ -96,7 +97,7 @@ class DecisionsRectorateAndCouncil extends Component
 
     public function render()
     {
-        $listOfDateDecision = ModelsDecisionsRectorateAndCouncil::select(DB::raw("DATE_FORMAT(date_decision, '%d.%m.%Y') as date_decision"))->whereNotNull('date_decision')->distinct()->get();
+        $listOfDateDecision = ModelsDecisionsRectorateAndCouncil::select('date_decision')->whereNotNull('date_decision')->distinct()->get();
         $listOfNumberDecision = ModelsDecisionsRectorateAndCouncil::select('number_decision')->whereNotNull('number_decision')->distinct()->get();
 
         $catologDueDates = ModelsDecisionsRectorateAndCouncil::select('due_date')->distinct()->get();
@@ -135,6 +136,11 @@ class DecisionsRectorateAndCouncil extends Component
             'positions' => $this->positions,
             'catologDueDates' => $catologDueDates
         ]);
+    }
+
+    public function alertVisible(): void
+    {
+        $this->isAlertVisible = false;
     }
 
     public function visibleDateDecisionField(): void
@@ -224,6 +230,7 @@ class DecisionsRectorateAndCouncil extends Component
         ]);
 
         $this->isCreatingAndEditingModalFormVisible = false;
+        $this->isAlertVisible = true;
         $this->resetFields();
 
         session()->flash('message-success', 'Запись успешно добавлена!');
@@ -285,6 +292,7 @@ class DecisionsRectorateAndCouncil extends Component
         $decisionsRectorateAndCouncil->update();
 
         $this->isCreatingAndEditingModalFormVisible = false;
+        $this->isAlertVisible = true;
         $this->resetFields();
 
         session()->flash('message-success', 'Запись успешно отредактирована!');
