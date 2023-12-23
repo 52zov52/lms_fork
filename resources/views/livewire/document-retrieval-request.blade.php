@@ -24,10 +24,10 @@
     </div>
     @endif
 
-    <div class="bg-white rounded shadow-xl p-2">
+    <div class="bg-white rounded shadow-xl p-4">
         @if(!$documentOrderRequest->isEmpty())
         <!-- PC, notebook, tablet -->
-        <div class="hidden md:block">
+        <div class="hidden xl:block">
             <table class="w-full bg-white border shadow-md text-xs">
                 <tbody>
                     <tr class="bg-gray-100">
@@ -80,7 +80,7 @@
                                 <span>-</span>
                             @endif
                         </td>
-                        <td class="w-28 border py-2 text-center">
+                        <td class="w-28 border px-2 py-2 text-center">
                             <button wire:click="edit({{ $item->id }}, {{ $item->requester_id }})" class="bg-orange-500 hover:bg-orange-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="Подтвердить данные в заявке">
                                 <i class="fa-solid fa-file-circle-check"></i>
                             </button>
@@ -100,7 +100,7 @@
             </div>
         </div>
         <!-- Mobile -->
-        <div class="block md:hidden flex flex-col space-y-2">
+        <div class="block xl:hidden flex flex-col space-y-2">
             @foreach($documentOrderRequest as $item)
             <div class="flex flex-col space-y-2 border shadow-md p-4 text-xs">
                 <div class="flex flex-col">
@@ -128,7 +128,7 @@
                     @elseif($item->status == 3)
                         <span class="w-24 bg-red-500 rounded px-2 py-1 text-xs text-white font-bold">Отказано</span>
                     @else
-                        <span class="w-20 bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен</span>
+                        <span class="w-[4.5rem] bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен</span>
                     @endif
                 </div>
                 <div class="flex flex-col">
@@ -225,7 +225,7 @@
                         </div>
                     </div>
                     <div class="flex flex-col">
-                        <label for="orders-id"class="font-semibold">Приказы<span class="ml-1 text-red-500">*</span></label>
+                        <label for="orders-id" class="font-semibold">Приказы<span class="ml-1 text-red-500">*</span></label>
                         <textarea wire:model="orders" name="orders" id="orders-id" cols="5" rows="5" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">{{ $orders }}</textarea>
                         @error('orders')<span class="text-red-500">{{ $message }}</span>@enderror
                     </div>

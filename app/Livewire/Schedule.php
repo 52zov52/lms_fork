@@ -3,12 +3,9 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\ScheduleController;
-use App\Models\Schedule as ModelsSchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
-use XBase\TableReader;
 
 class Schedule extends Component
 {

@@ -111,7 +111,7 @@
                 <li class="rounded {{ (request()->routeIs('achievement')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                     <a href="{{ route('achievement') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                         <i class="fa-solid fa-award"></i>
-                        <span>Портфолио</span>
+                        <span>Портфолио обучающегося</span>
                     </a>
                 </li>
                 <li class="rounded {{ (request()->routeIs('reports')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
