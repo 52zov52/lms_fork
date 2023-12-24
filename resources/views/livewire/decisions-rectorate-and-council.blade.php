@@ -36,6 +36,10 @@
             Добавить запись
         </button>
         @endcan
+        <button wire:click="filterForPrintModalFormVisible" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
+            <i class="fa-solid fa-print"></i>
+            Печать
+        </button>
         <button wire:click="filterModalFormVisible" class="block xl:hidden w-full md:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
             <i class="fa-solid fa-filter"></i>
             Фильтры
@@ -313,7 +317,7 @@
             </x-slot>
 
             <x-slot name="footer">
-                <button wire:click="$toggle('isFilterModalFormVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
+                <button wire:click="$toggle('isFilterModalFormVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                     {{ __('Закрыть') }}
                 </button>
             </x-slot>
@@ -340,5 +344,52 @@
                 Да
             </button>
         </x-slot>
+    </x-dialog-modal>
+
+    <!-- Filter For Print Modal Form -->
+    <x-dialog-modal wire:model="isFilterForPrintModalFormVisible">
+        <form>
+            @csrf
+            <x-slot name="title">
+                {{ __('Форма печати') }}
+            </x-slot>
+
+            <x-slot name="content">
+                <div class="flex flex-col space-y-2">
+                    @if(session()->has('message-print-error'))
+                    <div class="flex items-center bg-red-500 border-t-4 border-red-700 rounded shadow-xl p-4 text-white" role="alert">
+                        <i class="fa-solid fa-xmark fa-lg"></i>
+                        <div class="ml-3 text-base font-medium">
+                            {{ session('message-print-error') }}
+                        </div>
+                    </div>
+                    @endif
+                    <div class="flex flex-col">
+                        <select wire:model="filterForPrintCategory" wire:change="setFilterForPrintCategory" name="filterForPrintCategory" id="filter-for-print-category-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="0">Выберите категорию решения</option>
+                            <option value="1">Решения ректората</option>
+                            <option value="2">Решения уч. совета</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <select wire:model="filterForPrintDateAndNumberDecision" name="filterForPrintDateAndNumberDecision" id="filter-for-print-date-and-number-decision-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="0">Выберите дату и номер решения</option>
+                            @foreach($catologForPrintDateAndNumberDecisions as $catologForPrintDateAndNumberDecision)
+                            <option value="{{ $catologForPrintDateAndNumberDecision->date_and_number_decision }}">{{ $catologForPrintDateAndNumberDecision->date_and_number_decision }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </x-slot>
+
+            <x-slot name="footer">
+                <button wire:click="$toggle('isFilterForPrintModalFormVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
+                    {{ __('Закрыть') }}
+                </button>
+                <button type="button" wire:click="print" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-1 text-white">
+                    {{ __('Печать') }}
+                </button>
+            </x-slot>
+        </form>
     </x-dialog-modal>
 </div>

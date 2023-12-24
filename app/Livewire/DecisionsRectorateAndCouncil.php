@@ -85,7 +85,7 @@ class DecisionsRectorateAndCouncil extends Component
     public $file = null;
     public $userId = 0;
 
-    public $isCreatingAndEditingModalFormVisible = false, $isDescriptionModalFormVisible = false, $isFilterModalFormVisible = false, $isConfirmDeleteRecordModalVisible = false;
+    public $isCreatingAndEditingModalFormVisible = false, $isDescriptionModalFormVisible = false, $isFilterModalFormVisible = false, $isConfirmDeleteRecordModalVisible = false, $isFilterForPrintModalFormVisible = false;
     public $isEdit = false;
     public $isAlertVisible = false;
 
@@ -94,6 +94,9 @@ class DecisionsRectorateAndCouncil extends Component
     public $filterStatus = '';
     public $filterCategory = '';
     public $filterDateAndNumberDecision = '';
+
+    public $filterForPrintCategory = 0;
+    public $filterForPrintDateAndNumberDecision = 0;
 
     public $isVisibleDateDecisionField = false;
     public $isVisibleNumberDecisionField = false;
@@ -109,6 +112,12 @@ class DecisionsRectorateAndCouncil extends Component
         $catologDateAndNumberDecisions = ModelsDecisionsRectorateAndCouncil::select(DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"))
             ->whereNotNull('date_decision')
             ->whereNotNull('number_decision')
+            ->distinct()->get();
+
+        $catologForPrintDateAndNumberDecisions = ModelsDecisionsRectorateAndCouncil::select(DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"))
+            ->whereNotNull('date_decision')
+            ->whereNotNull('number_decision')
+            ->where('category', '=', $this->filterForPrintCategory)
             ->distinct()->get();
 
         $decisionsRectorateAndCouncil = ModelsDecisionsRectorateAndCouncil::select("*");
@@ -145,7 +154,7 @@ class DecisionsRectorateAndCouncil extends Component
                 ->having('date_and_number_decision', '=', $this->filterDateAndNumberDecision);
         }
 
-        $decisionsRectorateAndCouncil = $decisionsRectorateAndCouncil->select('id', 'position', 'task', 'due_date', 'category',DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"))->orderBy('position')->paginate(50);
+        $decisionsRectorateAndCouncil = $decisionsRectorateAndCouncil->select('id', 'position', 'task', 'due_date', 'category', DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"))->orderBy('position')->paginate(50);
 
         return view('livewire.decisions-rectorate-and-council', [
             'listOfDateDecision' => $listOfDateDecision,
@@ -154,7 +163,8 @@ class DecisionsRectorateAndCouncil extends Component
             'decisionsRectorateAndCouncil' => $decisionsRectorateAndCouncil,
             'positions' => $this->positions,
             'catologDueDates' => $catologDueDates,
-            'catologDateAndNumberDecisions' => $catologDateAndNumberDecisions
+            'catologDateAndNumberDecisions' => $catologDateAndNumberDecisions,
+            'catologForPrintDateAndNumberDecisions' => $catologForPrintDateAndNumberDecisions
         ]);
     }
 
@@ -208,6 +218,14 @@ class DecisionsRectorateAndCouncil extends Component
         $this->isDescriptionModalFormVisible = true;
     }
 
+    public function filterForPrintModalFormVisible(): void
+    {
+        $this->filterForPrintCategory = 0;
+        $this->filterForPrintDateAndNumberDecision = 0;
+
+        $this->isFilterForPrintModalFormVisible = true;
+    }
+
     public function filterModalFormVisible(): void
     {
         $this->isFilterModalFormVisible = true;
@@ -231,6 +249,12 @@ class DecisionsRectorateAndCouncil extends Component
     public function setFilterCategory(): void
     {
         $this->filterCategory = $this->filterCategory;
+    }
+
+    public function setFilterForPrintCategory(): void
+    {
+        $this->filterForPrintCategory = $this->filterForPrintCategory;
+        $this->filterForPrintDateAndNumberDecision = 0;
     }
 
     public function setFilterDateAndNumberDecision(): void
@@ -395,5 +419,14 @@ class DecisionsRectorateAndCouncil extends Component
 
         $this->resetErrorBag();
         $this->resetValidation();
+    }
+
+    public function print()
+    {
+        if($this->filterForPrintCategory != 0 && $this->filterForPrintDateAndNumberDecision != 0) {
+            return redirect()->route('print.decisions', ['category' => $this->filterForPrintCategory, 'dateAndNumberDecision' => $this->filterForPrintDateAndNumberDecision]);
+        }else {
+            session()->flash('message-print-error', 'Перед печатью необходимо выбрать значения из фильтров!');
+        }
     }
 }

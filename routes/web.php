@@ -53,7 +53,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.decisions-rectorate-and-council');
     })->name('decisions.rectorate.and.council');
 
-    Route::get('/print-decisions',[PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
+    Route::get('/print-decisions/{category}/{dateAndNumberDecision}',[PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
 
     Route::group(['middleware' => ['role:Student']], function () {
         Route::get('/document-order-requests', function () {
