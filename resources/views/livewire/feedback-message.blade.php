@@ -1,5 +1,5 @@
 <div class="flex flex-col space-y-2">
-    
+
     @if(session()->has('message-success') && $isAlertVisible)
     <div class="flex items-center justify-between bg-green-500 border-t-4 border-green-700 rounded shadow-xl p-4 text-white" role="alert">
         <div class="flex items-center">
@@ -21,34 +21,33 @@
 
     <div class="flex flex-col space-y-2 bg-white rounded shadow-xl p-4">
         @if(!$feedbackMessages->isEmpty())
-        @foreach($feedbackMessages as $feedbackMessage)
-            <div class="flex flex-col space-y-2 border rounded p-4 text-sm">
-                <div class="flex justify-end">
-                    @if($feedbackMessage->is_processed == 1)
-                        <span class="w-auto bg-orange-500 rounded px-2 py-1 text-xs text-white font-bold">В обработке</span>
-                    @else
-                        <span class="w-auto bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Получен ответ</span>
-                    @endif
-                </div>
-                <div class="flex flex-col">
-                    <p><span class="font-semibold">Отправитель:</span> </p>
-                    <p><span class="font-semibold">Email:</span> {{ $feedbackMessage->email }}</p>
-                    <p><span class="font-semibold">Дата отправки:</span> {{ \Carbon\Carbon::parse($feedbackMessage->created_at)->format('d.m.Y H:i:s') }}</p>
-                </div>
-                <div class="flex flex-col">
-                    <p class="font-semibold">Сообщение:</p>
-                    <div class="border rounded p-4">
-                        {{ $feedbackMessage->message_text }}
-                    </div>
-                </div>
-                <div class="flex justify-end">
-                    <button wire:click="feedbackResponsModalVisible" class="w-full md:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
-                        <i class="fa-solid fa-share"></i>
-                        Написать ответ
-                    </button>
-                </div>
-            </div>
-        @endforeach
+        <table class="w-full bg-white border shadow-md text-sm">
+            <tbody>
+                <tr class="bg-gray-100">
+                    <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
+                    <td class="w-auto border px-2 py-2 font-semibold">Тема сообщения</td>
+                    <td class="w-24 border px-2 py-2 text-center font-semibold">Действия</td>
+                </tr>
+                @foreach($feedbackMessages as $feedbackMessage)
+                <tr>
+                    <td class="w-12 border px-2 py-2 text-center font-semibold">{{ $loop->iteration }}</td>
+                    <td class="w-auto border px-2 py-2 font-semibold">
+                        @if($feedbackMessage->is_processed == 1)
+                        <i class="fa-solid fa-envelope"></i>
+                        @else
+                        <i class="fa-solid fa-envelope-open"></i>
+                        @endif
+                        {{ $feedbackMessage->subject }}
+                    </td>
+                    <td class="w-24 border px-2 py-2 text-center font-semibold">
+                        <button wire:click="redirectToLookFeedbackMessage({{ $feedbackMessage->id }})" class="bg-purple-500 hover:bg-purple-600 rounded shadow-xl px-2 py-1.5 text-xs text-white" title="Просмотр сообщений">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </button>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
         <div class="mt-2">
             {{ $feedbackMessages->links() }}
         </div>
@@ -74,6 +73,11 @@
                 <div class="w-full">
                     <div class="flex flex-col space-y-2">
                         <div class="flex flex-col">
+                            <label for="subject-id" class="font-semibold">Тема сообщения<span class="ml-1 text-red-500">*</span></label>
+                            <input wire:model="subject" type="subject" name="subject" id="subject-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('subject')<span class="text-red-500 font-semibold">{{ $message }}</span>@enderror
+                        </div>
+                        <div class="flex flex-col">
                             <label for="email-id" class="font-semibold">Ваш email<span class="ml-1 text-red-500">*</span></label>
                             <input wire:model="email" type="email" name="email" id="email-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('email')<span class="text-red-500 font-semibold">{{ $message }}</span>@enderror
@@ -91,38 +95,7 @@
                 <button wire:click="$toggle('isFeedbackMessageModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                     {{ __('Закрыть') }}
                 </button>
-                <button wire:click.prevent="sendMessage" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-1 text-white">
-                    {{ __('Отправить') }}
-                </button>
-            </x-slot>
-        </form>
-    </x-dialog-modal>
-
-    <!-- Modal dialog to send feedback respons -->
-    <x-dialog-modal wire:model="isFeedbackResponsModalVisible">
-        <form>
-            @csrf
-            <x-slot name="title">
-                Форма ответа на сообщение
-            </x-slot>
-
-            <x-slot name="content">
-                <div class="w-full">
-                    <div class="flex flex-col space-y-2">
-                        <div class="flex flex-col">
-                            <label for="respons-id" class="font-semibold">Ответ на сообщение<span class="ml-1 text-red-500">*</span></label>
-                            <textarea wire:model="respons" name="respons" id="respons-id" cols="5" rows="5" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
-                            @error('respons')<span class="text-red-500 font-semibold">{{ $message }}</span>@enderror
-                        </div>
-                    </div>
-                </div>
-            </x-slot>
-
-            <x-slot name="footer">
-                <button wire:click="$toggle('isFeedbackResponsModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
-                    {{ __('Закрыть') }}
-                </button>
-                <button wire:click.prevent="sendRespons" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-1 text-white">
+                <button wire:click.prevent="send" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-1 text-white">
                     {{ __('Отправить') }}
                 </button>
             </x-slot>

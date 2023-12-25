@@ -36,10 +36,12 @@
             Добавить запись
         </button>
         @endcan
+        @can('print-decisions-rectorate-and-council')
         <button wire:click="filterForPrintModalFormVisible" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
             <i class="fa-solid fa-print"></i>
             Печать
         </button>
+        @endcan
         <button wire:click="filterModalFormVisible" class="block xl:hidden w-full md:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
             <i class="fa-solid fa-filter"></i>
             Фильтры
@@ -57,7 +59,9 @@
                         <td class="w-44 border px-2 py-2 font-semibold">Срок исполнения</td>
                         <td class="w-28 border px-2 py-2 text-center font-semibold">Категория</td>
                         <td class="w-44 border px-2 py-2 text-center font-semibold">Дата и номер решения</td>
+                        @can('create-edit-delete-decisions-rectorate-and-council')
                         <td class="w-24 border px-2 py-2 text-center font-semibold">Действия</td>
+                        @endcan
                     </tr>
                     <tr class="bg-gray-100">
                         <td class="w-12 border px-2"></td>
@@ -87,7 +91,9 @@
                                 @endforeach
                             </select>
                         </td>
+                        @can('create-edit-delete-decisions-rectorate-and-council')
                         <td class="w-auto border px-2"></td>
+                        @endcan
                     </tr>
                     @foreach($decisionsRectorateAndCouncil as $value)
                     <tr>
@@ -103,16 +109,16 @@
                             @endif
                         </td>
                         <td class="w-44 border px-2 py-2 text-center">{{ $value->date_and_number_decision }}</td>
+                        @can('create-edit-delete-decisions-rectorate-and-council')
                         <td class="w-24 border px-2 py-2 text-center">
-                            @can('create-edit-delete-decisions-rectorate-and-council')
                             <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" class="bg-sky-500 hover:bg-sky-600 rounded px-2 py-1.5 text-xs text-white" title="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
                             <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }})" class="bg-red-500 hover:bg-red-600 rounded px-2 py-1.5 text-xs text-white" title="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
-                            @endcan
                         </td>
+                        @endcan
                     </tr>
                     @endforeach
                 </tbody>
@@ -145,19 +151,19 @@
                     <span class="font-semibold">Дата и номер решения:</span>
                     <span>{{ $value->date_and_number_decision }}</span>
                 </div>
+                @can('create-edit-delete-decisions-rectorate-and-council')
                 <div class="flex flex-col">
                     <span class="font-semibold">Действия:</span>
                     <div class="flex flex-row space-x-2">
-                        @can('create-edit-delete-decisions-rectorate-and-council')
                         <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" title="Редактировать" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-pen"></i>
                         </button>
                         <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }})" title="Удалить" class="w-auto grow bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-trash"></i>
                         </button>
-                        @endcan
                     </div>
                 </div>
+                @endcan
             </div>
             @endforeach
         </div>
@@ -368,7 +374,6 @@
                         <select wire:model="filterForPrintCategory" wire:change="setFilterForPrintCategory" name="filterForPrintCategory" id="filter-for-print-category-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             <option value="0">Выберите категорию решения</option>
                             <option value="1">Решения ректората</option>
-                            <option value="2">Решения уч. совета</option>
                         </select>
                     </div>
                     <div class="flex flex-col">

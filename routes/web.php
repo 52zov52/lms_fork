@@ -45,15 +45,17 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.schedule');
     })->name('schedule');
 
-    Route::get('/operating-activity', function () {
-        return view('pages.operating-activity');
-    })->name('operating.activity');
+    Route::group(['middleware' => ['permission:show-operating-activity-and-decisions-rectorate-and-council']], function () {
+        Route::get('/operating-activity', function () {
+            return view('pages.operating-activity');
+        })->name('operating.activity');
+        
+        Route::get('/decisions-rectorate-and-council', function () {
+            return view('pages.decisions-rectorate-and-council');
+        })->name('decisions.rectorate.and.council');
 
-    Route::get('/decisions-rectorate-and-council', function () {
-        return view('pages.decisions-rectorate-and-council');
-    })->name('decisions.rectorate.and.council');
-
-    Route::get('/print-decisions/{category}/{dateAndNumberDecision}',[PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
+        Route::get('/print-decisions/{category}/{dateAndNumberDecision}',[PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
+    });
 
     Route::group(['middleware' => ['role:Student']], function () {
         Route::get('/document-order-requests', function () {
@@ -92,6 +94,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/feedback', function () {
         return view('pages.feedback-message');
     })->name('feedback');
+
+    Route::get('/look-feedback-messange/{id}', function ($id) {
+        return view('pages.look-feedback-message', compact('id'));
+    })->name('look.feedback.messange');
 
     Route::get('/generate-qr-code', [QrCodeController::class, 'generateQrCode'])->name('generate.qr.code');
 
