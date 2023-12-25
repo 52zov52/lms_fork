@@ -20,7 +20,12 @@ class FeedbackMessage extends Component
 
     public function render()
     {
-        $feedbackMessages = ModelsFeedbackMessage::where('sender_id', '=', Auth::user()->id)->paginate(15);
+        if (Auth::user()->can('send-feedback-responses')) {
+            $feedbackMessages = ModelsFeedbackMessage::paginate(15);
+        }
+        else{
+            $feedbackMessages = ModelsFeedbackMessage::where('sender_id', '=', Auth::user()->id)->paginate(15);
+        }
 
         return view('livewire.feedback-message', ['feedbackMessages' => $feedbackMessages]);
     }

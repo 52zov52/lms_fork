@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('feedback_messages', function (Blueprint $table) {
-            $table->boolean('is_processed')->default(true)->after('message_text');
+            $table->integer('state')->default(1)->after('message_text');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('feedback_messages', function (Blueprint $table) {
-            $table->dropColumn('is_processed');
+            $table->dropColumn('state');
         });
     }
 };

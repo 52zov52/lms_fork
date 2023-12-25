@@ -120,7 +120,7 @@
                         <span>Отчеты и аналитика</span>
                     </a>
                 </li>
-                <li class="rounded {{ (request()->routeIs('feedback')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                <li class="rounded {{ (request()->routeIs('feedback') || request()->routeIs('look.feedback.messange')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                     <a href="{{ route('feedback') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                         <i class="fa-solid fa-comment"></i>
                         <span>Поддержка</span>
@@ -160,6 +160,8 @@
         </header>
         <!-- Content -->
         <main class="mt-16 px-6 py-4">
+            {{ $breadcrumb }}
+            
             <div class="mb-4">
                 <h1 class="text-xl xl:text-2xl font-semibold">{{ $header }}</h1>
             </div>

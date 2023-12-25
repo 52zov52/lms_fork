@@ -185,6 +185,7 @@
                             <input wire:model="file" type="file" name="file" id="file-id-{{ $rand }}" class="ml-1 w-full">
                         </div>
                         <span class="text-xs font-semibold">доступные типы файлов: *.pdf, *.jpg, *.bmp, *.png</span>
+                        <span class="text-xs font-semibold">максимальный объем файла: 3 МБ</span>
                         <div wire:loading wire:target="file" class="text-green-500 font-semibold">Идет загрузка файла ...</div>
                         @error('file') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                         @if($isEdit)

@@ -16,6 +16,6 @@ class FeedbackMessage extends Model
         'email',
         'subject',
         'message_text',
-        'is_processed'
+        'state'
     ];
 }

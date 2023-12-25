@@ -32,8 +32,10 @@
                 <tr>
                     <td class="w-12 border px-2 py-2 text-center font-semibold">{{ $loop->iteration }}</td>
                     <td class="w-auto border px-2 py-2 font-semibold">
-                        @if($feedbackMessage->is_processed == 1)
+                        @if($feedbackMessage->state == 1)
                         <i class="fa-solid fa-envelope"></i>
+                        @elseif($feedbackMessage->state == 2)
+                        <i class="fa-solid fa-envelope-circle-check"></i>
                         @else
                         <i class="fa-solid fa-envelope-open"></i>
                         @endif
@@ -74,7 +76,7 @@
                     <div class="flex flex-col space-y-2">
                         <div class="flex flex-col">
                             <label for="subject-id" class="font-semibold">Тема сообщения<span class="ml-1 text-red-500">*</span></label>
-                            <input wire:model="subject" type="subject" name="subject" id="subject-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <input wire:model="subject" type="text" name="subject" id="subject-id" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('subject')<span class="text-red-500 font-semibold">{{ $message }}</span>@enderror
                         </div>
                         <div class="flex flex-col">

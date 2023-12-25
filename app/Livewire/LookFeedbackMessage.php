@@ -23,17 +23,17 @@ class LookFeedbackMessage extends Component
     public function render()
     {
         $feedbackMessage = FeedbackMessage::join('users_data', 'users_data.user_id', '=', 'feedback_messages.sender_id')
-        ->select(
-            'feedback_messages.id',
-            'feedback_messages.sender_id',
-            'feedback_messages.email',
-            'feedback_messages.message_text',
-            'feedback_messages.created_at',
-            'users_data.last_name',
-            'users_data.first_name',
-            'users_data.middle_name'
-        )
-        ->where('feedback_messages.id', '=', $this->id)->first();
+            ->select(
+                'feedback_messages.id',
+                'feedback_messages.sender_id',
+                'feedback_messages.email',
+                'feedback_messages.message_text',
+                'feedback_messages.created_at',
+                'users_data.last_name',
+                'users_data.first_name',
+                'users_data.middle_name'
+            )
+            ->where('feedback_messages.id', '=', $this->id)->first();
 
         $feedbackResponse = FeedbackResponses::join('users_data', 'users_data.user_id', '=', 'feedback_responses.sender_id')
             ->select(
@@ -46,6 +46,12 @@ class LookFeedbackMessage extends Component
                 'users_data.middle_name'
             )
             ->where('feedback_responses.feedback_message_id', '=', $this->id)->first();
+
+        if ($feedbackMessage->sender_id == Auth::user()->id) {
+            $feedbackMessage = FeedbackMessage::findOrFail($this->id);
+            $feedbackMessage->state = 3;
+            $feedbackMessage->update();
+        }
 
         return view(
             'livewire.look-feedback-message',
@@ -82,6 +88,10 @@ class LookFeedbackMessage extends Component
             'respons' => $this->respons,
             'feedback_message_id' => $this->id,
         ]);
+
+        $feedbackMessage = FeedbackMessage::findOrFail($this->id);
+        $feedbackMessage->state = 2;
+        $feedbackMessage->update();
 
         $this->isFeedbackResponsModalVisible = false;
         $this->isAlertVisible = true;
