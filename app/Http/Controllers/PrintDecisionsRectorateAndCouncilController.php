@@ -14,7 +14,6 @@ class PrintDecisionsRectorateAndCouncilController extends Controller
 {
     public function printDecisions($category, $dateAndNumberDecision)
     {
-
         $data = DecisionsRectorateAndCouncil::select(
             'date_decision',
             'number_decision',
@@ -46,7 +45,7 @@ class PrintDecisionsRectorateAndCouncilController extends Controller
             $table->addRow();
             $table->addCell(3500)->addText($value->position, $tableFontStyle);
             $table->addCell(3500)->addText($value->task, $tableFontStyle);
-            $table->addCell(3500)->addText(Carbon::parse($value->dueDate)->format('d.m.Y'), $tableFontStyle);
+            $table->addCell(3500)->addText(Carbon::parse($value->due_date)->format('d.m.Y'), $tableFontStyle);
         }
 
         $templateProcessor->setComplexBlock('table', $table);
