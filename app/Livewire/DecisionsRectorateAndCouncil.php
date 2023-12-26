@@ -422,7 +422,7 @@ class DecisionsRectorateAndCouncil extends Component
     public function print()
     {
         if($this->filterForPrintCategory != 0 && $this->filterForPrintDateAndNumberDecision != 0) {
-            return redirect()->route('print.decisions', ['category' => $this->filterForPrintCategory, 'dateAndNumberDecision' => $this->filterForPrintDateAndNumberDecision]);
+            return redirect()->route('print.decisions', ['category' => $this->filterForPrintCategory, 'dateAndNumberDecision' => base64_encode($this->filterForPrintDateAndNumberDecision)]);
         }else {
             session()->flash('message-print-error', 'Перед печатью необходимо выбрать значения из фильтров!');
         }

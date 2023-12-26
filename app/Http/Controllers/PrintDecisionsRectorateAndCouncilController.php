@@ -14,6 +14,7 @@ class PrintDecisionsRectorateAndCouncilController extends Controller
 {
     public function printDecisions($category, $dateAndNumberDecision)
     {
+
         $data = DecisionsRectorateAndCouncil::select(
             'date_decision',
             'number_decision',
@@ -22,7 +23,7 @@ class PrintDecisionsRectorateAndCouncilController extends Controller
             'due_date',
             DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'), ' №', number_decision) AS date_and_number_decision")
         )
-            ->having('date_and_number_decision', '=', $dateAndNumberDecision)
+            ->having('date_and_number_decision', '=', base64_decode($dateAndNumberDecision))
             ->where('category', '=', $category)->get();
 
         $path  = Storage::disk('public')->path('template/decisions_rectorate_and_council/template.docx');
