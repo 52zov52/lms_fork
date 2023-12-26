@@ -53,16 +53,16 @@
                         <td class="w-72 border px-2">
                             <select wire:model="filterActivityDirection" wire:change="setFilterActivityDirection" name="filterActivityDirection" id="filter-activity-direction-id" class="w-72 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                 <option value="">Все направления деятельности</option>
-                                @foreach($catologActivityDirections as $catologActivityDirection)
-                                <option value="{{ $catologActivityDirection->activity_direction }}">{{ $catologActivityDirection->activity_direction }}</option>
+                                @foreach($listOfActivityDirections as $value)
+                                <option value="{{ $value->name }}">{{ $value->name }}</option>
                                 @endforeach
                             </select>
                         </td>
                         <td class="w-64 border px-2 py-1">
                             <select wire:model="filterExecutor" wire:change="setFilterExecutor" name="filterExecutor" id="filter-executor-id" class="w-64 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                 <option value="">Все исполнители</option>
-                                @foreach($catologExecutors as $catologExecutor)
-                                <option value="{{ $catologExecutor->last_name }} {{ $catologExecutor->first_name }} {{ $catologExecutor->middle_name }}">{{ $catologExecutor->last_name }} {{ $catologExecutor->first_name }} {{ $catologExecutor->middle_name }}</option>
+                                @foreach($listOfExecutors as $value)
+                                <option value="{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}">{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}</option>
                                 @endforeach
                             </select>
                         </td>
@@ -266,16 +266,16 @@
                     <div class="flex flex-col">
                         <select wire:model="filterActivityDirection" wire:change="setFilterActivityDirection" name="filterActivityDirection" id="filter-activity-direction-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             <option value="">Все направления деятельности</option>
-                            @foreach($catologActivityDirections as $catologActivityDirection)
-                            <option value="{{ $catologActivityDirection->activity_direction }}">{{ $catologActivityDirection->activity_direction }}</option>
+                            @foreach($listOfActivityDirections as $value)
+                            <option value="{{ $value->name }}">{{ $value->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="flex flex-col">
                         <select wire:model="filterExecutor" wire:change="setFilterExecutor" name="filterExecutor" id="filter-executor-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             <option value="">Все исполнители</option>
-                            @foreach($catologExecutors as $catologExecutor)
-                            <option value="{{ $catologExecutor->last_name }}">{{ $catologExecutor->last_name }} {{ $catologExecutor->first_name }} {{ $catologExecutor->middle_name }}</option>
+                            @foreach($listOfExecutors as $value)
+                            <option value="{{ $value->last_name }}">{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}</option>
                             @endforeach
                         </select>
                     </div>

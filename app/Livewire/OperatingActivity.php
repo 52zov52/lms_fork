@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\OperatingActivity as ModelsOperatingActivity;
+use App\Models\UserActivityDirection;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -41,8 +42,20 @@ class OperatingActivity extends Component
     {
         $weeksRange = $this->getWeeksRange();
 
-        $catologActivityDirections = ModelsOperatingActivity::select('activity_direction')->distinct()->get();
-        $catologExecutors = ModelsOperatingActivity::join('users_data', 'operating_activities.user_id', '=', 'users_data.user_id')
+        $listOfActivityDirectionsForUser = UserActivityDirection::join('activity_directions', 'user_activity_directions.activity_direction_id', '=', 'activity_directions.id')
+            ->select('activity_directions.id', 'activity_directions.name')
+            ->where('user_activity_directions.user_id', '=', 24207)
+            ->get();
+
+        $listOfActivityDirections = UserActivityDirection::join('activity_directions', 'user_activity_directions.activity_direction_id', '=', 'activity_directions.id')
+            ->select('activity_directions.id', 'activity_directions.name')
+            ->distinct()
+            ->orderBy('activity_directions.name')
+            ->get();
+
+        //$catologActivityDirections = ModelsOperatingActivity::select('activity_direction')->distinct()->get();
+
+        $listOfExecutors = ModelsOperatingActivity::join('users_data', 'operating_activities.user_id', '=', 'users_data.user_id')
             ->select(
                 'users_data.last_name',
                 'users_data.first_name',
@@ -107,8 +120,9 @@ class OperatingActivity extends Component
         return view('livewire.operating-activity', [
             'operatingActivity' => $operatingActivity,
             'weeksRange' => $weeksRange,
-            'catologActivityDirections' => $catologActivityDirections,
-            'catologExecutors' => $catologExecutors,
+            'listOfActivityDirections' => $listOfActivityDirections,
+            'listOfActivityDirectionsForUser' => $listOfActivityDirectionsForUser,
+            'listOfExecutors' => $listOfExecutors,
         ]);
     }
 
@@ -296,8 +310,8 @@ class OperatingActivity extends Component
             $weekEndDate = $now->endOfWeek()->format('Y-m-d');
 
             $week = Carbon::parse($weekStartDate)->format('d.m.Y') . '-' . Carbon::parse($weekEndDate)->format('d.m.Y');
-            
-            if(!in_array($week, $weeksRange)) {
+
+            if (!in_array($week, $weeksRange)) {
                 array_push($weeksRange, $week);
             }
         }
