@@ -41,9 +41,6 @@
                 <span>{{ auth()->user()->userData->last_name }}</span>
                 <span>{{ auth()->user()->userData->first_name }} {{ auth()->user()->userData->middle_name }}</span>
             </div>
-            @role('Student')
-            @livewire('components.portfolio-rating')
-            @endrole
         </div>
 
         <div style="height: calc(100vh - 160px);" class="overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
