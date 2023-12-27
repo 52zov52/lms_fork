@@ -76,7 +76,7 @@ class Achievement extends Component
             'file' => 'file|mimes:pdf,jpg,bmp,png|max:3072', // 3MB Max
         ]);
 
-        $filename = $this->file->store('achievement' . '/' . Carbon::now()->format('Y-m-d'), 'public');
+        $filePath = $this->file->store('achievement' . '/' . Carbon::now()->format('Y-m-d'), 'public');
 
         switch ($this->achievementCategory) {
             case 1:
@@ -104,7 +104,7 @@ class Achievement extends Component
             'name' => $this->name,
             'description' => $this->description,
             'year' => $this->year,
-            'file_path' => $filename,
+            'file_path' => $filePath,
             'score' => $this->score,
             'user_id' => Auth::user()->id
         ]);
@@ -185,8 +185,8 @@ class Achievement extends Component
 
         if (!is_null($this->file)) {
             unlink(storage_path('app/public/' . $achievement->file_path));
-            $filename = $this->file->store('achievement' . '/' . Carbon::now()->format('Y-m-d'), 'public');
-            $achievement->file_path = $filename;
+            $filePath = $this->file->store('achievement' . '/' . Carbon::now()->format('Y-m-d'), 'public');
+            $achievement->file_path = $filePath;
         }
 
         $achievement->score = $this->score;

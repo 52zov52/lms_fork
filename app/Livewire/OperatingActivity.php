@@ -17,15 +17,19 @@ class OperatingActivity extends Component
     use WithPagination;
 
     public $id = 0;
-    public $activityDirection = '';
+    public $activityDirection = 0;
     public $task = '';
     public $description = '';
     public $status = 0;
+    public $file_path = '';
     public $file = null;
     public $userId = 0;
     public $week = '';
 
-    public $isCreatingAndEditingModalFormVisible = false, $isDescriptionModalFormVisible = false, $isFilterModalFormVisible = false;
+    public string $filename = '';
+    public int $rand = 1;
+
+    public $isCreatingAndEditingModalFormVisible = false, $isDescriptionModalFormVisible = false, $isFilterModalFormVisible = false, $isAlertVisible = false, $isConfirmDeleteRecordModalVisible = false;
     public $isEdit = false;
 
     public $filterWeeks = '';
@@ -47,20 +51,32 @@ class OperatingActivity extends Component
             ->where('user_activity_directions.user_id', '=', 24207)
             ->get();
 
-        $listOfActivityDirections = UserActivityDirection::join('activity_directions', 'user_activity_directions.activity_direction_id', '=', 'activity_directions.id')
-            ->select('activity_directions.id', 'activity_directions.name')
-            ->distinct()
+        $listOfActivityDirections = UserActivityDirection::join('activity_directions', 'user_activity_directions.activity_direction_id', '=', 'activity_directions.id');
+
+        if (!empty($this->filterExecutor)) {
+            $listOfActivityDirections->join('users_data', 'user_activity_directions.user_id', '=', 'users_data.user_id')
+                ->select('activity_directions.id', 'activity_directions.name', DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) AS fio"))
+                ->having('fio', '=', $this->filterExecutor);
+        }else {
+            $listOfActivityDirections->select('activity_directions.id', 'activity_directions.name');
+        }
+
+        $listOfActivityDirections = $listOfActivityDirections->distinct()
             ->orderBy('activity_directions.name')
             ->get();
-
-        //$catologActivityDirections = ModelsOperatingActivity::select('activity_direction')->distinct()->get();
 
         $listOfExecutors = ModelsOperatingActivity::join('users_data', 'operating_activities.user_id', '=', 'users_data.user_id')
             ->select(
                 'users_data.last_name',
                 'users_data.first_name',
                 'users_data.middle_name'
-            )->distinct()->get();
+            );
+
+        if (!empty($this->filterActivityDirection)) {
+            $listOfExecutors->where('operating_activities.activity_direction', '=', $this->filterActivityDirection);
+        }
+
+        $listOfExecutors = $listOfExecutors->distinct()->get();
 
         $operatingActivity = ModelsOperatingActivity::join('users_data', 'operating_activities.user_id', '=', 'users_data.user_id')
             ->select(
@@ -147,6 +163,19 @@ class OperatingActivity extends Component
         $this->isDescriptionModalFormVisible = true;
     }
 
+    public function alertVisible(): void
+    {
+        $this->isAlertVisible = false;
+    }
+
+    public function confirmDeleteRecordModalVisible($id, $userId)
+    {
+        $this->id = $id;
+        $this->userId = $userId;
+
+        $this->isConfirmDeleteRecordModalVisible = true;
+    }
+
     public function filterModalFormVisible(): void
     {
         $this->isFilterModalFormVisible = true;
@@ -186,18 +215,20 @@ class OperatingActivity extends Component
             ]);
         }
 
-        $filename = (!is_null($this->file)) ? $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public') : null;
+        $filePath = (!is_null($this->file)) ? $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public') : null;
 
         ModelsOperatingActivity::create([
             'activity_direction' => $this->activityDirection,
             'task' => $this->task,
             'description' =>  $this->description,
             'status' => $this->status,
-            'file_path' =>  $filename,
+            'file_path' =>  $filePath,
             'user_id' => Auth::user()->id
         ]);
 
         $this->isCreatingAndEditingModalFormVisible = false;
+        $this->isAlertVisible = true;
+
         $this->resetFields();
 
         session()->flash('message-success', 'Запись успешно добавлена!');
@@ -213,6 +244,12 @@ class OperatingActivity extends Component
         $this->task = $operatingActivity->task;
         $this->description = $operatingActivity->description;
         $this->status = $operatingActivity->status;
+        $this->file_path = $operatingActivity->file_path;
+
+        if (!is_null($operatingActivity->file_path)) {
+            $data = explode('/', $operatingActivity->file_path);
+            $this->filename = $data[2];
+        }
     }
 
     public function update(): void
@@ -246,32 +283,45 @@ class OperatingActivity extends Component
                     unlink(storage_path('app/public/' . $operatingActivity->file_path));
                 }
 
-                $filename = $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public');
-                $operatingActivity->file_path = $filename;
+                $filePath = $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public');
+                $operatingActivity->file_path = $filePath;
             }
 
             $operatingActivity->update();
 
             $this->isCreatingAndEditingModalFormVisible = false;
+            $this->isAlertVisible = true;
+
             $this->resetFields();
 
             session()->flash('message-success', 'Запись успешно отредактирована!');
         } else {
             $this->isCreatingAndEditingModalFormVisible = false;
+            $this->isAlertVisible = true;
+
             session()->flash('message-error', 'Ошибка редактирования записи! У вас нет прав на редактирование записи!');
         }
     }
 
-    public function destroy($id, $userId): void
+    public function destroy(): void
     {
-        $this->userId = $userId;
-
         if (Auth::user()->id == $this->userId) {
-            $operatingActivity = ModelsOperatingActivity::findOrFail($id);
+            $operatingActivity = ModelsOperatingActivity::findOrFail($this->id);
+
+            if (!is_null($operatingActivity->file_path)) {
+                unlink(storage_path('app/public/' . $operatingActivity->file_path));
+            }
+
             $operatingActivity->delete();
+
+            $this->isConfirmDeleteRecordModalVisible = false;
+            $this->isAlertVisible = true;
 
             session()->flash('message-success', 'Запись успешно удалена!');
         } else {
+            $this->isConfirmDeleteRecordModalVisible = false;
+            $this->isAlertVisible = true;
+
             session()->flash('message-error', 'Ошибка удаления записи! У вас нет прав на удаление записи!');
         }
     }
@@ -282,16 +332,24 @@ class OperatingActivity extends Component
         $operatingActivity->status = 3;
         $operatingActivity->update();
 
-        session()->flash('message-success', 'Запись успешно обновлена!');
+        $this->isAlertVisible = true;
+
+        session()->flash('message-success', 'Статус записи успешно изменен!');
     }
 
     public function resetFields(): void
     {
-        $this->activityDirection = '';
+        $this->activityDirection = 0;
         $this->task = '';
         $this->description = '';
         $this->status = 0;
+        $this->file_path = '';
         $this->file = null;
+
+        $this->rand++;
+
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
     public function getWeeksRange(): array
