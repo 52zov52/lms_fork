@@ -48,7 +48,7 @@ class OperatingActivity extends Component
 
         $listOfActivityDirectionsForUser = UserActivityDirection::join('activity_directions', 'user_activity_directions.activity_direction_id', '=', 'activity_directions.id')
             ->select('activity_directions.id', 'activity_directions.name')
-            ->where('user_activity_directions.user_id', '=', 24207)
+            ->where('user_activity_directions.user_id', '=', Auth::user()->id)
             ->get();
 
         $listOfActivityDirections = UserActivityDirection::join('activity_directions', 'user_activity_directions.activity_direction_id', '=', 'activity_directions.id');
