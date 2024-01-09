@@ -193,6 +193,10 @@
 
             <x-slot name="content">
                 <div class="flex flex-col space-y-2">
+                    <div>
+                        <input 
+                       type="text" id="datepicker">
+                    </div>
                     <div class="flex flex-col">
                         <label for="activity-direction-id" class="font-semibold">Направление деятельности<span class="ml-1 text-red-500">*</span></label>
                         <select wire:model="activityDirection" name="activity_direction" id="activity-direction-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
@@ -352,5 +356,7 @@
             </button>
         </x-slot>
     </x-dialog-modal>
+
+
 
 </div>

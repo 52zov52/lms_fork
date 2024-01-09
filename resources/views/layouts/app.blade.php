@@ -83,13 +83,15 @@
                     </a>
                 </li>
                 @endcan
-                @canany(['access-to-student-requests-for-certificates-full', 'access-to-student-requests-for-certificates-spo', 'access-to-student-requests-for-certificates-vo'])
+                @role('Student')
                 <li class="rounded {{ (request()->routeIs('document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                     <a href="{{ route('document.order.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                         <i class="fa-solid fa-file-invoice"></i>
                         <span>Заказ документов (справок)</span>
                     </a>
                 </li>
+                @endrole
+                @canany(['access-to-student-requests-for-certificates-full', 'access-to-student-requests-for-certificates-spo', 'access-to-student-requests-for-certificates-vo'])
                 <li class="rounded {{ (request()->routeIs('document.retrieval.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                     <a href="{{ route('document.retrieval.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                         <i class="fa-solid fa-file-import"></i>
@@ -158,7 +160,7 @@
         <!-- Content -->
         <main class="mt-16 px-6 py-4">
             {{ $breadcrumb }}
-            
+
             <div class="mb-4">
                 <h1 class="text-xl xl:text-2xl font-semibold">{{ $header }}</h1>
             </div>
@@ -170,6 +172,17 @@
     @stack('modals')
 
     @livewireScripts
+
+
+    <script>
+    var picker = new Pikaday({
+        field: document.getElementById('datepicker'),
+        format: 'D MMM YYYY',
+        onSelect: function() {
+            console.log(this.getMoment().format('Do MMMM YYYY'));
+        }
+    });
+</script>
 </body>
 
 </html>
