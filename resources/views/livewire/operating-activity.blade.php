@@ -194,8 +194,8 @@
             <x-slot name="content">
                 <div class="flex flex-col space-y-2">
                     <div>
-                        <input 
-                       type="text" id="datepicker">
+                        <input wire:model="startDate" type="text" id="start-date-id" tabindex="-1">
+                        <input wire:model="endDate" type="text" id="end-date-id" tabindex="-1">
                     </div>
                     <div class="flex flex-col">
                         <label for="activity-direction-id" class="font-semibold">Направление деятельности<span class="ml-1 text-red-500">*</span></label>
@@ -356,7 +356,26 @@
             </button>
         </x-slot>
     </x-dialog-modal>
-
-
-
 </div>
+
+@push('scripts')
+<script>
+    var pickerStartDate = new Pikaday({
+        field: document.getElementById('start-date-id'),
+        format: 'DD.MM.YYYY',
+        onSelect: function() {
+            var data = this.getMoment().format('DD.MM.YYYY');
+            @this.set('startDate', data);
+        }
+    });
+
+    var pickerEndDate = new Pikaday({
+        field: document.getElementById('end-date-id'),
+        format: 'DD.MM.YYYY',
+        onSelect: function() {
+            var data = this.getMoment().format('DD.MM.YYYY');
+            @this.set('endDate', data);
+        }
+    });
+</script>
+@endpush

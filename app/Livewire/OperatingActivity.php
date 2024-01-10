@@ -37,6 +37,9 @@ class OperatingActivity extends Component
     public $filterExecutor = '';
     public $filterStatus = '';
 
+    public $startDate = '';
+    public $endDate = '';
+
     public function mount()
     {
         $this->filterExecutor = (Auth::user()->id == 2190) ? '' : Auth::user()->userData->last_name . ' ' . Auth::user()->userData->first_name . ' ' . Auth::user()->userData->middle_name;
@@ -57,7 +60,7 @@ class OperatingActivity extends Component
             $listOfActivityDirections->join('users_data', 'user_activity_directions.user_id', '=', 'users_data.user_id')
                 ->select('activity_directions.id', 'activity_directions.name', DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) AS fio"))
                 ->having('fio', '=', $this->filterExecutor);
-        }else {
+        } else {
             $listOfActivityDirections->select('activity_directions.id', 'activity_directions.name');
         }
 
