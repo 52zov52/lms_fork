@@ -17,8 +17,6 @@
     <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
 
-    
-
     <!-- Styles -->
     @livewireStyles
 </head>
@@ -113,6 +111,14 @@
                     </a>
                 </li>
                 @endrole
+                @can('access-to-data-on-students-academic-leaves')
+                <li class="rounded {{ (request()->routeIs('academic.leave.calendar')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('academic.leave.calendar') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-calendar-day"></i>
+                        <span>Календарь академ. отпусков</span>
+                    </a>
+                </li>
+                @endcan
                 <li class="rounded {{ (request()->routeIs('achievement')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                     <a href="{{ route('achievement') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                         <i class="fa-solid fa-award"></i>

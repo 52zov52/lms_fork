@@ -75,6 +75,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.contingent');
     })->name('contingent');
 
+    Route::group(['middleware' => 'permission:access-to-data-on-students-academic-leaves'], function() {
+        Route::get('/academic-leave-calendar', function() {
+            return view('pages.academic-leave-calendar');
+        })->name('academic.leave.calendar');
+    });
+
     Route::get('/documents-students-academic-leaves/{user_id}/{group_id}', function ($user_id, $group_id) {
         return view('pages.documents-students-academic-leaves', ['user_id' => $user_id, 'group_id' => $group_id]);
     })->name('documents.students.academic.leaves');
@@ -107,5 +113,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::get('/generate-operating-activity-report/{week}/{fio}', [OperatingActivityReportController::class, 'generateOperatingActivityReport'])->name('generate.operating.activity.report');
 
+    Route::get('/generate-list-of-students-in-group-report/{groupId}', [ContingentReportController::class, 'generateListOfStudentsInGroupReport'])->name('generate.list.of.student.in.group.report');
     Route::get('/generate-contingent-report', [ContingentReportController::class, 'generateContingentReport'])->name('generate.contingent.report');
 });

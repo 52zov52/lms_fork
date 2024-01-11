@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Calculation\LookupRef\Offset;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -10,6 +11,73 @@ class ContingentReportController extends Controller
 {
     public $sumFirstCourse = 0, $sumSecondCourse = 0, $sumThirdCourse = 0, $sumFourthCourse = 0, $sumFiveCourse = 0;
     public $totalSumFirstCourse = 0, $totalSumSecondCourse = 0, $totalSumThirdCourse = 0, $totalSumFourthCourse = 0, $totalSumFiveCourse = 0;
+
+
+    public function generateListOfStudentsInGroupReport($groupId)
+    {
+        $contingents = new ContingentController();
+        $listOfStudents = $contingents->getContingent($groupId);
+
+        $filename = time() . '.xlsx';
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $offset = 1;
+        $increment = 1;
+
+        $sheet->setCellValue('A' . $offset, '№ пп');
+        $sheet->setCellValue('B' . $offset, 'ФИО');
+        $sheet->setCellValue('C' . $offset, '№ зачетки');
+
+        $sheet->getStyle('A' . $offset . ':C' . $offset)->getFont()->setBold(true);
+
+        $offset++;
+
+        for ($i = 0; $i < count($listOfStudents); $i++) {
+            $sheet->setCellValue('A' . $offset, $increment);
+            $sheet->setCellValue('B' . $offset, $listOfStudents[$i]->last_name . ' ' . $listOfStudents[$i]->first_name . ' ' . $listOfStudents[$i]->middle_name);
+            $sheet->setCellValue('C' . $offset, $listOfStudents[$i]->ticket_number);
+            
+            $offset++;
+            $increment++;
+        }
+
+        //Выравнивание текста в ячейке
+        $sheet->getStyle('A1:A' . ($offset - 1))
+            ->applyFromArray(array('alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+            ]));
+
+        //Выравнивание текста в ячейке
+        $sheet->getStyle('C1:C' . ($offset - 1))
+            ->applyFromArray(array('alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+            ]));
+
+        //Стиль для рамки
+        $sheet->getStyle('A1:C' . ($offset - 1))
+            ->getBorders()
+            ->getAllBorders()
+            ->applyFromArray(array(
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => array('rgb' => '808080')
+            ));
+
+        //Устанавливаем ширину полей
+        $sheet->getColumnDimension('A')->setWidth(10);
+        $sheet->getColumnDimension('B')->setWidth(35);
+        $sheet->getColumnDimension('C')->setWidth(15);
+
+        $writer = new Xlsx($spreadsheet);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        $writer->save('php://output');
+    }
 
     public function generateContingentReport()
     {
@@ -77,7 +145,11 @@ class ContingentReportController extends Controller
                     $sheet->setCellValue('E' . $offsetCurrent, $this->sumFourthCourse);
                     $sheet->setCellValue('F' . $offsetCurrent, $this->sumFiveCourse);
 
-                    $this->sumFirstCourse = 0; $this->sumSecondCourse = 0; $this->sumThirdCourse = 0; $this->sumFourthCourse = 0; $this->sumFiveCourse = 0;
+                    $this->sumFirstCourse = 0;
+                    $this->sumSecondCourse = 0;
+                    $this->sumThirdCourse = 0;
+                    $this->sumFourthCourse = 0;
+                    $this->sumFiveCourse = 0;
 
                     $offsetCurrent++;
 
@@ -125,7 +197,11 @@ class ContingentReportController extends Controller
             $sheet->setCellValue('E' . $offsetCurrent, $this->sumFourthCourse);
             $sheet->setCellValue('F' . $offsetCurrent, $this->sumFiveCourse);
 
-            $this->sumFirstCourse = 0; $this->sumSecondCourse = 0; $this->sumThirdCourse = 0; $this->sumFourthCourse = 0; $this->sumFiveCourse = 0;
+            $this->sumFirstCourse = 0;
+            $this->sumSecondCourse = 0;
+            $this->sumThirdCourse = 0;
+            $this->sumFourthCourse = 0;
+            $this->sumFiveCourse = 0;
 
             $offsetCurrent++;
 
@@ -138,12 +214,16 @@ class ContingentReportController extends Controller
             $sheet->setCellValue('E' . $offsetCurrent, $this->totalSumFourthCourse);
             $sheet->setCellValue('F' . $offsetCurrent, $this->totalSumFiveCourse);
 
-            $this->totalSumFirstCourse = 0; $this->totalSumSecondCourse = 0; $this->totalSumThirdCourse = 0; $this->totalSumFourthCourse = 0; $this->totalSumFiveCourse = 0;
+            $this->totalSumFirstCourse = 0;
+            $this->totalSumSecondCourse = 0;
+            $this->totalSumThirdCourse = 0;
+            $this->totalSumFourthCourse = 0;
+            $this->totalSumFiveCourse = 0;
 
             $sheet->getStyle('A' . $offsetCurrent . ':F' . $offsetCurrent)->getFont()->setBold(true);
 
             //Стиль для рамки
-            $sheet->getStyle('A'. $offsetStart .':F' . $offsetCurrent)
+            $sheet->getStyle('A' . $offsetStart . ':F' . $offsetCurrent)
                 ->getBorders()
                 ->getAllBorders()
                 ->applyFromArray(array(

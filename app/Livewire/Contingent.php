@@ -117,6 +117,16 @@ class Contingent extends Component
         $this->contingent = $contingents->getContingent($this->groupId);
     }
 
+    public function generateListOfStudentsInGroupReport()
+    {
+        if($this->groupId != 0) {
+            return redirect()->route('generate.list.of.student.in.group.report', ['groupId' => $this->groupId]);
+        }
+        else {
+            session()->flash('message-error', 'Невозможно сформировать отчет, т.к. не выбрана группа из списка!');
+        }
+    }
+
     public function redirectToDocumentsStudentsAcademicLeaves($user_id, $group_id)
     {
         return redirect()->route('documents.students.academic.leaves', ['user_id' => $user_id, 'group_id' => $group_id]);

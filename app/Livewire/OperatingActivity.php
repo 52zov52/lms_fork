@@ -151,8 +151,12 @@ class OperatingActivity extends Component
 
         $this->isEdit = $isEdit;
 
-        if ($this->isEdit)
+        if ($this->isEdit) {
             $this->edit($id, $userId);
+        } else {
+            $this->startDate = Carbon::now()->startOfWeek()->format('d.m.Y');
+            $this->endDate = Carbon::now()->endOfWeek()->format('d.m.Y');
+        }
 
         $this->isCreatingAndEditingModalFormVisible = true;
     }
@@ -207,7 +211,7 @@ class OperatingActivity extends Component
                 'task' => 'required|string|max:1000',
                 'description' => 'string|max:1500',
                 'status' => 'required|numeric|min:1',
-                'file' => 'file|mimes:pdf,doc,docx,jpg,bmp,png|max:3072',
+                'file' => 'file|mimes:pdf,doc,docx,jpg,bmp,png|max:3072'
             ]);
         } else {
             $this->validate([
@@ -253,6 +257,10 @@ class OperatingActivity extends Component
             $data = explode('/', $operatingActivity->file_path);
             $this->filename = $data[2];
         }
+
+        $weekRange = Carbon::parse($operatingActivity->created_at);
+        $this->startDate = $weekRange->startOfWeek()->format('d.m.Y');
+        $this->endDate = $weekRange->endOfWeek()->format('d.m.Y');
     }
 
     public function update(): void
@@ -264,7 +272,7 @@ class OperatingActivity extends Component
                     'task' => 'required|string|max:1000',
                     'description' => 'string|max:1500',
                     'status' => 'required|numeric|min:1',
-                    'file' => 'file|mimes:pdf,doc,docx,jpg,bmp,png|max:3072',
+                    'file' => 'file|mimes:pdf,doc,docx,jpg,bmp,png|max:3072'
                 ]);
             } else {
                 $this->validate([

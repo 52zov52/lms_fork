@@ -17,13 +17,17 @@
     </div>
     @endif
 
-    <div class="w-full">
-        <select wire:model="groupId" wire:change="getContingent" name="group_id" id="group-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+    <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
+        <select wire:model="groupId" wire:change="getContingent" name="group_id" id="group-id" class="w-full md:w-auto border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option value="0">Выберите группу из списка</option>
             @foreach($groups as $group)
             <option value="{{ $group->id }}">{{ $group->group_name }}</option>
             @endforeach
         </select>
+        <button wire:click="generateListOfStudentsInGroupReport" class="w-full md:w-auto bg-green-500 hover:bg-green-600 rounded px-2 py-2 text-sm text-left text-white">
+            <i class="fa-solid fa-file-excel"></i>
+            Скачать список студентов
+        </button>
     </div>
     <div class="bg-white rounded shadow-xl p-4">
         <div class="tab-wrapper px-2 py-4" x-data="{ activeTab:  0 }">

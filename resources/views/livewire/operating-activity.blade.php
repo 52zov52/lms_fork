@@ -193,9 +193,20 @@
 
             <x-slot name="content">
                 <div class="flex flex-col space-y-2">
-                    <div>
-                        <input wire:model="startDate" type="text" id="start-date-id" tabindex="-1">
-                        <input wire:model="endDate" type="text" id="end-date-id" tabindex="-1">
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Период</span>
+                        <div class="flex flex-row space-x-2 py-1">
+                            <div class="w-full flex flex-col">
+                                <label for="start-date-id" class="font-semibold">с</label>
+                                <input wire:model="startDate" type="text" id="start-date-id" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" tabindex="-1">
+                                @error('startDate') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="w-full flex flex-col">
+                                <label for="end-date-id" class="font-semibold">по</label>
+                                <input wire:model="endDate" type="text" id="end-date-id" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" tabindex="-1">
+                                @error('endDate') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
                     </div>
                     <div class="flex flex-col">
                         <label for="activity-direction-id" class="font-semibold">Направление деятельности<span class="ml-1 text-red-500">*</span></label>
