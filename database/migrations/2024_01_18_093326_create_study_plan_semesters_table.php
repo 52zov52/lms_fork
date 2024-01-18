@@ -21,7 +21,7 @@ return new class extends Migration
                 ->cascadeOnUpdate();
 
             $table->integer('semester_number');
-            $table->integer('WeeksCount')->default(0);
+            $table->integer('weeks_count')->default(0);
 
             $table->unsignedBigInteger('study_plan_semester_kis_id'); //Table name in IMBL BD dbo.Project_GStudyPlanSemesters
             $table->timestamps();

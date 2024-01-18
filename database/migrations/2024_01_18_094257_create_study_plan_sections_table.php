@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('study_plan_sections', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('index');
+            $table->string('index_name');
 
             $table->foreignIdFor(LevelEducation::class)
                 ->constrained()

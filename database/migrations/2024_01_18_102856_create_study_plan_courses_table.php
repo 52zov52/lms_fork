@@ -31,16 +31,16 @@ return new class extends Migration
 
             $table->unsignedBigInteger('study_plan_index_id');
             $table->foreign('study_plan_index_id')
-                ->on('study_plan_indexes')
                 ->references('id')
+                ->on('study_plan_indexes')
                 ->constrained()
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
 
             $table->unsignedBigInteger('study_plan_under_index_id');
             $table->foreign('study_plan_under_index_id')
-                ->on('study_plan_under_indexes')
                 ->references('id')
+                ->on('study_plan_under_indexes')
                 ->constrained()
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();

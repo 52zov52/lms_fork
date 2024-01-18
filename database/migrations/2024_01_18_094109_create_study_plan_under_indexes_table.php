@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('study_plan_under_indexes', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('index');
-            $table->unsignedBigInteger('study_plan_under_index_kis_id'); //Table name in IMBL BD dbo.Project_UnderCycle2
+            $table->string('index_name');
+            $table->unsignedBigInteger('study_plan_under_index_kis_id'); //Table name in IMBL BD dbo.Project_UndeCycle2
             $table->timestamps();
         });
     }

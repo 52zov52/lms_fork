@@ -16,15 +16,17 @@ return new class extends Migration
         Schema::create('study_plan_course_control_types_in_semesters', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('`study_plan_courses_in_semester_id');
-            $table->foreign('`study_plan_courses_in_semester_id', 'study_plan_course_and_control_type_in_semester_id_foreign')
-                ->on('study_plan_courses_in_semesters')
+            $table->unsignedBigInteger('study_plan_courses_in_semester_id');
+            $table->foreign('study_plan_courses_in_semester_id', 'study_plan_courses_in_semester_id_foreign')
                 ->references('id')
+                ->on('study_plan_courses_in_semesters')
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
 
-            $table->foreignIdFor(ControlType::class)
-                ->constrained()
+            $table->unsignedBigInteger('control_type_id');
+            $table->foreign('control_type_id', 'control_type_id_foreign')
+                ->references('id')
+                ->on('study_plan_courses_in_semesters')
                 ->cascadeOnDelete()
                 ->cascadeOnUpdate();
 
