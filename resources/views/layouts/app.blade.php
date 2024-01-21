@@ -80,10 +80,16 @@
                         <span>Операционная деятельность</span>
                     </a>
                 </li>
-                <li class="rounded {{ (request()->routeIs('decisions.rectorate.and.council')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                    <a href="{{ route('decisions.rectorate.and.council') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                <li class="rounded {{ (request()->routeIs('decisions.rectorate')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('decisions.rectorate') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-pen-nib"></i>
+                        <span>Решение ректората</span>
+                    </a>
+                </li>
+                <li class="rounded {{ (request()->routeIs('decisions.council')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('decisions.council') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                         <i class="fa-solid fa-feather-pointed"></i>
-                        <span>Решение ректората и уч. совета</span>
+                        <span>Решение уч. совета</span>
                     </a>
                 </li>
                 @endcan
@@ -185,7 +191,7 @@
 
     @livewireScripts
     @stack('scripts')
-</script>
+    </script>
 </body>
 
 </html>

@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\ControlType;
-use App\Models\StudyPlanCoursesInSemester;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

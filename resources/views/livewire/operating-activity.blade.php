@@ -198,12 +198,12 @@
                         <div class="flex flex-row space-x-2 py-1">
                             <div class="w-full flex flex-col">
                                 <label for="start-date-id" class="font-semibold">с</label>
-                                <input wire:model="startDate" type="text" id="start-date-id" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" tabindex="-1">
+                                <input wire:model="startDate" type="text" id="start-date-id" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" tabindex="-1" disabled>
                                 @error('startDate') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                             </div>
                             <div class="w-full flex flex-col">
                                 <label for="end-date-id" class="font-semibold">по</label>
-                                <input wire:model="endDate" type="text" id="end-date-id" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" tabindex="-1">
+                                <input wire:model="endDate" type="text" id="end-date-id" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" tabindex="-1" disabled>
                                 @error('endDate') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                             </div>
                         </div>

@@ -50,9 +50,13 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.operating-activity');
         })->name('operating.activity');
         
-        Route::get('/decisions-rectorate-and-council', function () {
-            return view('pages.decisions-rectorate-and-council');
-        })->name('decisions.rectorate.and.council');
+        Route::get('/decisions-rectorate', function () {
+            return view('pages.decisions-rectorate');
+        })->name('decisions.rectorate');
+
+        Route::get('/decisions-council', function () {
+            return view('pages.decisions-council');
+        })->name('decisions.council');
 
         Route::get('/print-decisions/{category}/{dateAndNumberDecision}',[PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
     });

@@ -10,7 +10,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
-class DecisionsRectorateAndCouncil extends Component
+class DecisionsRectorate extends Component
 {
     use WithFileUploads;
     use WithPagination;
@@ -83,7 +83,6 @@ class DecisionsRectorateAndCouncil extends Component
     public $description = '';
     public $dueDate = 0;
     public $status = 1;
-    public $category = 0;
     public $file = null;
     public $userId = 0;
 
@@ -94,10 +93,8 @@ class DecisionsRectorateAndCouncil extends Component
     public $filterPosition = '';
     public $filterDueDate = '';
     public $filterStatus = '';
-    public $filterCategory = '';
     public $filterDateAndNumberDecision = '';
 
-    public $filterForPrintCategory = 0;
     public $filterForPrintDateAndNumberDecision = 0;
 
     public $isVisibleDateDecisionField = false;
@@ -106,20 +103,21 @@ class DecisionsRectorateAndCouncil extends Component
 
     public function render()
     {
-        $listOfDateDecision = ModelsDecisionsRectorateAndCouncil::select('date_decision')->whereNotNull('date_decision')->distinct()->get();
-        $listOfNumberDecision = ModelsDecisionsRectorateAndCouncil::select('number_decision')->whereNotNull('number_decision')->distinct()->get();
-        $listOfDueDate = ModelsDecisionsRectorateAndCouncil::select('due_date')->whereNotNull('due_date')->distinct()->get();
+        $listOfDateDecision = ModelsDecisionsRectorateAndCouncil::select('date_decision')->where('category', '=', 1)->whereNotNull('date_decision')->distinct()->get();
+        $listOfNumberDecision = ModelsDecisionsRectorateAndCouncil::select('number_decision')->where('category', '=', 1)->whereNotNull('number_decision')->distinct()->get();
+        $listOfDueDate = ModelsDecisionsRectorateAndCouncil::select('due_date')->where('category', '=', 1)->whereNotNull('due_date')->distinct()->get();
 
-        $catologDueDates = ModelsDecisionsRectorateAndCouncil::select('due_date')->distinct()->get();
+        $catologDueDates = ModelsDecisionsRectorateAndCouncil::select('due_date')->where('category', '=', 1)->distinct()->get();
         $catologDateAndNumberDecisions = ModelsDecisionsRectorateAndCouncil::select(DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"))
+            ->where('category', '=', 1)
             ->whereNotNull('date_decision')
             ->whereNotNull('number_decision')
             ->distinct()->get();
 
         $catologForPrintDateAndNumberDecisions = ModelsDecisionsRectorateAndCouncil::select(DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"))
+            ->where('category', '=', 1)
             ->whereNotNull('date_decision')
             ->whereNotNull('number_decision')
-            ->where('category', '=', $this->filterForPrintCategory)
             ->distinct()->get();
 
         $decisionsRectorateAndCouncil = ModelsDecisionsRectorateAndCouncil::select("*");
@@ -147,18 +145,17 @@ class DecisionsRectorateAndCouncil extends Component
             $decisionsRectorateAndCouncil->where('status', '=', $this->filterStatus);
         }
 
-        if (!empty($this->filterCategory)) {
-            $decisionsRectorateAndCouncil->where('category', '=', $this->filterCategory);
-        }
-
         if (!empty($this->filterDateAndNumberDecision)) {
             $decisionsRectorateAndCouncil->select(DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'), ' №', number_decision) AS date_and_number_decision"))
                 ->having('date_and_number_decision', '=', $this->filterDateAndNumberDecision);
         }
 
-        $decisionsRectorateAndCouncil = $decisionsRectorateAndCouncil->select('id', 'position', 'task', 'due_date', 'category', DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"))->orderBy('position')->paginate(50);
+        $decisionsRectorateAndCouncil = $decisionsRectorateAndCouncil->select('id', 'position', 'task', 'due_date', 'category', DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"))
+            ->where('category', '=', 1)
+            ->orderBy('position')
+            ->paginate(50);
 
-        return view('livewire.decisions-rectorate-and-council', [
+        return view('livewire.decisions-rectorate', [
             'listOfDateDecision' => $listOfDateDecision,
             'listOfNumberDecision' => $listOfNumberDecision,
             'listOfDueDate' => $listOfDueDate,
@@ -222,9 +219,7 @@ class DecisionsRectorateAndCouncil extends Component
 
     public function filterForPrintModalFormVisible(): void
     {
-        $this->filterForPrintCategory = 0;
         $this->filterForPrintDateAndNumberDecision = 0;
-
         $this->isFilterForPrintModalFormVisible = true;
     }
 
@@ -248,17 +243,6 @@ class DecisionsRectorateAndCouncil extends Component
         $this->filterStatus = $this->filterStatus;
     }
 
-    public function setFilterCategory(): void
-    {
-        $this->filterCategory = $this->filterCategory;
-    }
-
-    public function setFilterForPrintCategory(): void
-    {
-        $this->filterForPrintCategory = $this->filterForPrintCategory;
-        $this->filterForPrintDateAndNumberDecision = 0;
-    }
-
     public function setFilterDateAndNumberDecision(): void
     {
         $this->filterDateAndNumberDecision = $this->filterDateAndNumberDecision;
@@ -274,7 +258,6 @@ class DecisionsRectorateAndCouncil extends Component
                 'task' => 'required|string|max:1000',
                 'description' => 'string|max:1500',
                 'dueDate' => 'required|string',
-                'category' => 'required|numeric|min:1',
                 'file' => 'file|mimes:pdf,doc,docx|max:3072',
             ]);
         } else {
@@ -285,7 +268,6 @@ class DecisionsRectorateAndCouncil extends Component
                 'task' => 'required|string|max:1000',
                 'description' => 'string|max:1500',
                 'dueDate' => 'required|string',
-                'category' => 'required|numeric|min:1',
             ]);
         }
 
@@ -299,7 +281,7 @@ class DecisionsRectorateAndCouncil extends Component
             'description' =>  $this->description,
             'due_date' =>  $this->dueDate,
             'status' => $this->status,
-            'category' => $this->category,
+            'category' => 1,
             'file_path' =>  $filename,
             'user_id' => Auth::user()->id
         ]);
@@ -323,7 +305,6 @@ class DecisionsRectorateAndCouncil extends Component
         $this->description = $decisionsRectorateAndCouncil->description;
         $this->dueDate = $decisionsRectorateAndCouncil->due_date;
         $this->status = $decisionsRectorateAndCouncil->status;
-        $this->category = $decisionsRectorateAndCouncil->category;
     }
 
     public function update(): void
@@ -337,8 +318,7 @@ class DecisionsRectorateAndCouncil extends Component
                 'description' => 'string|max:1500',
                 'dueDate' => 'required|string',
                 'status' => 'required|numeric|min:1',
-                'category' => 'required|numeric|min:1',
-                'file' => 'file|mimes:pdf,doc,docx|max:3072',
+                'file' => 'file|mimes:pdf,doc,docx|max:3072'
             ]);
         } else {
             $this->validate([
@@ -348,8 +328,7 @@ class DecisionsRectorateAndCouncil extends Component
                 'task' => 'required|string|max:1000',
                 'description' => 'string|max:1500',
                 'dueDate' => 'required|string',
-                'status' => 'required|numeric|min:1',
-                'category' => 'required|numeric|min:1',
+                'status' => 'required|numeric|min:1'
             ]);
         }
 
@@ -361,7 +340,7 @@ class DecisionsRectorateAndCouncil extends Component
         $decisionsRectorateAndCouncil->description = $this->description;
         $decisionsRectorateAndCouncil->due_date = $this->dueDate;
         $decisionsRectorateAndCouncil->status = $this->status;
-        $decisionsRectorateAndCouncil->category = $this->category;
+        $decisionsRectorateAndCouncil->category = 1;
 
         if (!is_null($this->file)) {
             if (!is_null($decisionsRectorateAndCouncil->file_path)) {
@@ -410,7 +389,6 @@ class DecisionsRectorateAndCouncil extends Component
         $this->description = '';
         $this->dueDate = 0;
         $this->status = 1;
-        $this->category = 0;
         $this->file = null;
 
         $this->isVisibleDateDecisionField = false;
@@ -423,9 +401,9 @@ class DecisionsRectorateAndCouncil extends Component
 
     public function print()
     {
-        if($this->filterForPrintCategory != 0 && $this->filterForPrintDateAndNumberDecision != 0) {
-            return redirect()->route('print.decisions', ['category' => $this->filterForPrintCategory, 'dateAndNumberDecision' => base64_encode($this->filterForPrintDateAndNumberDecision)]);
-        }else {
+        if ($this->filterForPrintDateAndNumberDecision != 0) {
+            return redirect()->route('print.decisions', ['category' => 1, 'dateAndNumberDecision' => base64_encode($this->filterForPrintDateAndNumberDecision)]);
+        } else {
             session()->flash('message-print-error', 'Перед печатью необходимо выбрать значения из фильтров!');
         }
     }

@@ -2,9 +2,7 @@
 
 use App\Models\Discipline;
 use App\Models\StudyPlan;
-use App\Models\StudyPlanIndex;
 use App\Models\StudyPlanSection;
-use App\Models\StudyPlanUnderIndex;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

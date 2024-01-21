@@ -25,11 +25,6 @@
     @endif
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 items-center">
-        <select wire:model="filterCategory" name="filterCategory" wire:change="setFilterCategory" id="filter-category-id" class="w-full md:w-auto border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-            <option value="0">Выберите категорию решения</option>
-            <option value="1">Решения ректората</option>
-            <option value="2">Решения уч. совета</option>
-        </select>
         @can('create-edit-delete-decisions-rectorate-and-council')
         <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
             <i class="fa-solid fa-circle-plus fa-lg"></i>
@@ -57,7 +52,6 @@
                         <td class="w-64 border px-2 py-2 font-semibold">Должность</td>
                         <td class="w-auto border px-2 py-2 font-semibold">Поручение</td>
                         <td class="w-44 border px-2 py-2 font-semibold">Срок исполнения</td>
-                        <td class="w-28 border px-2 py-2 text-center font-semibold">Категория</td>
                         <td class="w-44 border px-2 py-2 text-center font-semibold">Дата и номер решения</td>
                         @can('create-edit-delete-decisions-rectorate-and-council')
                         <td class="w-24 border px-2 py-2 text-center font-semibold">Действия</td>
@@ -82,7 +76,6 @@
                                 @endforeach
                             </select>
                         </td>
-                        <td class="w-28 border px-2"></td>
                         <td class="w-44 border px-2">
                             <select wire:model="filterDateAndNumberDecision" name="filterDateAndNumberDecision" wire:change="setFilterDateAndNumberDecision" id="filter-date-and-number-decision-id" class="w-44 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                 <option value="0">Все даты и номера решения</option>
@@ -92,7 +85,7 @@
                             </select>
                         </td>
                         @can('create-edit-delete-decisions-rectorate-and-council')
-                        <td class="w-auto border px-2"></td>
+                        <td class="w-24 border px-2"></td>
                         @endcan
                     </tr>
                     @foreach($decisionsRectorateAndCouncil as $value)
@@ -101,13 +94,6 @@
                         <td class="w-64 border px-2 py-2">{{ $value->position }}</td>
                         <td class="w-auto border px-2 py-2">{{ $value->task }}</td>
                         <td class="w-44 border px-2 py-2">{{ $value->due_date }}</td>
-                        <td class="w-28 border px-2 py-2 text-center">
-                            @if($value->category == 1)
-                            Ректорат
-                            @else
-                            Уч. совет
-                            @endif
-                        </td>
                         <td class="w-44 border px-2 py-2 text-center">{{ $value->date_and_number_decision }}</td>
                         @can('create-edit-delete-decisions-rectorate-and-council')
                         <td class="w-24 border px-2 py-2 text-center">
@@ -138,14 +124,6 @@
                 <div class="flex flex-col">
                     <span class="font-semibold">Срок исполнения:</span>
                     <span>{{ $value->due_date }}</span>
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-semibold">Категория:</span>
-                    @if($value->category == 1)
-                    <span>Ректорат</span>
-                    @else
-                    <span>Уч. совет</span>
-                    @endif
                 </div>
                 <div class="flex flex-col">
                     <span class="font-semibold">Дата и номер решения:</span>
@@ -182,15 +160,6 @@
 
             <x-slot name="content">
                 <div class="flex flex-col space-y-2">
-                    <div class="flex flex-col">
-                        <label for="category-id" class="font-semibold">Категория решения<span class="ml-1 text-red-500">*</span></label>
-                        <select wire:model="category" name="category" id="category-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="0">Выберите категорию решения</option>
-                            <option value="1">Решения ректората</option>
-                            <option value="2">Решения уч. совета</option>
-                        </select>
-                        @error('category') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
-                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div class="flex flex-col">
                             <label for="date-decision-id" class="font-semibold">Дата решения<span class="ml-1 text-red-500">*</span></label>
@@ -370,12 +339,6 @@
                         </div>
                     </div>
                     @endif
-                    <div class="flex flex-col">
-                        <select wire:model="filterForPrintCategory" wire:change="setFilterForPrintCategory" name="filterForPrintCategory" id="filter-for-print-category-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="0">Выберите категорию решения</option>
-                            <option value="1">Решения ректората</option>
-                        </select>
-                    </div>
                     <div class="flex flex-col">
                         <select wire:model="filterForPrintDateAndNumberDecision" name="filterForPrintDateAndNumberDecision" id="filter-for-print-date-and-number-decision-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             <option value="0">Выберите дату и номер решения</option>
