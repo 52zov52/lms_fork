@@ -12,6 +12,13 @@ class ContingentReportController extends Controller
     public $sumFirstCourse = 0, $sumSecondCourse = 0, $sumThirdCourse = 0, $sumFourthCourse = 0, $sumFiveCourse = 0;
     public $totalSumFirstCourse = 0, $totalSumSecondCourse = 0, $totalSumThirdCourse = 0, $totalSumFourthCourse = 0, $totalSumFiveCourse = 0;
 
+    public $sumBakFirstCourse = 0, $sumBakSecondCourse = 0, $sumBakThirdCourse = 0, $sumBakFourthCourse = 0, $sumBakFiveCourse = 0;
+    public $sumMagFirstCourse = 0, $sumMagSecondCourse = 0, $sumMagThirdCourse = 0, $sumMagFourthCourse = 0, $sumMagFiveCourse = 0;
+    public $totalSumVOFirstCourse = 0, $totalSumVOSecondCourse = 0, $totalSumVOThirdCourse = 0, $totalSumVOFourthCourse = 0, $totalSumVOFiveCourse = 0;
+
+    public $sumSPOFirstCourse = 0, $sumSPOSecondCourse = 0, $sumSPOThirdCourse = 0, $sumSPOFourthCourse = 0, $sumSPOFiveCourse = 0;
+    public $totalSumSPOFirstCourse = 0, $totalSumSPOSecondCourse = 0, $totalSumSPOThirdCourse = 0, $totalSumSPOFourthCourse = 0, $totalSumSPOFiveCourse = 0;
+
     public function generateListOfStudentsInGroupReport($groupId)
     {
         $contingents = new ContingentController();
@@ -91,11 +98,14 @@ class ContingentReportController extends Controller
                 'groups.id',
                 'groups.group_name',
                 'groups.course',
+                'groups.year_completion',
                 DB::raw('COUNT(group_student.user_id) as student_count'),
                 'specialities.speciality_name',
                 'specialities.specialty_code',
                 'specialities.level_education_id',
-                'study_plans.teaching_form_id'
+                'study_plans.teaching_form_id',
+                'study_plans.number_years',
+                'study_plans.number_months',
             )
             ->whereIn('groups.id', $groupId)
             ->groupBy('groups.id', 'groups.group_name', 'groups.course')
@@ -124,43 +134,47 @@ class ContingentReportController extends Controller
         $speciality = "";
 
         $sheet->setCellValue('A' . $offsetCurrent, 'КОНТИНГЕНТ ОБУЧАЮЩИХСЯ ЧОУ ВО ЮУ (ИУБиП)');
-        $sheet->mergeCells('A' . $offsetCurrent . ':F' . $offsetCurrent);
+        $sheet->mergeCells('A' . $offsetCurrent . ':H' . $offsetCurrent);
         $offsetCurrent++;
 
-        $sheet->setCellValue('A' . $offsetCurrent, 'на '. Carbon::now()->format('d.m.Y H:i:s'));
-        $sheet->mergeCells('A' . $offsetCurrent . ':F' . $offsetCurrent);
+        $sheet->setCellValue('A' . $offsetCurrent, 'на ' . Carbon::now()->format('d.m.Y') . ' г.');
+        $sheet->mergeCells('A' . $offsetCurrent . ':H' . $offsetCurrent);
         $offsetCurrent++;
 
         foreach ($results as $key => $results) {
             foreach ($results as $key => $levelEducationData) {
+                $levelEducation = $key;
+
                 $sheet->setCellValue('A' . $offsetCurrent, $key);
-                $sheet->mergeCells('A' . $offsetCurrent . ':F' . $offsetCurrent);
+                $sheet->mergeCells('A' . $offsetCurrent . ':H' . $offsetCurrent);
                 $offsetCurrent++;
 
                 foreach ($levelEducationData as $key => $teachingFormData) {
                     foreach ($teachingFormData as $key => $data) {
                         $sheet->setCellValue('A' . $offsetCurrent, $key);
-                        $sheet->mergeCells('A' . $offsetCurrent . ':F' . $offsetCurrent);
+                        $sheet->mergeCells('A' . $offsetCurrent . ':H' . $offsetCurrent);
                         $offsetCurrent = $offsetCurrent + 2;
 
                         //Выравнивание текста в ячейке
-                        $sheet->getStyle('A' . $offsetStart . ':F' . ($offsetCurrent))
+                        $sheet->getStyle('A' . $offsetStart . ':H' . ($offsetCurrent))
                             ->applyFromArray(array('alignment' => [
                                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
                             ]));
 
-                        $sheet->getStyle('A' . $offsetStart . ':F' . $offsetCurrent)->getFont()->setBold(true);
+                        $sheet->getStyle('A' . $offsetStart . ':H' . $offsetCurrent)->getFont()->setBold(true);
                         $offsetStart = $offsetCurrent;
 
                         $sheet->setCellValue('A' . $offsetCurrent, 'Группа');
-                        $sheet->setCellValue('B' . $offsetCurrent, '1 курс');
-                        $sheet->setCellValue('C' . $offsetCurrent, '2 курс');
-                        $sheet->setCellValue('D' . $offsetCurrent, '3 курс');
-                        $sheet->setCellValue('E' . $offsetCurrent, '4 курс');
-                        $sheet->setCellValue('F' . $offsetCurrent, '5 курс');
+                        $sheet->setCellValue('B' . $offsetCurrent, 'Срок обучения');
+                        $sheet->setCellValue('C' . $offsetCurrent, '1 курс');
+                        $sheet->setCellValue('D' . $offsetCurrent, '2 курс');
+                        $sheet->setCellValue('E' . $offsetCurrent, '3 курс');
+                        $sheet->setCellValue('F' . $offsetCurrent, '4 курс');
+                        $sheet->setCellValue('G' . $offsetCurrent, '5 курс');
+                        $sheet->setCellValue('H' . $offsetCurrent, 'Год выпуска');
 
-                        $sheet->getStyle('A' . $offsetCurrent . ':F' . $offsetCurrent)->getFont()->setBold(true);
+                        $sheet->getStyle('A' . $offsetCurrent . ':H' . $offsetCurrent)->getFont()->setBold(true);
                         $offsetCurrent++;
 
                         foreach ($data as $key => $value) {
@@ -169,13 +183,15 @@ class ContingentReportController extends Controller
                                 $speciality = $value->specialty_code . ' ' . $value->speciality_name;
                             } elseif ($speciality != $value->specialty_code . ' ' . $value->speciality_name) {
                                 $sheet->setCellValue('A' . $offsetCurrent, $speciality);
-                                $sheet->setCellValue('B' . $offsetCurrent, $this->sumFirstCourse);
-                                $sheet->setCellValue('C' . $offsetCurrent, $this->sumSecondCourse);
-                                $sheet->setCellValue('D' . $offsetCurrent, $this->sumThirdCourse);
-                                $sheet->setCellValue('E' . $offsetCurrent, $this->sumFourthCourse);
-                                $sheet->setCellValue('F' . $offsetCurrent, $this->sumFiveCourse);
+                                $sheet->setCellValue('B' . $offsetCurrent, '');
+                                $sheet->setCellValue('C' . $offsetCurrent, $this->sumFirstCourse);
+                                $sheet->setCellValue('D' . $offsetCurrent, $this->sumSecondCourse);
+                                $sheet->setCellValue('E' . $offsetCurrent, $this->sumThirdCourse);
+                                $sheet->setCellValue('F' . $offsetCurrent, $this->sumFourthCourse);
+                                $sheet->setCellValue('G' . $offsetCurrent, $this->sumFiveCourse);
+                                $sheet->setCellValue('H' . $offsetCurrent, '');
 
-                                $sheet->getStyle('A' . $offsetCurrent . ':F' . $offsetCurrent)->getFont()->setBold(true);
+                                $sheet->getStyle('A' . $offsetCurrent . ':H' . $offsetCurrent)->getFont()->setBold(true);
 
                                 $this->sumFirstCourse = 0;
                                 $this->sumSecondCourse = 0;
@@ -189,46 +205,121 @@ class ContingentReportController extends Controller
                             }
 
                             $sheet->setCellValue('A' . $offsetCurrent, $value->group_name);
+                            $trainingPeriod = $value->number_years . ' г. ' . $value->number_months . ' м. ';
+                            $sheet->setCellValue('B' . $offsetCurrent, $trainingPeriod);
                             switch ($value->course) {
                                 case 1:
-                                    $sheet->setCellValue('B' . $offsetCurrent, $value->student_count);
+                                    $sheet->setCellValue('C' . $offsetCurrent, $value->student_count);
                                     $this->sumFirstCourse += $value->student_count;
                                     $this->totalSumFirstCourse += $value->student_count;
+                                    switch ($levelEducation) {
+                                        case 'БАКАЛАВРИАТ':
+                                            $this->sumBakFirstCourse += $value->student_count;
+                                            $this->totalSumVOFirstCourse += $value->student_count;
+                                            break;
+                                        case 'МАГИСТРАТУРА':
+                                            $this->sumMagFirstCourse += $value->student_count;
+                                            $this->totalSumVOFirstCourse += $value->student_count;
+                                            break;
+                                        default:
+                                            $this->sumSPOFirstCourse += $value->student_count;
+                                            $this->totalSumSPOFirstCourse += $value->student_count;
+                                            break;
+                                    }
                                     break;
                                 case 2:
-                                    $sheet->setCellValue('C' . $offsetCurrent, $value->student_count);
+                                    $sheet->setCellValue('D' . $offsetCurrent, $value->student_count);
                                     $this->sumSecondCourse += $value->student_count;
                                     $this->totalSumSecondCourse += $value->student_count;
+                                    switch ($levelEducation) {
+                                        case 'БАКАЛАВРИАТ':
+                                            $this->sumBakSecondCourse += $value->student_count;
+                                            $this->totalSumVOSecondCourse += $value->student_count;
+                                            break;
+                                        case 'МАГИСТРАТУРА':
+                                            $this->sumMagSecondCourse += $value->student_count;
+                                            $this->totalSumVOSecondCourse += $value->student_count;
+                                            break;
+                                        default:
+                                            $this->sumSPOSecondCourse += $value->student_count;
+                                            $this->totalSumSPOSecondCourse += $value->student_count;
+                                            break;
+                                    }
                                     break;
                                 case 3:
-                                    $sheet->setCellValue('D' . $offsetCurrent, $value->student_count);
+                                    $sheet->setCellValue('E' . $offsetCurrent, $value->student_count);
                                     $this->sumThirdCourse += $value->student_count;
                                     $this->totalSumThirdCourse += $value->student_count;
+                                    switch ($levelEducation) {
+                                        case 'БАКАЛАВРИАТ':
+                                            $this->sumBakThirdCourse += $value->student_count;
+                                            $this->totalSumVOThirdCourse += $value->student_count;
+                                            break;
+                                        case 'МАГИСТРАТУРА':
+                                            $this->sumMagThirdCourse += $value->student_count;
+                                            $this->totalSumVOThirdCourse += $value->student_count;
+                                            break;
+                                        default:
+                                            $this->sumSPOThirdCourse += $value->student_count;
+                                            $this->totalSumSPOThirdCourse += $value->student_count;
+                                            break;
+                                    }
                                     break;
                                 case 4:
-                                    $sheet->setCellValue('E' . $offsetCurrent, $value->student_count);
+                                    $sheet->setCellValue('F' . $offsetCurrent, $value->student_count);
                                     $this->sumFourthCourse += $value->student_count;
                                     $this->totalSumFourthCourse += $value->student_count;
+                                    switch ($levelEducation) {
+                                        case 'БАКАЛАВРИАТ':
+                                            $this->sumBakFourthCourse += $value->student_count;
+                                            $this->totalSumVOFourthCourse += $value->student_count;
+                                            break;
+                                        case 'МАГИСТРАТУРА':
+                                            $this->sumMagFourthCourse += $value->student_count;
+                                            $this->totalSumVOFourthCourse += $value->student_count;
+                                            break;
+                                        default:
+                                            $this->sumSPOFourthCourse += $value->student_count;
+                                            $this->totalSumSPOFourthCourse += $value->student_count;
+                                            break;
+                                    }
                                     break;
                                 case 5:
-                                    $sheet->setCellValue('F' . $offsetCurrent, $value->student_count);
+                                    $sheet->setCellValue('G' . $offsetCurrent, $value->student_count);
                                     $this->sumFiveCourse += $value->student_count;
                                     $this->totalSumFiveCourse += $value->student_count;
+                                    switch ($levelEducation) {
+                                        case 'БАКАЛАВРИАТ':
+                                            $this->sumBakFiveCourse += $value->student_count;
+                                            $this->totalSumVOFiveCourse += $value->student_count;
+                                            break;
+                                        case 'МАГИСТРАТУРА':
+                                            $this->sumMagFiveCourse += $value->student_count;
+                                            $this->totalSumVOFiveCourse += $value->student_count;
+                                            break;
+                                        default:
+                                            $this->sumSPOFiveCourse += $value->student_count;
+                                            $this->totalSumSPOFiveCourse += $value->student_count;
+                                            break;
+                                    }
                                     break;
                                 default:
                                     break;
                             }
+                            $sheet->setCellValue('H' . $offsetCurrent, (!is_null($value->year_completion) && !empty($value->year_completion)) ? Carbon::parse($value->year_completion)->format('Y') : '');
                             $offsetCurrent++;
                         }
 
                         $sheet->setCellValue('A' . $offsetCurrent, $speciality);
-                        $sheet->setCellValue('B' . $offsetCurrent, $this->sumFirstCourse);
-                        $sheet->setCellValue('C' . $offsetCurrent, $this->sumSecondCourse);
-                        $sheet->setCellValue('D' . $offsetCurrent, $this->sumThirdCourse);
-                        $sheet->setCellValue('E' . $offsetCurrent, $this->sumFourthCourse);
-                        $sheet->setCellValue('F' . $offsetCurrent, $this->sumFiveCourse);
+                        $sheet->setCellValue('B' . $offsetCurrent, '');
+                        $sheet->setCellValue('C' . $offsetCurrent, $this->sumFirstCourse);
+                        $sheet->setCellValue('D' . $offsetCurrent, $this->sumSecondCourse);
+                        $sheet->setCellValue('E' . $offsetCurrent, $this->sumThirdCourse);
+                        $sheet->setCellValue('F' . $offsetCurrent, $this->sumFourthCourse);
+                        $sheet->setCellValue('G' . $offsetCurrent, $this->sumFiveCourse);
+                        $sheet->setCellValue('H' . $offsetCurrent, '');
 
-                        $sheet->getStyle('A' . $offsetCurrent . ':F' . $offsetCurrent)->getFont()->setBold(true);
+                        $sheet->getStyle('A' . $offsetCurrent . ':H' . $offsetCurrent)->getFont()->setBold(true);
 
                         $this->sumFirstCourse = 0;
                         $this->sumSecondCourse = 0;
@@ -241,11 +332,13 @@ class ContingentReportController extends Controller
                         $speciality = "";
 
                         $sheet->setCellValue('A' . $offsetCurrent, 'Всего');
-                        $sheet->setCellValue('B' . $offsetCurrent, $this->totalSumFirstCourse);
-                        $sheet->setCellValue('C' . $offsetCurrent, $this->totalSumSecondCourse);
-                        $sheet->setCellValue('D' . $offsetCurrent, $this->totalSumThirdCourse);
-                        $sheet->setCellValue('E' . $offsetCurrent, $this->totalSumFourthCourse);
-                        $sheet->setCellValue('F' . $offsetCurrent, $this->totalSumFiveCourse);
+                        $sheet->setCellValue('B' . $offsetCurrent, '');
+                        $sheet->setCellValue('C' . $offsetCurrent, $this->totalSumFirstCourse);
+                        $sheet->setCellValue('D' . $offsetCurrent, $this->totalSumSecondCourse);
+                        $sheet->setCellValue('E' . $offsetCurrent, $this->totalSumThirdCourse);
+                        $sheet->setCellValue('F' . $offsetCurrent, $this->totalSumFourthCourse);
+                        $sheet->setCellValue('G' . $offsetCurrent, $this->totalSumFiveCourse);
+                        $sheet->setCellValue('H' . $offsetCurrent, '');
 
                         $this->totalSumFirstCourse = 0;
                         $this->totalSumSecondCourse = 0;
@@ -253,11 +346,11 @@ class ContingentReportController extends Controller
                         $this->totalSumFourthCourse = 0;
                         $this->totalSumFiveCourse = 0;
 
-                        $sheet->getStyle('A' . $offsetCurrent . ':F' . $offsetCurrent)->getFont()->setBold(true);
+                        $sheet->getStyle('A' . $offsetCurrent . ':H' . $offsetCurrent)->getFont()->setBold(true);
                         $offsetCurrent++;
 
                         //Стиль для рамки
-                        $sheet->getStyle('A' . $offsetStart . ':F' . $offsetCurrent - 1)
+                        $sheet->getStyle('A' . $offsetStart . ':H' . $offsetCurrent - 1)
                             ->getBorders()
                             ->getAllBorders()
                             ->applyFromArray(array(
@@ -272,10 +365,96 @@ class ContingentReportController extends Controller
             }
         }
 
-        $sheet->getStyle('A1:A' . $offsetCurrent)->getAlignment()->setWrapText(true);
+        $sheet->setCellValue('A' . $offsetCurrent, 'КОНТИНГЕНТ ЧОУ ВО ЮУ (ИУБиП) (ПОЛНЫЙ) НА ' . Carbon::now()->format('d.m.Y') . ' г.');
+        $sheet->mergeCells('A' . $offsetCurrent . ':H' . $offsetCurrent);
+        $sheet->getStyle('A' . $offsetCurrent . ':H' . $offsetCurrent)->getFont()->setBold(true);
 
         //Выравнивание текста в ячейке
-        $sheet->getStyle('B1:F' . ($offsetCurrent - 1))
+        $sheet->getStyle('A' . $offsetCurrent . ':H' . ($offsetCurrent))
+            ->applyFromArray(array('alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+            ]));
+
+        $offsetCurrent += 2;
+        $offsetStart = $offsetCurrent;
+
+        $sheet->setCellValue('A' . $offsetCurrent, '');
+        $sheet->setCellValue('B' . $offsetCurrent, '1 курс');
+        $sheet->setCellValue('C' . $offsetCurrent, '2 курс');
+        $sheet->setCellValue('D' . $offsetCurrent, '3 курс');
+        $sheet->setCellValue('E' . $offsetCurrent, '4 курс');
+        $sheet->setCellValue('F' . $offsetCurrent, '5 курс');
+        $sheet->setCellValue('G' . $offsetCurrent, 'Всего');
+        $sheet->mergeCells('G' . $offsetCurrent . ':H' . $offsetCurrent);
+
+        $offsetCurrent++;
+
+        $sheet->setCellValue('A' . $offsetCurrent, 'Всего ВО');
+        $sheet->setCellValue('B' . $offsetCurrent, $this->totalSumVOFirstCourse);
+        $sheet->setCellValue('C' . $offsetCurrent, $this->totalSumVOSecondCourse);
+        $sheet->setCellValue('D' . $offsetCurrent, $this->totalSumVOThirdCourse);
+        $sheet->setCellValue('E' . $offsetCurrent, $this->totalSumVOFourthCourse);
+        $sheet->setCellValue('F' . $offsetCurrent, $this->totalSumVOFiveCourse);
+        $sheet->setCellValue('G' . $offsetCurrent, $this->totalSumVOFirstCourse +
+            $this->totalSumVOSecondCourse +
+            $this->totalSumVOThirdCourse +
+            $this->totalSumVOFourthCourse +
+            $this->totalSumVOFiveCourse);
+        $sheet->mergeCells('G' . $offsetCurrent . ':H' . $offsetCurrent);
+
+        $offsetCurrent++;
+
+        $sheet->setCellValue('A' . $offsetCurrent, 'Всего СПО');
+        $sheet->setCellValue('B' . $offsetCurrent, $this->totalSumSPOFirstCourse);
+        $sheet->setCellValue('C' . $offsetCurrent, $this->totalSumSPOSecondCourse);
+        $sheet->setCellValue('D' . $offsetCurrent, $this->totalSumSPOThirdCourse);
+        $sheet->setCellValue('E' . $offsetCurrent, $this->totalSumSPOFourthCourse);
+        $sheet->setCellValue('F' . $offsetCurrent, $this->totalSumSPOFiveCourse);
+        $sheet->setCellValue('G' . $offsetCurrent, $this->totalSumSPOFirstCourse +
+            $this->totalSumSPOSecondCourse +
+            $this->totalSumSPOThirdCourse +
+            $this->totalSumSPOFourthCourse +
+            $this->totalSumSPOFiveCourse);
+        $sheet->mergeCells('G' . $offsetCurrent . ':H' . $offsetCurrent);
+
+        $offsetCurrent++;
+
+        $sheet->setCellValue('A' . $offsetCurrent, 'ИТОГО по ВУЗу');
+        $sheet->setCellValue('B' . $offsetCurrent, $this->totalSumVOFirstCourse + $this->totalSumSPOFirstCourse);
+        $sheet->setCellValue('C' . $offsetCurrent, $this->totalSumVOSecondCourse + $this->totalSumSPOSecondCourse);
+        $sheet->setCellValue('D' . $offsetCurrent, $this->totalSumVOThirdCourse + $this->totalSumSPOThirdCourse);
+        $sheet->setCellValue('E' . $offsetCurrent, $this->totalSumVOFourthCourse + $this->totalSumSPOFourthCourse);
+        $sheet->setCellValue('F' . $offsetCurrent, $this->totalSumVOFiveCourse + $this->totalSumSPOFiveCourse);
+        $sheet->setCellValue('G' . $offsetCurrent, ($this->totalSumVOFirstCourse +
+            $this->totalSumVOSecondCourse +
+            $this->totalSumVOThirdCourse +
+            $this->totalSumVOFourthCourse +
+            $this->totalSumVOFiveCourse) +
+            ($this->totalSumSPOFirstCourse +
+            $this->totalSumSPOSecondCourse +
+            $this->totalSumSPOThirdCourse +
+            $this->totalSumSPOFourthCourse +
+            $this->totalSumSPOFiveCourse));
+        $sheet->mergeCells('G' . $offsetCurrent . ':H' . $offsetCurrent);
+
+        $offsetCurrent++;
+
+        //Стиль для рамки
+        $sheet->getStyle('A' . $offsetStart . ':H' . $offsetCurrent - 1)
+            ->getBorders()
+            ->getAllBorders()
+            ->applyFromArray(array(
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => array('rgb' => '808080')
+            ));
+
+        $sheet->getStyle('A1:A' . $offsetCurrent)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('B1:B' . $offsetCurrent)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('H1:H' . $offsetCurrent)->getAlignment()->setWrapText(true);
+
+        //Выравнивание текста в ячейке
+        $sheet->getStyle('B1:H' . ($offsetCurrent - 1))
             ->applyFromArray(array('alignment' => [
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
@@ -288,6 +467,7 @@ class ContingentReportController extends Controller
         $sheet->getColumnDimension('D')->setWidth(10);
         $sheet->getColumnDimension('E')->setWidth(10);
         $sheet->getColumnDimension('F')->setWidth(10);
+        $sheet->getColumnDimension('G')->setWidth(10);
 
         $writer = new Xlsx($spreadsheet);
 

@@ -14,6 +14,8 @@ class Group extends Model
     protected $fillable = [
         'group_name',
         'course',
+        'year_admission',
+        'year_completion',
         'study_plan_id',
         'work_study_plan_id',
         'branch_id'
