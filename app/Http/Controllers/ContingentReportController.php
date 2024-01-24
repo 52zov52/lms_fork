@@ -477,6 +477,35 @@ class ContingentReportController extends Controller
         $writer->save('php://output');
     }
 
+    public function generateContingentByAgeAndGenderReport()
+    {
+        $contingents = new ContingentController();
+        $groupId = $contingents->groupId;
+
+        $data = DB::table('groups')
+            ->leftJoin('group_student', 'groups.id', '=', 'group_student.group_id')
+            ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
+            ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
+            ->select(
+                'groups.id',
+                'groups.group_name',
+                'groups.course',
+                'groups.year_completion',
+                DB::raw('COUNT(group_student.user_id) as student_count'),
+                'specialities.speciality_name',
+                'specialities.specialty_code',
+                'specialities.level_education_id',
+                'study_plans.teaching_form_id',
+                'study_plans.number_years',
+                'study_plans.number_months',
+            )
+            ->whereIn('groups.id', $groupId)
+            ->groupBy('groups.id', 'groups.group_name', 'groups.course')
+            ->orderBy('specialities.specialty_code')
+            ->orderBy('groups.course')
+            ->get()->toArray();
+    } 
+
     protected function getDataByLevelEducation($data, $levelEducationId): array
     {
         $tmp = array();
