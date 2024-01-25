@@ -12,6 +12,7 @@
         <h2 class="mt-2 font-semibold">Контингент:</h2>
         <ul class="list-disc px-4">
             <li><a wire:click="generateContingentReport" href="#"  class="hover:font-semibold hover:underline">Отчет по контингенту</a></li>
+            <li><a wire:click="generateContingentByAgeAndGenderReport" href="#"  class="hover:font-semibold hover:underline">Отчет по контингенту в разрезе возраста и пола</a></li>
         </ul>
         @endcan
     </div>

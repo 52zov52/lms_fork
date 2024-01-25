@@ -484,6 +484,7 @@ class ContingentReportController extends Controller
 
         $data = DB::table('groups')
             ->leftJoin('group_student', 'groups.id', '=', 'group_student.group_id')
+            ->leftJoin('users_data', 'group_student.user_id', '=', 'users_data.user_id')
             ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
             ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
             ->select(
@@ -492,6 +493,10 @@ class ContingentReportController extends Controller
                 'groups.course',
                 'groups.year_completion',
                 DB::raw('COUNT(group_student.user_id) as student_count'),
+                DB::raw('COUNT(CASE WHEN users_data.sex = 0 then 1 END) as male_student_count'),
+                DB::raw('COUNT(CASE WHEN users_data.sex = 1 then 1 END) as female_student_count'),
+                DB::raw('COUNT(CASE WHEN TRUNCATE(DATEDIFF(CURDATE(), users_data.birthday)/365, 0) <= 16 then 1 END) as age_16'),
+                DB::raw('COUNT(CASE WHEN TRUNCATE(DATEDIFF(CURDATE(), users_data.birthday)/365, 0) >= 18 then 1 END) as age_18'),
                 'specialities.speciality_name',
                 'specialities.specialty_code',
                 'specialities.level_education_id',
@@ -504,6 +509,8 @@ class ContingentReportController extends Controller
             ->orderBy('specialities.specialty_code')
             ->orderBy('groups.course')
             ->get()->toArray();
+
+        dd($data);die();
     } 
 
     protected function getDataByLevelEducation($data, $levelEducationId): array
