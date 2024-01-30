@@ -47,7 +47,7 @@
                         <td class="w-auto border px-2 py-2 font-semibold">Поручение</td>
                         <td class="w-44 border px-2 py-2 font-semibold">Срок исполнения</td>
                         <td class="w-44 border px-2 py-2 text-center font-semibold">Дата и номер решения</td>
-                        @canany(['create-edit-delete-decisions-rectorate-and-council', confirm-decisions-rectorate-and-council])
+                        @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
                         <td class="w-24 border px-2 py-2 text-center font-semibold">Действия</td>
                         @endcan
                     </tr>
