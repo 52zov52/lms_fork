@@ -380,6 +380,15 @@ class DecisionsRectorate extends Component
         session()->flash('message-success', 'Запись успешно обновлена!');
     }
 
+    public function undoDecisions($id): void
+    {
+        $decisionsRectorateAndCouncil = ModelsDecisionsRectorateAndCouncil::findOrFail($id);
+        $decisionsRectorateAndCouncil->status = 1;
+        $decisionsRectorateAndCouncil->update();
+
+        session()->flash('message-success', 'Запись успешно обновлена!');
+    }
+
     public function resetFields(): void
     {
         $this->dateDecision = 0;
