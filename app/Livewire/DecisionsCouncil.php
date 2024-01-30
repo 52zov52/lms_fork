@@ -150,7 +150,7 @@ class DecisionsCouncil extends Component
                 ->having('date_and_number_decision', '=', $this->filterDateAndNumberDecision);
         }
 
-        $decisionsRectorateAndCouncil = $decisionsRectorateAndCouncil->select('id', 'position', 'task', 'due_date', 'category', DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"))
+        $decisionsRectorateAndCouncil = $decisionsRectorateAndCouncil->select('id', 'position', 'task', 'due_date', 'status', 'category', DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"))
             ->where('category', '=', 2)
             ->orderBy('position')
             ->paginate(50);
@@ -376,6 +376,7 @@ class DecisionsCouncil extends Component
         $decisionsRectorateAndCouncil = ModelsDecisionsRectorateAndCouncil::findOrFail($id);
         $decisionsRectorateAndCouncil->status = 3;
         $decisionsRectorateAndCouncil->update();
+        $this->isAlertVisible = true;
 
         session()->flash('message-success', 'Запись успешно обновлена!');
     }
@@ -385,6 +386,7 @@ class DecisionsCouncil extends Component
         $decisionsRectorateAndCouncil = ModelsDecisionsRectorateAndCouncil::findOrFail($id);
         $decisionsRectorateAndCouncil->status = 1;
         $decisionsRectorateAndCouncil->update();
+        $this->isAlertVisible = true;
 
         session()->flash('message-success', 'Запись успешно обновлена!');
     }
