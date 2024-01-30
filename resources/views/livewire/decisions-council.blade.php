@@ -146,7 +146,7 @@
                         <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }})" title="Удалить" class="w-auto grow bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-trash"></i>
                         </button>
-                        endcan
+                        @endcan
                     </div>
                 </div>
                 @endcan
