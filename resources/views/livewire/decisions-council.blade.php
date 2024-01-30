@@ -47,7 +47,9 @@
                         <td class="w-auto border px-2 py-2 font-semibold">Поручение</td>
                         <td class="w-44 border px-2 py-2 font-semibold">Срок исполнения</td>
                         <td class="w-44 border px-2 py-2 text-center font-semibold">Дата и номер решения</td>
+                        @canany(['create-edit-delete-decisions-rectorate-and-council', confirm-decisions-rectorate-and-council])
                         <td class="w-24 border px-2 py-2 text-center font-semibold">Действия</td>
+                        @endcan
                     </tr>
                     <tr class="bg-gray-100">
                         <td class="w-12 border px-2"></td>
@@ -76,7 +78,9 @@
                                 @endforeach
                             </select>
                         </td>
+                        @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
                         <td class="w-24 border px-2"></td>
+                        @endcan
                     </tr>
                     @foreach($decisionsRectorateAndCouncil as $value)
                     <tr>
@@ -85,6 +89,7 @@
                         <td class="w-auto border px-2 py-2">{{ $value->task }}</td>
                         <td class="w-44 border px-2 py-2">{{ $value->due_date }}</td>
                         <td class="w-44 border px-2 py-2 text-center">{{ $value->date_and_number_decision }}</td>
+                        @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
                         <td class="w-24 border px-2 py-2 text-center">
                             @can('confirm-decisions-rectorate-and-council')
                             <button wire:click="confirmDecisions({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-2 py-1.5 text-xs text-white" title="Подтверждение">
@@ -100,6 +105,7 @@
                             </button>
                             @endcan
                         </td>
+                        @endcan
                     </tr>
                     @endforeach
                 </tbody>
@@ -124,6 +130,7 @@
                     <span class="font-semibold">Дата и номер решения:</span>
                     <span>{{ $value->date_and_number_decision }}</span>
                 </div>
+                @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
                 <div class="flex flex-col">
                     <span class="font-semibold">Действия:</span>
                     <div class="flex flex-row space-x-2">
@@ -131,7 +138,7 @@
                         <button wire:click="confirmDecisions({{ $value->id }})" class="w-auto grow bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white" title="Подтверждение">
                             <i class="fa-solid fa-check"></i>
                         </button>
-                        endcan
+                        @endcan
                         @can('create-edit-delete-decisions-rectorate-and-council')
                         <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" title="Редактировать" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white">
                             <i class="fa-solid fa-pen"></i>
@@ -142,6 +149,7 @@
                         endcan
                     </div>
                 </div>
+                @endcan
             </div>
             @endforeach
         </div>
