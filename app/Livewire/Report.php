@@ -88,4 +88,12 @@ class Report extends Component
     {
         return redirect()->route('generate.contingent.by.age.and.gender.report');
     }
+
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function generateContingentByAgeAndGenderWithoutTeachingFromReport()
+    {
+        return redirect()->route('generate.contingent.by.age.and.gender.without.teaching.from.report');
+    }
 }

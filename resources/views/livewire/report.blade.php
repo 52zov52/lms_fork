@@ -11,7 +11,9 @@
         @can('access-to-contingent')
         <h2 class="mt-2 font-semibold">Контингент:</h2>
         <ul class="list-disc px-4">
-            <li><a wire:click="generateContingentReport" href="#"  class="hover:font-semibold hover:underline">Отчет по контингенту</a></li>
+            <li><a wire:click="generateContingentReport" href="#"  class="hover:font-semibold hover:underline">Отчет по численности контингента в разрезе уровней и форм обучения</a></li>
+            <li><a wire:click="generateContingentByAgeAndGenderReport" href="#"  class="hover:font-semibold hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней и форм обучения</a></li>
+            <li><a wire:click="generateContingentByAgeAndGenderWithoutTeachingFromReport" href="#"  class="hover:font-semibold hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней обучения</a></li>
         </ul>
         @endcan
     </div>
