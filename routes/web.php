@@ -8,6 +8,7 @@ use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleReportController;
+use App\Http\Controllers\StudyPlanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -133,4 +134,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/generate-contingent-report', [ContingentReportController::class, 'generateContingentReport'])->name('generate.contingent.report');
     Route::get('/generate-contingent-by-age-and-gender-report', [ContingentReportController::class, 'generateContingentByAgeAndGenderReport'])->name('generate.contingent.by.age.and.gender.report');
     Route::get('/generate-contingent-by-age-and-gender-without-teaching-from-report', [ContingentReportController::class, 'generateContingentByAgeAndGenderWithoutTeachingFromReport'])->name('generate.contingent.by.age.and.gender.without.teaching.from.report');
+
+    Route::get('/get-study-plan', [StudyPlanController::class, 'getStudyPlan'])->name('get.study.plan');
 });

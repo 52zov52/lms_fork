@@ -43,7 +43,7 @@
         @if(!is_null($currentSchedule) && count($currentSchedule) != 0)
         <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
             @foreach($daysOfWeek as $dayOfWeek)
-            <tr>
+            <tr class="{{ (\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) ? 'border-l-4 border-l-green-500' : ''}}">
                 <td colspan="5" class="px-4 py-2 font-bold">
                     {{ $dayOfWeek['ru'] }} {{ $dayOfWeek['date'] }}
                     @if(\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) (Сегодня) @endif
@@ -53,7 +53,7 @@
                     @foreach($currentSchedule as $value)
                         @if(\Carbon\Carbon::parse($value['date'])->shortEnglishDayOfWeek == $dayOfWeek['en'])
                             @foreach($value['schedule']['data'] as $schedule)
-                            <tr>
+                            <tr class="{{ (\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) ? 'border-l-4 border-l-green-500' : ''}}">
                                 <td class="w-8 border py-2 text-center">{{ $schedule['lesson_number'] }}</td>
                                 <td class="w-16 lg:w-24 border py-2 text-center">{{ $schedule['time'] }}</td>
                                 <td class="w-auto border px-2 py-2">{{ $schedule['discipline'] }} ({{ $schedule['lesson_type'] }})</td>
@@ -73,7 +73,7 @@
                         @endif
                     @endforeach
                 @else
-                    <tr>
+                    <tr class="{{ (\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) ? 'border-l-4 border-l-green-500' : ''}}">
                         <td colspan="5" class="border px-4 py-2">
                             <span class="bg-orange-500 rounded px-2 py-1 text-xs text-white font-bold">Занятия отсутствуют</span>
                         </td>
