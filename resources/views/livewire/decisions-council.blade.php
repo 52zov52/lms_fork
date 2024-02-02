@@ -37,6 +37,11 @@
         </button>
     </div>
 
+    <div class="hidden xl:block flex flex-row space-x-1">
+        <span class="bg-orange-500 rounded px-2 py-1 text-sm text-white">в работе</span>
+        <span class="bg-green-500 rounded px-2 py-1 text-sm text-white">выполнено</span>
+    </div>
+
     <div class="w-full bg-white rounded shadow-xl p-4">
         <div class="hidden xl:block">
             <table class="w-full bg-white border shadow-md text-xs">
@@ -46,7 +51,6 @@
                         <td class="w-64 border px-2 py-2 font-semibold">Должность</td>
                         <td class="w-auto border px-2 py-2 font-semibold">Поручение</td>
                         <td class="w-44 border px-2 py-2 font-semibold">Срок исполнения</td>
-                        <td class="w-auto border px-2 py-2 font-semibold">Статус</td>
                         <td class="w-44 border px-2 py-2 text-center font-semibold">Дата и номер решения</td>
                         @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
                         <td class="w-24 border px-2 py-2 text-center font-semibold">Действия</td>
@@ -79,51 +83,43 @@
                                 @endforeach
                             </select>
                         </td>
-                        <td></td>
                         @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
                         <td class="w-24 border px-2"></td>
                         @endcan
                     </tr>
                     @foreach($decisionsRectorateAndCouncil as $value)
                     <tr>
-                        <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                        <td class="w-64 border px-2 py-2">{{ $value->position }}</td>
-                        <td class="w-auto border px-2 py-2">{{ $value->task }}</td>
-                        <td class="w-44 border px-2 py-2">{{ $value->due_date }}</td>
-                        <td class="w-44 border px-2 py-2 text-center">{{ $value->date_and_number_decision }}</td>
-                        <td class="w-auto border px-2 py-2">
-                            @if($value->status == 1)
-                            <div class="flex flex-col bg-orange-500 rounded py-1 text-xs text-white font-bold">
-                                <span>В работе</span>
-                            </div>
-                            @elseif($value->status == 2)
-                            <div class="flex flex-col bg-blue-500 rounded py-1 text-xs text-white font-bold">
-                                <span>На утверждение</span>
-                            </div>
+                        <td class="w-12 border border-b-4 border-l-4 
+                            @if($value->status == 1) 
+                                border-l-orange-500
                             @else
-                            <div class="flex flex-col bg-green-500 rounded py-1 text-xs text-white font-bold">
-                                <span>Выполнено</span>
-                            </div>
-                            @endif
-                        </td>
+                                border-l-green-500
+                            @endif 
+                        px-2 py-2 text-center">{{ $loop->iteration }}</td>
+                        <td class="w-64 border border-b-4 px-2 py-2">{{ $value->position }}</td>
+                        <td class="w-auto border border-b-4 px-2 py-2">{{ $value->task }}</td>
+                        <td class="w-44 border border-b-4 px-2 py-2">{{ $value->due_date }}</td>
+                        <td class="w-44 border border-b-4 px-2 py-2 text-center">{{ $value->date_and_number_decision }}</td>
                         @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
-                        <td class="w-24 border px-2 py-2 text-center">
-                            @can('confirm-decisions-rectorate-and-council')
-                            <button wire:click="confirmDecisions({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-2 py-1.5 text-xs text-white" title="Подтверждение">
-                                <i class="fa-solid fa-check"></i>
-                            </button>
-                            <button wire:click="undoDecisions({{ $value->id }})" class="bg-gray-500 hover:bg-gray-600 rounded px-2 py-1.5 text-xs text-white" title="Отмена">
-                                Отмена
-                            </button>
-                            @endcan
-                            @can('create-edit-delete-decisions-rectorate-and-council')
-                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" class="bg-sky-500 hover:bg-sky-600 rounded px-2 py-1.5 text-xs text-white" title="Редактировать">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }})" class="bg-red-500 hover:bg-red-600 rounded px-2 py-1.5 text-xs text-white" title="Удалить">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                            @endcan
+                        <td class="w-24 border border-b-4 px-2 py-2 text-center">
+                            <div class="grid gap-1 grid-cols-2">
+                                @can('confirm-decisions-rectorate-and-council')
+                                <button wire:click="confirmDecisions({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-2 py-1.5 text-xs text-white" title="Подтверждение">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                <button wire:click="undoDecisions({{ $value->id }})" class="bg-gray-500 hover:bg-gray-600 rounded px-2 py-1.5 text-xs text-white" title="Отменить подтверждение">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                                @endcan
+                                @can('create-edit-delete-decisions-rectorate-and-council')
+                                <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }})" class="bg-sky-500 hover:bg-sky-600 rounded px-2 py-1.5 text-xs text-white" title="Редактировать">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }})" class="bg-red-500 hover:bg-red-600 rounded px-2 py-1.5 text-xs text-white" title="Удалить">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                                @endcan
+                            </div>
                         </td>
                         @endcan
                     </tr>
@@ -167,6 +163,9 @@
                         @can('confirm-decisions-rectorate-and-council')
                         <button wire:click="confirmDecisions({{ $value->id }})" class="w-auto grow bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white" title="Подтверждение">
                             <i class="fa-solid fa-check"></i>
+                        </button>
+                        <button wire:click="undoDecisions({{ $value->id }})" class="w-auto grow bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white" title="Отменить подтверждение">
+                            <i class="fa-solid fa-rotate-left"></i>
                         </button>
                         @endcan
                         @can('create-edit-delete-decisions-rectorate-and-council')
