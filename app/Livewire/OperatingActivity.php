@@ -216,8 +216,8 @@ class OperatingActivity extends Component
         } else {
             $this->validate([
                 'activityDirection' => 'required|string|max:255',
-                'task' => 'required|string|max:1000',
-                'description' => 'string|max:1500',
+                'task' => 'required|string|max:2500',
+                'description' => 'string|max:3500',
                 'status' => 'required|numeric|min:1'
             ]);
         }
@@ -277,8 +277,8 @@ class OperatingActivity extends Component
             } else {
                 $this->validate([
                     'activityDirection' => 'required|string|max:255',
-                    'task' => 'required|string|max:1000',
-                    'description' => 'string|max:1500',
+                    'task' => 'required|string|max:2500',
+                    'description' => 'string|max:3500',
                     'status' => 'required|numeric|min:1'
                 ]);
             }
