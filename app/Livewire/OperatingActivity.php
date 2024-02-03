@@ -208,7 +208,7 @@ class OperatingActivity extends Component
         if (!is_null($this->file)) {
             $this->validate([
                 'activityDirection' => 'required|string|max:255',
-                'task' => 'required|string|max:1000',
+                'task' => 'required|string|max:2500',
                 'description' => 'string|max:1500',
                 'status' => 'required|numeric|min:1',
                 'file' => 'file|mimes:pdf,doc,docx,jpg,bmp,png|max:3072'
@@ -269,7 +269,7 @@ class OperatingActivity extends Component
             if (!is_null($this->file)) {
                 $this->validate([
                     'activityDirection' => 'required|string|max:255',
-                    'task' => 'required|string|max:1000',
+                    'task' => 'required|string|max:2500',
                     'description' => 'string|max:1500',
                     'status' => 'required|numeric|min:1',
                     'file' => 'file|mimes:pdf,doc,docx,jpg,bmp,png|max:3072'

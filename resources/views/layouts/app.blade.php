@@ -177,6 +177,14 @@
         </header>
         <!-- Content -->
         <main class="mt-16 px-6 py-4">
+
+            <div class="mb-4 flex items-center bg-orange-500 border-t-4 border-orange-700 rounded shadow-xl p-4 text-white" role="alert">
+                <i class="fa-solid fa-circle-exclamation fa-lg"></i>
+                <div class="ml-3 text-base font-medium">
+                    Ежедневно в период с 00:00 по 02:00 проходит синхронизация информации. В данный промежуток времени платформа может быть недоступна или функции платформы могут работать некорректно
+                </div>
+            </div>
+
             {{ $breadcrumb }}
 
             <div class="mb-4">
