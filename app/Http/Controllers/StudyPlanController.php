@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\StudyPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpParser\Node\Expr\Empty_;
 
 class StudyPlanController extends Controller
 {
@@ -21,8 +22,10 @@ class StudyPlanController extends Controller
                 'study_plan_courses.id',
                 'study_plan_sections.name as section_name',
                 'study_plan_sections.index_name as section',
+                'study_plan_indexes.name as full_name_index',
                 'study_plan_indexes.index_name as index',
                 'study_plan_courses.number_index',
+                'study_plan_under_indexes.name as full_name_under_index',
                 'study_plan_under_indexes.index_name as under_index',
                 'disciplines.name as discipline_name',
                 DB::raw('SUM(study_plan_courses_in_semesters.lecture_hours + study_plan_courses_in_semesters.practical_hours + study_plan_courses_in_semesters.laboratory_hours + study_plan_courses_in_semesters.individual_consultation_hours + study_plan_courses_in_semesters.group_consultation_hours + study_plan_courses_in_semesters.control_hours + study_plan_courses_in_semesters.self_study_hours) as sum_1'),
@@ -34,10 +37,7 @@ class StudyPlanController extends Controller
                 DB::raw('SUM(study_plan_courses_in_semesters.group_consultation_hours) as group_consultation_hours'),
                 DB::raw('SUM(study_plan_courses_in_semesters.control_hours) as control_hours'),
                 DB::raw('SUM(study_plan_courses_in_semesters.self_study_hours) as self_study_hours'),
-                DB::raw('SUM(study_plan_courses_in_semesters.work_content_first) as work_content_first'),
-                'study_plan_indexes.sorting_order as sorting_order_index',
-                'study_plan_sections.sorting_order as sorting_order_section',
-                'study_plan_under_indexes.sorting_order as sorting_order_under_index'
+                DB::raw('SUM(study_plan_courses_in_semesters.work_content_first) as work_content_first')
             )
             ->groupBy('study_plan_courses.id')
             ->orderBy('study_plan_indexes.sorting_order')
@@ -48,14 +48,14 @@ class StudyPlanController extends Controller
 
         $result = $this->getFormControlsInSemesters($studyPlan);
 
+        $a1 = "";
+        $a2 = "";
+        $a3 = "";
+
         echo ('<table border=1>');
 
         echo ('<tr>');
-        echo ('<td></td>');
-        echo ('<td></td>');
-        echo ('<td></td>');
-        echo ('<td></td>');
-        echo ('<td></td>');
+        echo ('<td>Индекс</td>');
         echo ('<td>Дис.</td>');
         echo ('<td>Э</td>');
         echo ('<td>ДЗ</td>');
@@ -82,17 +82,10 @@ class StudyPlanController extends Controller
         echo ('<td>9сем</td>');
         echo ('<td>10сем</td>');
         echo ('<td>Форма ГИА/ПА</td>');
-        echo ('<td></td>');
-        echo ('<td></td>');
-        echo ('<td></td>');
         echo ('</tr>');
         foreach ($result as $key => $value) {
             echo ('<tr>');
-            echo ('<td>' . $value['section_name'] . '</td>');
-            echo ('<td>' . $value['section'] . '</td>');
-            echo ('<td>' . $value['index'] . '</td>');
-            echo ('<td>' . $value['number_index'] . '</td>');
-            echo ('<td>' . $value['under_index'] . '</td>');
+            echo ('<td>' . $value['index'] . '.' . $value['section'] . '.' . $value['number_index'] . '</td>');
             echo ('<td>' . $value['discipline_name'] . '</td>');
 
             echo ('<td>' . $value['exam'] . '</td>');
@@ -173,11 +166,6 @@ class StudyPlanController extends Controller
             }
 
             echo ('<td>' . $value['form_controls'] . '</td>');
-
-            echo ('<td>' . $value['sorting_order_index'] . '</td>');
-            echo ('<td>' . $value['sorting_order_section'] . '</td>');
-            echo ('<td>' . $value['sorting_order_under_index'] . '</td>');
-
 
             echo ('</tr>');
         }

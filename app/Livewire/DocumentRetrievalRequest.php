@@ -21,8 +21,6 @@ class DocumentRetrievalRequest extends Component
     public function render()
     {
         $documentOrderRequest = DocumentOrderRequest::join('users_data', 'document_order_requests.requester_id', '=', 'users_data.user_id')
-            ->join('group_student', 'document_order_requests.requester_id', '=', 'group_student.user_id')
-            ->join('groups', 'group_student.group_id', '=', 'groups.id')
             ->select(
                 'document_order_requests.id',
                 'document_order_requests.document_type',
@@ -34,7 +32,7 @@ class DocumentRetrievalRequest extends Component
                 'users_data.last_name',
                 'users_data.first_name',
                 'users_data.middle_name',
-                'groups.group_name'
+                DB::raw("(SELECT groups.group_name FROM group_student INNER JOIN groups ON groups.id = group_student.group_id WHERE group_student.user_id = document_order_requests.requester_id ORDER BY group_student.id DESC LIMIT 1) as group_name")
             )
             ->paginate(25);
 
