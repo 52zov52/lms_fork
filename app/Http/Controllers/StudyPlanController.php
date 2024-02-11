@@ -6,6 +6,7 @@ use App\Models\StudyPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Expr\Empty_;
+use PhpParser\Node\Stmt\Return_;
 
 class StudyPlanController extends Controller
 {
@@ -47,10 +48,12 @@ class StudyPlanController extends Controller
             ->get()->toArray();
 
         $result = $this->getFormControlsInSemesters($studyPlan);
+        $data = $this->rebuildStudyPlan($result);
 
-        $a1 = "";
-        $a2 = "";
-        $a3 = "";
+        $index = "";
+        $fullNameIndex = "";
+        $sectionName = "";
+        $fullNameUnderIndex = "";
 
         echo ('<table border=1>');
 
@@ -84,6 +87,54 @@ class StudyPlanController extends Controller
         echo ('<td>Форма ГИА/ПА</td>');
         echo ('</tr>');
         foreach ($result as $key => $value) {
+
+            if (empty($index) || $index != $value['index']) {
+                $index = $value['index'];
+
+                echo ('<tr>');
+                echo ('<td>' . $index . '</td>');
+                if (empty($fullNameIndex) || $fullNameIndex != $value['full_name_index']) {
+                    $fullNameIndex = $value['full_name_index'];
+                    echo ('<td>' . $fullNameIndex . '</td>');
+                }
+                echo ('<td></td>');
+                echo ('<td></td>');
+                echo ('<td></td>');
+                echo ('<td></td>');
+                echo ('<td colspan="21"></td>');
+                echo ('</tr>');
+            }
+
+            if ((empty($sectionName) || $sectionName != $value['section_name']) && trim($value['section_name']) != 'Нет') {
+                $sectionName = $value['section_name'];
+
+                echo ('<tr>');
+                echo ('<td></td>');
+                echo ('<td>' . $sectionName . '</td>');
+                echo ('<td></td>');
+                echo ('<td></td>');
+                echo ('<td></td>');
+                echo ('<td></td>');
+                echo ('<td colspan="21"></td>');
+                echo ('</tr>');
+            }
+
+            if (empty($fullNameUnderIndex) || $fullNameUnderIndex != $value['full_name_under_index']) {
+                $fullNameUnderIndex = $value['full_name_under_index'];
+
+                if (trim($value['under_index']) != '-') {
+                    echo ('<tr>');
+                    echo ('<td></td>');
+                    echo ('<td>' . $fullNameUnderIndex . '</td>');
+                    echo ('<td></td>');
+                    echo ('<td></td>');
+                    echo ('<td></td>');
+                    echo ('<td></td>');
+                    echo ('<td colspan="21"></td>');
+                    echo ('</tr>');
+                }
+            }
+
             echo ('<tr>');
             echo ('<td>' . $value['index'] . '.' . $value['section'] . '.' . $value['number_index'] . '</td>');
             echo ('<td>' . $value['discipline_name'] . '</td>');
@@ -165,11 +216,41 @@ class StudyPlanController extends Controller
                 echo ('<td> - </td>');
             }
 
-            echo ('<td>' . $value['form_controls'] . '</td>');
+            echo ('<td>' . implode(', ', array_unique(array_map('trim', explode(',', $value['form_controls'])))) . '</td>');
 
             echo ('</tr>');
         }
         echo ('</table>');
+    }
+
+    public function rebuildStudyPlan($data)
+    {
+        $tmp = array();
+
+        $sum_1 = 0;
+        $sum_2 = 0;
+        $dv = false;
+
+        foreach ($data as $key => $value) {
+            if($value['full_name_index'] == 'Дисциплины (модули)' && $value['index'] == 'Б1')
+            {
+                if($value['under_index'] != 'ДВ'){
+                    $sum_1 += $value['sum_1'];
+                    $sum_2 += $value['sum_2'];
+                }
+
+                if($value['under_index'] == 'ДВ' && !$dv){
+                    $sum_1 += $value['sum_1'];
+                    $sum_2 += $value['sum_2'];
+                    $dv = true;
+                }
+                
+            }
+        }
+
+        //dd($sum_1);die();
+
+        return $tmp;
     }
 
     public function getFormControlsInSemesters($data)
