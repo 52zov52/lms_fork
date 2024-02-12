@@ -62,6 +62,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/print-decisions/{category}/{dateAndNumberDecision}',[PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
     });
 
+    Route::group(['middleware' => ['role:Teacher']], function () {
+        Route::get('/my-groups', function() {
+            return view('pages.my-groups');
+        })->name('my.groups');
+    });
+
     Route::group(['middleware' => ['role:Student']], function () {
         Route::get('/document-order-requests', function () {
             return view('pages.document-order-request');

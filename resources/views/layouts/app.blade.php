@@ -93,6 +93,14 @@
                     </a>
                 </li>
                 @endcan
+                @role('Teacher')
+                <li class="rounded {{ (request()->routeIs('my.groups')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
+                    <a href="{{ route('my.groups') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
+                        <i class="fa-solid fa-feather-pointed"></i>
+                        <span>Мои группы</span>
+                    </a>
+                </li>
+                @endcan
                 @role('Student')
                 <li class="rounded {{ (request()->routeIs('document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                     <a href="{{ route('document.order.requests') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
