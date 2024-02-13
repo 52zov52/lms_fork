@@ -66,6 +66,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/my-groups', function() {
             return view('pages.my-groups');
         })->name('my.groups');
+
+        Route::get('/e-journal', function() {
+            return view('pages.e-journal');
+        })->name('e.journal');
     });
 
     Route::group(['middleware' => ['role:Student']], function () {

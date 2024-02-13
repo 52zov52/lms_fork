@@ -96,7 +96,7 @@
                 @role('Teacher')
                 <li class="rounded {{ (request()->routeIs('my.groups')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                     <a href="{{ route('my.groups') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                        <i class="fa-solid fa-feather-pointed"></i>
+                        <i class="fa-solid fa-user-group"></i>
                         <span>Мои группы</span>
                     </a>
                 </li>
@@ -120,7 +120,7 @@
                 @role('Teacher')
                 <li class="rounded {{ (request()->routeIs('contingent')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                     <a href="{{ route('contingent') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                        <i class="fa-solid fa-user-group"></i>
+                        <i class="fa-solid fa-people-group"></i>
                         <span>Контингент</span>
                     </a>
                 </li>
