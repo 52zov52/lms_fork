@@ -22,6 +22,11 @@ class EJournal extends Component
         ]);
     }
 
+    public function setState($id)
+    {
+        dd($id);die();
+    }
+
     public function getStudents($groupId)
     {
         $contingent = new ContingentController();

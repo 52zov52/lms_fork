@@ -16,7 +16,12 @@
                 <td>{{ $loop->iteration }}</td>
                 <td>{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}</td>
                 <td>{{ $value->ticket_number }}</td>
-                <td></td>
+                <td>
+                    <select wire:change="setState({{ $value->id }})" class="text-xs">
+                        <option value="0">.</option>
+                        <option value="1">н</option>
+                    </select>
+                </td>
                 <td></td>
             </tr>
             @endforeach
