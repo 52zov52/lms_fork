@@ -1,4 +1,4 @@
-<div>
+<div class="flex flex-col space-y-2">
    <button wire:click="searchGroups">Поиск групп</button>
    <a href="{{ route('e.journal') }}">Журнал</a>
 
@@ -11,8 +11,8 @@
       @foreach($groups as $value)
       <tr>
          <td>{{ $loop->iteration }}</td>
-         <td>{{ $value }}</td>
-         <td ><a wire:click="getDisciplines({{ $value }})" href="#">Клик</a></td>
+         <td>{{ $value->group_name }}</td>
+         <td ><a href="{{ route('available.courses', ['groupId' => $value->id]) }}">Клик</a></td>
       </tr>
       @endforeach
    </table>
