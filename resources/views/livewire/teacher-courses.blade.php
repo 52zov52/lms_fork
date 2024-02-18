@@ -20,7 +20,7 @@
                     <td class="w-32 border px-2 py-2 text-center">{{ $value->laboratory_hours }}</td>
                     <td class="w-32 border px-2 py-2 text-center">{{ $value->semester_number }}</td>
                     <td class="w-32 border px-2 py-2 text-center">
-                        <button wire:click="showEJournal({{ $value->id }})" class="bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="Подписаться на дисциплину (модуль)">
+                        <button wire:click="showEJournal({{ $value->id }})" class="bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="Журнал группы">
                             <i class="fa-solid fa-address-book"></i>
                         </button>
                     </td>

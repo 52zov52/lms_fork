@@ -37,6 +37,6 @@ class TeacherCourses extends Component
 
     public function showEJournal($courseTeacherId)
     {
-        
+        return redirect()->route('e.journal', ['courseTeacherId' => $courseTeacherId]);
     }
 }

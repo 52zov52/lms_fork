@@ -75,8 +75,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.teacher-courses', compact('groupId'));
         })->name('teacher.courses');
 
-        Route::get('/e-journal', function() {
-            return view('pages.e-journal');
+        Route::get('/e-journal/{courseTeacherId}', function($courseTeacherId) {
+            return view('pages.e-journal', compact('courseTeacherId'));
         })->name('e.journal');
     });
 
