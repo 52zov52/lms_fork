@@ -85,4 +85,14 @@ class MyGroups extends Component
 
         return array_intersect($contingentController->groupId, $groupsId);
     }
+
+    public function showTeacherCourse($groupId)
+    {
+        return redirect()->route('teacher.courses', ['groupId' => $groupId]);
+    }
+
+    public function getAvailableCourses($groupId)
+    {
+        return redirect()->route('available.courses', ['groupId' => $groupId]);
+    }
 }

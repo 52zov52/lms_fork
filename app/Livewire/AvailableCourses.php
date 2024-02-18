@@ -2,8 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Models\CourseTeacher;
 use App\Models\Group;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -59,8 +61,38 @@ class AvailableCourses extends Component
             ->get()->toArray();
     }
 
+    public function getAcademicYear($currentMonth)
+    {
+        $month = (int)$currentMonth;
+        $result = "";
+
+        if ($month >= 9 && $month <= 12) {
+            $result = Carbon::now()->format('Y') . '/' . Carbon::now()->addYear()->format('Y');
+        } elseif ($month >= 1 && $month < 7) {
+            $result = Carbon::now()->subYear()->format('Y') . '/' . Carbon::now()->format('Y');
+        } else {
+            $result = "Каникулы";
+        }
+
+        return $result;
+    }
+
     public function subscribeToCourse($courseId)
     {
+        $academicYear = $this->getAcademicYear(Carbon::now()->format('m'));
 
+        $findCourse = CourseTeacher::where('course_id', '=', $courseId)
+            ->where('teacher_id', '=', Auth::user()->id)
+            ->where('academic_year', '=', $academicYear)
+            ->count();
+        
+        if($findCourse == 0){
+            CourseTeacher::create([
+                'course_id' => $courseId,
+                'group_id' => $this->groupId,
+                'teacher_id' => Auth::user()->id,
+                'academic_year' => $academicYear
+            ]);
+        }
     }
 }
