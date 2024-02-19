@@ -20,9 +20,9 @@
                     @foreach($journal as $item)
                     @if($value->user_id == $item->student_id)
                     <td>
-                        <select wire:model="status" wire:change="setState({{ $value->id }})" class="w-auto border border-gray-300 rounded text-xs font-semibold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option wire:key="1" value="1" {{ $item->status == 1 ? 'selected' : '' }}>.</option>
-                            <option wire:key="0" value="0" {{ $item->status == 0 ? 'selected' : '' }}>Н</option>
+                        <select wire:change="setState({{ $value->user_id }})" class="w-auto border border-gray-300 rounded text-xs font-semibold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="1">.</option>
+                            <option value="0">Н</option>
                         </select>
                     </td>
                     @endif

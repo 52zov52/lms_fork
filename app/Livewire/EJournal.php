@@ -62,9 +62,9 @@ class EJournal extends Component
         die();
     }
 
-    public function setState($id)
+    public function setState($value)
     {
-        dd($id);
+        dd($value);
         die();
     }
 
