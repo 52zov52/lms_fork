@@ -4,12 +4,14 @@ namespace App\Livewire;
 
 use App\Http\Controllers\ContingentController;
 use App\Models\CourseTeacher;
+use App\Models\EJournal as ModelsEJournal;
 use Carbon\Carbon;
 use Livewire\Component;
 
 class EJournal extends Component
 {
     public $courseTeacherId = 0;
+    public $status = 0;
 
     public function mount($courseTeacherId)
     {
@@ -25,11 +27,39 @@ class EJournal extends Component
 
         $contingent = $this->getStudents($courseTeacher->group_id);
 
+        $journal = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)->orderBy('date_lesson', 'asc')->get();
+
+        $dates = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)
+            ->select('date_lesson', 'time_lesson')
+            ->distinct()
+            ->orderBy('date_lesson', 'asc')
+            ->get();
+
         return view('livewire.e-journal', [
             'contingent' => $contingent,
+            'journal' => $journal,
+            'dates' => $dates,
             'currentData' => $currentData,
             'currentTime' => $currentTime
         ]);
+    }
+
+    public function add()
+    {
+        $courseTeacher = CourseTeacher::where('id', $this->courseTeacherId)->select('group_id')->first();
+        $contingent = $this->getStudents($courseTeacher->group_id);
+
+        foreach ($contingent as $key => $value) {
+            ModelsEJournal::create([
+                'student_id' => $value->user_id,
+                'date_lesson' => Carbon::now()->format('Y-m-d'),
+                'time_lesson' => $this->getLessonTime(Carbon::now()->format('H:i')),
+                'course_teacher_id' => $this->courseTeacherId
+            ]);
+        }
+
+        dd('OK');
+        die();
     }
 
     public function setState($id)

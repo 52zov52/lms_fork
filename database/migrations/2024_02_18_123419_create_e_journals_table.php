@@ -20,7 +20,7 @@ return new class extends Migration
 
             $table->string('status')->default('Н');
             $table->date('date_lesson');
-            $table->time('time_lesson');
+            $table->string('time_lesson');
 
             $table->foreignIdFor(CourseTeacher::class)
                 ->constrained()
