@@ -10,8 +10,9 @@ use Livewire\Component;
 
 class EJournal extends Component
 {
+    public $isAlertVisible = false;
     public $courseTeacherId = 0;
-    public $status = 0;
+    public $status = array();
 
     public function mount($courseTeacherId)
     {
@@ -29,6 +30,10 @@ class EJournal extends Component
 
         $journal = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)->orderBy('date_lesson', 'asc')->get();
 
+        foreach ($journal as $key => $value) {
+            $this->status[$value->id] = ($value->status) ? true : false;
+        }
+
         $dates = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)
             ->select('date_lesson', 'time_lesson')
             ->distinct()
@@ -44,7 +49,12 @@ class EJournal extends Component
         ]);
     }
 
-    public function add()
+    public function alertVisible(): void
+    {
+        $this->isAlertVisible = false;
+    }
+
+    public function store()
     {
         $courseTeacher = CourseTeacher::where('id', $this->courseTeacherId)->select('group_id')->first();
         $contingent = $this->getStudents($courseTeacher->group_id);
@@ -52,20 +62,32 @@ class EJournal extends Component
         foreach ($contingent as $key => $value) {
             ModelsEJournal::create([
                 'student_id' => $value->user_id,
+                'status' => false,
                 'date_lesson' => Carbon::now()->format('Y-m-d'),
                 'time_lesson' => $this->getLessonTime(Carbon::now()->format('H:i')),
                 'course_teacher_id' => $this->courseTeacherId
             ]);
         }
 
-        dd('OK');
-        die();
+        $this->isAlertVisible = true;
+
+        session()->flash('message-success', 'Запись успешно добавлена!');
     }
 
-    public function setState($value)
+    public function destroy($id)
     {
-        dd($value);
-        die();
+        $eJournal = ModelsEJournal::findOrFail($this->id);
+        $eJournal->delete();
+
+        $this->isAlertVisible = true;
+
+        session()->flash('message-success', 'Запись успешно удалена!');
+    }
+
+    public function setStatus($id, $studentId)
+    {
+        $eJournal = ModelsEJournal::where('id', '=', $id)
+            ->where('student_id', '=', $studentId)->update(['status' => $this->status[$id]]);
     }
 
     public function getStudents($groupId)
