@@ -12,8 +12,9 @@ class EJournal extends Model
     protected $fillable = [
         'student_id',
         'status',
-        'date_lesson',
-        'time_lesson',
+        'lesson_date',
+        'lesson_time',
+        'lesson_type',
         'course_teacher_id'
     ];
 }

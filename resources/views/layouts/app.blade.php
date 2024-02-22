@@ -165,7 +165,7 @@
     </nav>
 
     <div class="relative z-0 h-screen lg:flex-grow overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
-        <header class="z-20 qfixed w-full h-14 bg-white shadow-xl px-6">
+        <header class="z-20 fixed w-full h-14 bg-white shadow-xl px-6">
             <div class="flex items-center justify-between h-full block lg:hidden">
                 <a class="flex items-center space-x-2" href="{{ route('login') }}">
                     <img class="w-20" src="{{ asset('storage/logo.png') }}" alt="logo">

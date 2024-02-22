@@ -28,16 +28,16 @@ class EJournal extends Component
 
         $contingent = $this->getStudents($courseTeacher->group_id);
 
-        $journal = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)->orderBy('date_lesson', 'asc')->get();
+        $journal = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)->orderBy('lesson_date', 'asc')->get();
 
         foreach ($journal as $key => $value) {
             $this->status[$value->id] = ($value->status) ? true : false;
         }
 
         $dates = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)
-            ->select('date_lesson', 'time_lesson')
+            ->select('lesson_date', 'lesson_time', 'lesson_type')
             ->distinct()
-            ->orderBy('date_lesson', 'asc')
+            ->orderBy('lesson_date', 'asc')
             ->get();
 
         return view('livewire.e-journal', [
@@ -63,8 +63,9 @@ class EJournal extends Component
             ModelsEJournal::create([
                 'student_id' => $value->user_id,
                 'status' => false,
-                'date_lesson' => Carbon::now()->format('Y-m-d'),
-                'time_lesson' => $this->getLessonTime(Carbon::now()->format('H:i')),
+                'lesson_date' => Carbon::now()->format('Y-m-d'),
+                'lesson_time' => $this->getLessonTime(Carbon::now()->format('H:i')),
+                'lesson_type' => 1,
                 'course_teacher_id' => $this->courseTeacherId
             ]);
         }

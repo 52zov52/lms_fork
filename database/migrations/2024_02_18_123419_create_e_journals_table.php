@@ -19,8 +19,9 @@ return new class extends Migration
             $table->foreign('student_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
 
             $table->string('status')->default('Н');
-            $table->date('date_lesson');
-            $table->string('time_lesson');
+            $table->date('lesson_date');
+            $table->string('lesson_time');
+            $table->integer('lesson_type');
 
             $table->foreignIdFor(CourseTeacher::class)
                 ->constrained()
