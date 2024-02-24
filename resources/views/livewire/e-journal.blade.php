@@ -79,7 +79,7 @@
                         @foreach($journal as $item)
                         @if($value->user_id == $item->student_id)
                         <td class="w-20 border px-2 py-2 text-center">
-                            <input wire:model="status.{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $value->user_id }})" type="checkbox" id="status-{{ $item->id }}" {{ (strtotime($item->lesson_date) != strtotime(\Carbon\Carbon::now()->format('Y-m-d'))) ? 'disabled' : '' }}>
+                            <input wire:model="status.{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $value->user_id }})" type="checkbox" id="status-{{ $item->id }}">
                         </td>
                         @endif
                         @endforeach
