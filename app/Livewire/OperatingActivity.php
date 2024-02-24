@@ -411,14 +411,12 @@ class OperatingActivity extends Component
                 ->where('created_at', 'like', $year . '%')
                 ->where('created_at', 'like', Carbon::createFromFormat('m.Y', $monthYear)->format('Y-m') . '%')
                 ->distinct()
-                ->orderBy('date', 'ASC')
                 ->get()
                 ->toArray();
         } else {
             $dates = ModelsOperatingActivity::select(DB::raw("DATE_FORMAT(created_at, '%d.%m.%Y') as date"))
                 ->where('created_at', 'like', $year . '%')
                 ->distinct()
-                ->orderBy('date', 'ASC')
                 ->get()
                 ->toArray();
         }
