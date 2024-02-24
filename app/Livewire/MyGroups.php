@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\ContingentController;
+use App\Models\CourseTeacher;
 use App\Models\Group;
 use App\Models\GroupTeacher;
 use App\Models\Schedule;
@@ -16,11 +17,11 @@ class MyGroups extends Component
 {
     public function render()
     {
+        $academicYear = $this->getAcademicYear(Carbon::now()->format('m'));
         $countGroup = GroupTeacher::where('teacher_id', Auth::user()->id)->count();
 
         if ($countGroup == 0) {
             $findGroups = $this->searchGroups();
-            $academicYear = $this->getAcademicYear(Carbon::now()->format('m'));
 
             foreach ($findGroups as $key => $value) {
                 GroupTeacher::create([
@@ -31,9 +32,14 @@ class MyGroups extends Component
             }
         }
 
-        $groups = GroupTeacher::where('teacher_id', Auth::user()->id)
-            ->join('groups', 'group_teachers.group_id', '=', 'groups.id')
-            ->select('groups.id', 'groups.group_name')
+        $groups = GroupTeacher::where('group_teacher.teacher_id', Auth::user()->id)
+            ->join('groups', 'group_teacher.group_id', '=', 'groups.id')
+            ->leftJoin('course_teacher', 'groups.id', '=', 'course_teacher.group_id')
+            ->select(
+                'groups.id',
+                'groups.group_name',
+                DB::raw('COUNT(course_teacher.group_id) as count_courses'))
+            ->groupBy('groups.id')
             ->get();
 
         return view('livewire.my-groups', ['groups' => $groups]);
@@ -91,7 +97,7 @@ class MyGroups extends Component
         return redirect()->route('teacher.courses', ['groupId' => $groupId]);
     }
 
-    public function getAvailableCourses($groupId)
+    public function showAvailableCourses($groupId)
     {
         return redirect()->route('available.courses', ['groupId' => $groupId]);
     }

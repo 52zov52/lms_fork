@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\OperatingActivity as ModelsOperatingActivity;
 use App\Models\UserActivityDirection;
 use Carbon\Carbon;
+use DateTime;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -32,6 +33,9 @@ class OperatingActivity extends Component
     public $isCreatingAndEditingModalFormVisible = false, $isDescriptionModalFormVisible = false, $isFilterModalFormVisible = false, $isAlertVisible = false, $isConfirmDeleteRecordModalVisible = false;
     public $isEdit = false;
 
+    public $filterYear = '';
+    public $filterMonthYear = '';
+
     public $filterWeeks = '';
     public $filterActivityDirection = '';
     public $filterExecutor = '';
@@ -42,12 +46,20 @@ class OperatingActivity extends Component
 
     public function mount()
     {
+        $this->filterYear = Carbon::now()->format('Y');
+        $this->filterMonthYear = Carbon::now()->format('m.Y');
         $this->filterExecutor = (Auth::user()->id == 2190) ? '' : Auth::user()->userData->last_name . ' ' . Auth::user()->userData->first_name . ' ' . Auth::user()->userData->middle_name;
     }
 
     public function render()
     {
-        $weeksRange = $this->getWeeksRange();
+        $years = ModelsOperatingActivity::select(DB::raw("DATE_FORMAT(created_at, '%Y') as year"))->distinct()->get();
+        $monthsYears = ModelsOperatingActivity::select(DB::raw("DATE_FORMAT(created_at, '%m.%Y') as monthYear"))
+            ->where('created_at', 'like', $this->filterYear . '%')
+            ->distinct()
+            ->get();
+
+        $weeksRange = $this->getWeeksRange($this->filterYear, $this->filterMonthYear);
 
         $listOfActivityDirectionsForUser = UserActivityDirection::join('activity_directions', 'user_activity_directions.activity_direction_id', '=', 'activity_directions.id')
             ->select('activity_directions.id', 'activity_directions.name')
@@ -93,6 +105,7 @@ class OperatingActivity extends Component
                 DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name) AS fio')
             );
 
+        /*
         if (!empty($this->filterActivityDirection) && empty($this->filterExecutor) && empty($this->filterStatus)) {
             $operatingActivity->where('operating_activities.activity_direction', '=', $this->filterActivityDirection);
         }
@@ -120,6 +133,19 @@ class OperatingActivity extends Component
             $operatingActivity->where(DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name)'), 'like', '%' . $this->filterExecutor . '%');
             $operatingActivity->where('operating_activities.status', '=', $this->filterStatus);
         }
+        */
+
+        if (!empty($this->filterActivityDirection)) {
+            $operatingActivity->where('operating_activities.activity_direction', '=', $this->filterActivityDirection);
+        }
+
+        if (!empty($this->filterExecutor)) {
+            $operatingActivity->where(DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name)'), 'like', '%' . $this->filterExecutor . '%');
+        }
+
+        if (!empty($this->filterStatus)) {
+            $operatingActivity->where('operating_activities.status', '=', $this->filterStatus);
+        }
 
         if (!empty($this->week) && $this->week != 0) {
             $now = Carbon::parse($this->week);
@@ -138,6 +164,8 @@ class OperatingActivity extends Component
 
         return view('livewire.operating-activity', [
             'operatingActivity' => $operatingActivity,
+            'years' => $years,
+            'monthsYears' => $monthsYears,
             'weeksRange' => $weeksRange,
             'listOfActivityDirections' => $listOfActivityDirections,
             'listOfActivityDirectionsForUser' => $listOfActivityDirectionsForUser,
@@ -186,6 +214,17 @@ class OperatingActivity extends Component
     public function filterModalFormVisible(): void
     {
         $this->isFilterModalFormVisible = true;
+    }
+
+    public function setFilterYear(): void
+    {
+        $this->filterYear = $this->filterYear;
+        $this->filterMonthYear = '';
+    }
+
+    public function setFilterMonthYear(): void
+    {
+        $this->filterMonthYear = $this->filterMonthYear;
     }
 
     public function setFilterActivityDirection(): void
@@ -363,15 +402,26 @@ class OperatingActivity extends Component
         $this->resetValidation();
     }
 
-    public function getWeeksRange(): array
+    public function getWeeksRange($year, $monthYear): array
     {
         $weeksRange = array();
 
-        $dates = ModelsOperatingActivity::select(DB::raw("DATE_FORMAT(created_at, '%d.%m.%Y') as date"))
-            ->distinct()
-            ->orderBy('date', 'ASC')
-            ->get()
-            ->toArray();
+        if (!empty($monthYear)) {
+            $dates = ModelsOperatingActivity::select(DB::raw("DATE_FORMAT(created_at, '%d.%m.%Y') as date"))
+                ->where('created_at', 'like', $year . '%')
+                ->where('created_at', 'like', Carbon::createFromFormat('m.Y', $monthYear)->format('Y-m') . '%')
+                ->distinct()
+                ->orderBy('date', 'ASC')
+                ->get()
+                ->toArray();
+        } else {
+            $dates = ModelsOperatingActivity::select(DB::raw("DATE_FORMAT(created_at, '%d.%m.%Y') as date"))
+                ->where('created_at', 'like', $year . '%')
+                ->distinct()
+                ->orderBy('date', 'ASC')
+                ->get()
+                ->toArray();
+        }
 
         foreach ($dates as $value) {
             $now = Carbon::parse($value['date']);

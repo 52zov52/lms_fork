@@ -12,8 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('group_teachers', function (Blueprint $table) {
+        Schema::create('course_teacher', function (Blueprint $table) {
             $table->id();
+
+            $table->unsignedBigInteger('course_id');
+            $table->foreign('course_id')
+                ->references('id')
+                ->on('study_plan_courses_in_semesters')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
 
             $table->foreignIdFor(Group::class)
                 ->constrained()
@@ -38,6 +45,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('group_teachers');
+        Schema::dropIfExists('course_teacher');
     }
 };

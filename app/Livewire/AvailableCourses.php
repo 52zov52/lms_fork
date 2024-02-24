@@ -12,6 +12,7 @@ use Livewire\Component;
 class AvailableCourses extends Component
 {
     public $groupId = 0;
+    public bool $isAlertVisible = false;
 
     public function mount($groupId)
     {
@@ -23,6 +24,11 @@ class AvailableCourses extends Component
         $listOfDisciplines = $this->getDisciplines($this->groupId);
 
         return view('livewire.available-courses', ['listOfDisciplines' => $listOfDisciplines]);
+    }
+
+    public function alertVisible(): void
+    {
+        $this->isAlertVisible = false;
     }
 
     public function getDisciplines($groupId)
@@ -54,10 +60,20 @@ class AvailableCourses extends Component
 
         return DB::table('study_plan_courses')
             ->join('study_plan_courses_in_semesters', 'study_plan_courses.id', '=', 'study_plan_courses_in_semesters.study_plan_course_id')
+            ->join('study_plan_course_control_types_in_semesters', 'study_plan_courses_in_semesters.id', '=', 'study_plan_course_control_types_in_semesters.study_plan_courses_in_semester_id')
+            ->join('control_types', 'study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
             ->join('disciplines', 'study_plan_courses.discipline_id', '=', 'disciplines.id')
             ->where('study_plan_courses.study_plan_id', '=', $group->study_plan_id)
             ->where('study_plan_courses_in_semesters.semester_number', $semester)
-            ->select('study_plan_courses_in_semesters.id', 'disciplines.name', 'study_plan_courses_in_semesters.semester_number')
+            ->select(
+                'study_plan_courses_in_semesters.id',
+                'disciplines.name',
+                'control_types.name as control_name',
+                'study_plan_courses_in_semesters.lecture_hours',
+                'study_plan_courses_in_semesters.practical_hours',
+                'study_plan_courses_in_semesters.laboratory_hours',
+                'study_plan_courses_in_semesters.semester_number'
+            )
             ->get()->toArray();
     }
 
@@ -82,11 +98,12 @@ class AvailableCourses extends Component
         $academicYear = $this->getAcademicYear(Carbon::now()->format('m'));
 
         $findCourse = CourseTeacher::where('course_id', '=', $courseId)
+            ->where('group_id', '=', $this->groupId)
             ->where('teacher_id', '=', Auth::user()->id)
             ->where('academic_year', '=', $academicYear)
             ->count();
-        
-        if($findCourse == 0){
+
+        if ($findCourse == 0) {
             CourseTeacher::create([
                 'course_id' => $courseId,
                 'group_id' => $this->groupId,
@@ -94,5 +111,9 @@ class AvailableCourses extends Component
                 'academic_year' => $academicYear
             ]);
         }
+
+        $this->isAlertVisible = true;
+
+        session()->flash('message-success', 'Дисциплина успешно добавлена в список дисциплин эл. журнала на текущий уч. год');
     }
 }
