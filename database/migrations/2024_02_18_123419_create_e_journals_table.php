@@ -18,15 +18,13 @@ return new class extends Migration
             $table->unsignedBigInteger('student_id');
             $table->foreign('student_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
 
-            $table->string('status')->default('Н');
+            $table->boolean('status')->default(false);
             $table->date('lesson_date');
             $table->string('lesson_time');
             $table->integer('lesson_type');
 
-            $table->foreignIdFor(CourseTeacher::class)
-                ->constrained()
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
+            $table->unsignedBigInteger('course_teacher_id');
+            $table->foreign('course_teacher_id')->references('id')->on('course_teacher')->onUpdate('cascade')->onDelete('cascade');
 
             $table->timestamps();
         });
