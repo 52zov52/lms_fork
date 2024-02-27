@@ -24,6 +24,10 @@
     </div>
     @endif
 
+    <div>
+        <h4 class="text-lg xl:text-xl font-semibold">{{ $infoAboutGroupAndCourse->group_name }} - {{ $infoAboutGroupAndCourse->discipline_name }}</h4>
+    </div>
+
     <div class="flex flex-row space-x-1">
         <span class="bg-purple-600 rounded px-2 py-1 text-sm text-white">Лекции</span>
         <span class="bg-sky-600 rounded px-2 py-1 text-sm text-white">Лабораторные</span>
@@ -66,7 +70,7 @@
                         @endforeach
                         <td class="w-20 border px-2 py-2 text-center font-semibold">
                             {{ $currentData }} {{ $currentTime }}
-                            <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full bg-green-500 hover:bg-green-600 rounded p-1 text-white">
+                            <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full bg-green-500 hover:bg-green-600 rounded p-1 text-white" title="" data-tippy-content="Добавить новый столбец">
                                 <i class="fa-solid fa-plus"></i>
                             </button>
                         </td>
@@ -79,7 +83,7 @@
                         @foreach($journal as $item)
                         @if($value->user_id == $item->student_id)
                         <td class="w-20 border px-2 py-2 text-center">
-                            <input wire:model="status.{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $value->user_id }})" type="checkbox" id="status-{{ $item->id }}">
+                            <input wire:model="status.{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $value->user_id }})" type="checkbox" id="status-{{ $item->id }}" title="" data-tippy-content="{{ ($item->status) ? 'Присутствовал' : 'Отсутствовал' }} {{ \Carbon\Carbon::parse($item->lesson_date)->format('d.m.Y') }}">
                         </td>
                         @endif
                         @endforeach

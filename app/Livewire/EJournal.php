@@ -51,6 +51,13 @@ class EJournal extends Component
         $contingent = $this->getStudents($courseTeacher->group_id);
 
         $journal = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)->orderBy('lesson_date', 'asc')->get();
+        $infoAboutGroupAndCourse = CourseTeacher::where('course_teacher.id', '=', $this->courseTeacherId)
+            ->join('groups', 'course_teacher.group_id', '=', 'groups.id')
+            ->join('study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'study_plan_courses_in_semesters.id')
+            ->join('study_plan_courses', 'study_plan_courses_in_semesters.study_plan_course_id', '=', 'study_plan_courses.id')
+            ->join('disciplines', 'study_plan_courses.discipline_id', '=', 'disciplines.id')
+            ->select('groups.group_name', 'disciplines.name as discipline_name')
+            ->first();
 
         foreach ($journal as $key => $value) {
             $this->status[$value->id] = ($value->status) ? true : false;
@@ -65,6 +72,7 @@ class EJournal extends Component
         return view('livewire.e-journal', [
             'contingent' => $contingent,
             'journal' => $journal,
+            'infoAboutGroupAndCourse' => $infoAboutGroupAndCourse,
             'dates' => $dates,
             'currentData' => $currentData,
             'currentTime' => $currentTime,

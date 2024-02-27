@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\CourseTeacher;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class TeacherCourses extends Component
@@ -31,7 +32,7 @@ class TeacherCourses extends Component
                 'study_plan_courses_in_semesters.lecture_hours',
                 'study_plan_courses_in_semesters.practical_hours',
                 'study_plan_courses_in_semesters.laboratory_hours',
-                'study_plan_courses_in_semesters.semester_number'
+                DB::raw('CASE WHEN (study_plan_courses_in_semesters.semester_number % 2 = 0) THEN 2 ELSE 1 END as half_year')
             )
             ->get();
 

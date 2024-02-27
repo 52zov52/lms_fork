@@ -14,10 +14,10 @@
                <td class="w-auto border px-2 py-2">{{ $value->group_name }}</td>
                <td class="w-12 border px-2 py-2 text-center">{{ $value->count_courses }}</td>
                <td class="w-20 border px-2 py-2 text-center">
-                  <button wire:click="showTeacherCourse({{ $value->id }})" class="bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="Журнал группы">
+                  <button wire:click="showTeacherCourse({{ $value->id }})" class="bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Журнал группы">
                      <i class="fa-solid fa-address-book"></i>
                   </button>
-                  <button wire:click="showAvailableCourses({{ $value->id }})" class="bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="Список доступных дисциплин (модулей)">
+                  <button wire:click="showAvailableCourses({{ $value->id }})" class="bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Список доступных дисциплин (модулей)">
                      <i class="fa-solid fa-plus"></i>
                   </button>
                </td>
