@@ -188,7 +188,9 @@
 
             <x-alert type="warning" header="Внимание!" message="Ежедневно в период с 00:00 по 02:00 проходит синхронизация информации. В данный промежуток времени платформа может быть недоступна или функции платформы могут работать некорректно" static="true" />
 
-            {{ $breadcrumb }}
+            <div class="mt-2">
+                {{ $breadcrumb }}
+            </div>
 
             <div class="mb-4">
                 <h1 class="text-xl xl:text-2xl font-semibold">{{ $header }}</h1>

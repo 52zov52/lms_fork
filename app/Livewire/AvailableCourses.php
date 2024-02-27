@@ -33,8 +33,16 @@ class AvailableCourses extends Component
 
     public function getDisciplines($groupId)
     {
-        $group = Group::select('course', 'study_plan_id')->where('id', $groupId)->first();
+        $group = Group::select('group_name', 'course', 'study_plan_id')->where('id', $groupId)->first();
         $month = Carbon::now()->format('m');
+
+        if(str_contains($group->group_name,'(11)')) {
+            $group->course = $group->course + 1;
+        }
+
+        if(mb_substr($group->group_name, 2, 1) == "К") {
+            $group->course = $group->course + 2;
+        }
 
         $semester = 0;
 
