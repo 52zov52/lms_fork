@@ -123,18 +123,18 @@
                         </td>
                         <td class="w-32 border px-2 py-2 text-center">
                             @can('confirm-operating-activity')
-                            <button wire:click="confirmActivity({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-1.5 py-1.5 text-xs text-white" title="Подтверждение">
+                            <button wire:click="confirmActivity({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Подтверждение">
                                 <i class="fa-solid fa-check"></i>
                             </button>
                             @endcan
-                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded px-1.5 py-1.5 text-xs text-white" title="Доп. информация">
+                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Доп. информация">
                                 <i class="fa-solid fa-up-right-from-square"></i>
                             </button>
                             @if($value->status != 3)
-                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-sky-500 hover:bg-sky-600 rounded px-1.5 py-1.5 text-xs text-white" title="Редактировать">
+                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-sky-500 hover:bg-sky-600 rounded px-1.5 py-1.5 text-xs text-white" title=""data-tippy-content="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="bg-red-500 hover:bg-red-600 rounded px-1.5 py-1.5 text-xs text-white" title="Удалить">
+                            <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="bg-red-500 hover:bg-red-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                             @endif
@@ -173,18 +173,18 @@
                     <span class="font-semibold">Действия:</span>
                     <div class="flex flex-row space-x-2">
                         @can('confirm-operating-activity')
-                        <button wire:click="confirmActivity({{ $value->id }})" title="Подтверждение" class="w-auto grow bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white">
+                        <button wire:click="confirmActivity({{ $value->id }})" class="w-auto grow bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Подтверждение">
                             <i class="fa-solid fa-check"></i>
                         </button>
                         @endcan
-                        <button wire:click="descriptionModalFormVisible({{ $value->id }})" title="Доп. информация" class="w-auto grow bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1 text-white">
+                        <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="w-auto grow bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Доп. информация">
                             <i class="fa-solid fa-up-right-from-square"></i>
                         </button>
                         @if($value->status != 3)
-                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" title="Редактировать" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white">
+                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Редактировать">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" title="Удалить" class="w-auto grow bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white">
+                        <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="w-auto grow bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Удалить">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                         @endif

@@ -1,5 +1,5 @@
 <div class="flex flex-col space-y-2">
-    
+
     @if(session()->has('message-success'))
     <div class="flex items-center bg-green-500 border-t-4 border-green-700 rounded shadow-xl p-4 text-white" role="alert">
         <i class="fa-solid fa-circle-check fa-lg"></i>
@@ -9,13 +9,6 @@
     </div>
     @endif
 
-    <div class="flex items-center bg-sky-500 border-t-4 border-sky-700 rounded shadow-xl p-4 text-white" role="alert">
-        <i class="fa-solid fa-circle-info fa-lg"></i>
-        <div class="ml-3 text-base font-medium">
-            Расписание обновляется два раза в сутки в 08:00 и 18:00 по МСК. Последняя дата и время обновления расписания: {{ $lastUpdateDate }}. По умолчанию всегда отображается текущая неделя.
-        </div>
-    </div>
-    
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
         @role('Teacher')
         <select wire:model="teacher" wire:change="changeTeacher" name="teachers" id="teachers-id" class="w-full md:w-auto border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
@@ -40,6 +33,9 @@
     </div>
 
     <div class="bg-white rounded shadow-xl p-4">
+        <div class="py-1 text-xs md:text-base text-right font-medium">
+            Последняя дата и время последнего обновления расписания: {{ $lastUpdateDate }}.
+        </div>
         @if(!is_null($currentSchedule) && count($currentSchedule) != 0)
         <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
             @foreach($daysOfWeek as $dayOfWeek)
