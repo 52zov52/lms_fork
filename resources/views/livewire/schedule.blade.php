@@ -34,7 +34,7 @@
 
     <div class="bg-white rounded shadow-xl p-4">
         <div class="py-1 text-xs md:text-base text-right font-medium">
-            Последняя дата и время последнего обновления расписания: {{ $lastUpdateDate }}.
+            Дата и время последнего обновления расписания: {{ $lastUpdateDate }}
         </div>
         @if(!is_null($currentSchedule) && count($currentSchedule) != 0)
         <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
