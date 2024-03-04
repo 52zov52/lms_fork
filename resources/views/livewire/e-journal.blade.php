@@ -75,15 +75,19 @@
                             </button>
                         </td>
                     </tr>
-                    @foreach($contingent as $key => $value)
+                    @foreach($contingent as $student)
                     <tr class="{{ ($loop->iteration % 2 === 0) ? 'bg-gray-100' : '' }} hover:bg-gray-300 border">
                         <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                        <td class="z-0 sticky left-0 w-auto bg-white border px-2 py-2">{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}</td>
-                        <td class="w-20 border px-2 py-2 text-center">{{ $value->ticket_number }}</td>
+                        <td class="z-0 sticky left-0 w-auto bg-white border px-2 py-2">{{ $student->last_name }} {{ $student->first_name }} {{ $student->middle_name }}</td>
+                        <td class="w-20 border px-2 py-2 text-center">{{ $student->ticket_number }}</td>
                         @foreach($journal as $item)
-                        @if($value->user_id == $item->student_id)
+                        @if($student->user_id == $item->student_id)
                         <td class="w-20 border px-2 py-2 text-center">
-                            <input wire:model="status.{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $value->user_id }})" type="checkbox" id="status-{{ $item->id }}" title="" data-tippy-content="{{ ($item->status) ? 'Присутствовал' : 'Отсутствовал' }} {{ \Carbon\Carbon::parse($item->lesson_date)->format('d.m.Y') }}">
+                            <select wire:model="status.{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $student->user_id }})" name="status" id="" class="rounded text-xs">
+                                @foreach($listOfStatuses as $key => $status)
+                                <option value="{{ $key }}">{{ $status }}</option>
+                                @endforeach
+                            </select>
                         </td>
                         @endif
                         @endforeach

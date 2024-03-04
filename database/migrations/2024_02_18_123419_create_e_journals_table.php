@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('student_id');
             $table->foreign('student_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
 
-            $table->boolean('status')->default(false);
+            $table->integer('status')->default(2);
             $table->date('lesson_date');
             $table->string('lesson_time');
             $table->integer('lesson_type');

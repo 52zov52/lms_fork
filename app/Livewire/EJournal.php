@@ -31,6 +31,16 @@ class EJournal extends Component
         '20:20-21:50'
     ];
 
+    public $listOfStatuses = [
+        1 => '.',
+        2 => 'Н',
+        3 => 'НУ',
+        4 => '2',
+        5 => '3',
+        6 => '4',
+        7 => '5'
+    ];
+
     public $lesson_date = '', $lesson_time = '', $lesson_type = 1;
 
     public $isCreatingAndEditingModalFormVisible = false;
@@ -60,7 +70,7 @@ class EJournal extends Component
             ->first();
 
         foreach ($journal as $key => $value) {
-            $this->status[$value->id] = ($value->status) ? true : false;
+            $this->status[$value->id] = $value->status;
         }
 
         $dates = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)
@@ -77,7 +87,8 @@ class EJournal extends Component
             'currentData' => $currentData,
             'currentTime' => $currentTime,
             'listfOfLessonType' => $this->listfOfLessonType,
-            'listOfLessonTime' => $this->listOfLessonTime
+            'listOfLessonTime' => $this->listOfLessonTime,
+            'listOfStatuses' => $this->listOfStatuses
         ]);
     }
 
