@@ -22,10 +22,17 @@ return new class extends Migration
             $table->date('lesson_date');
             $table->string('lesson_time');
             $table->integer('lesson_type');
+            $table->string('lesson_theme', 1500);
 
             $table->unsignedBigInteger('course_teacher_id');
             $table->foreign('course_teacher_id')->references('id')->on('course_teacher')->onUpdate('cascade')->onDelete('cascade');
 
+            $table->boolean('is_signature')->default(false);
+            
+            $table->unsignedBigInteger('who_signed');
+            $table->foreign('who_signed')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
+
+            $table->dataTime('signatured_at');
             $table->timestamps();
         });
     }

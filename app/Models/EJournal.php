@@ -15,6 +15,10 @@ class EJournal extends Model
         'lesson_date',
         'lesson_time',
         'lesson_type',
-        'course_teacher_id'
+        'lesson_theme',
+        'course_teacher_id',
+        'is_signature',
+        'who_signed',
+        'signatured_at'
     ];
 }

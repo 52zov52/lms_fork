@@ -6,6 +6,7 @@ use App\Http\Controllers\ContingentController;
 use App\Models\CourseTeacher;
 use App\Models\EJournal as ModelsEJournal;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class EJournal extends Component
@@ -41,7 +42,7 @@ class EJournal extends Component
         7 => '5'
     ];
 
-    public $lesson_date = '', $lesson_time = '', $lesson_type = 1;
+    public $lesson_date = '', $lesson_time = '', $lesson_type = 1, $lesson_theme = 'Тема';
 
     public $isCreatingAndEditingModalFormVisible = false;
     public $isEdit = false;
@@ -74,7 +75,7 @@ class EJournal extends Component
         }
 
         $dates = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)
-            ->select('lesson_date', 'lesson_time', 'lesson_type')
+            ->select('lesson_date', 'lesson_time', 'lesson_type', 'is_signature')
             ->distinct()
             ->orderBy('lesson_date', 'asc')
             ->get();
@@ -100,6 +101,8 @@ class EJournal extends Component
         $this->lesson_time = $this->getLessonTime(Carbon::now()->format('H:i'));
         $this->lesson_type = 1;
 
+        $this->lesson_theme = 'Тема ' . ($this->getCountLessons($this->lesson_type) + 1);
+
         $this->isCreatingAndEditingModalFormVisible = true;
     }
 
@@ -120,7 +123,8 @@ class EJournal extends Component
                 'lesson_date' => Carbon::parse($this->lesson_date)->format('Y-m-d'),
                 'lesson_time' => $this->lesson_time,
                 'lesson_type' => $this->lesson_type,
-                'course_teacher_id' => $this->courseTeacherId
+                'lesson_theme' => $this->lesson_theme,
+                'course_teacher_id' => $this->courseTeacherId,
             ]);
         }
 
@@ -144,6 +148,34 @@ class EJournal extends Component
     {
         $eJournal = ModelsEJournal::where('id', '=', $id)
             ->where('student_id', '=', $studentId)->update(['status' => $this->status[$id]]);
+    }
+
+    public function setSignature($lessonDate, $lessonTime)
+    {
+        $eJournal = ModelsEJournal::where('lesson_date', '=', Carbon::parse($this->lesson_date)->format('Y-m-d'))
+            ->where('lesson_time', '=', $lessonTime)
+            ->where('course_teacher_id', '=', $this->courseTeacherId)
+            ->update([
+                'is_signature' => true,
+                'who_signed' => Auth::user()->id,
+                'signatured_at' => Carbon::now()->format('Y-m-d H:i:s')
+            ]);
+    }
+
+    public function setTypelesson()
+    {
+        $this->lesson_type = $this->lesson_type;
+
+        $this->lesson_theme = 'Тема ' . ($this->getCountLessons($this->lesson_type) + 1);
+    }
+
+    protected function getCountLessons($lessonType)
+    {
+        return ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)
+            ->select('lesson_date', 'lesson_time', 'lesson_type')
+            ->where('lesson_type', '=', $lessonType)
+            ->distinct()
+            ->get()->count();
     }
 
     public function getStudents($groupId)
