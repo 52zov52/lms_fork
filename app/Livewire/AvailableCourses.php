@@ -33,14 +33,15 @@ class AvailableCourses extends Component
 
     public function getDisciplines($groupId)
     {
-        $group = Group::select('group_name', 'course', 'study_plan_id')->where('id', $groupId)->first();
+        //$group = Group::select('group_name', 'course', 'study_plan_id')->where('id', $groupId)->first();
+        $group = Group::select('group_name', 'course', 'work_study_plan_id')->where('id', $groupId)->first();
         $month = Carbon::now()->format('m');
 
-        if(str_contains($group->group_name,'(11)')) {
+        if (str_contains($group->group_name, '(11)')) {
             $group->course = $group->course + 1;
         }
 
-        if(mb_substr($group->group_name, 2, 1) == "К") {
+        if (mb_substr($group->group_name, 2, 1) == "К") {
             $group->course = $group->course + 2;
         }
 
@@ -65,7 +66,7 @@ class AvailableCourses extends Component
             default:
                 break;
         }
-
+        /*
         return DB::table('study_plan_courses')
             ->join('study_plan_courses_in_semesters', 'study_plan_courses.id', '=', 'study_plan_courses_in_semesters.study_plan_course_id')
             ->join('study_plan_course_control_types_in_semesters', 'study_plan_courses_in_semesters.id', '=', 'study_plan_course_control_types_in_semesters.study_plan_courses_in_semester_id')
@@ -83,6 +84,25 @@ class AvailableCourses extends Component
                 DB::raw('CASE WHEN (study_plan_courses_in_semesters.semester_number % 2 = 0) THEN 2 ELSE 1 END as half_year')
             )
             ->get()->toArray();
+        */
+        return DB::table('study_thread_groups')
+            ->join('work_study_plan_courses_in_semesters', 'study_thread_groups.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->join('work_study_plan_course_control_types_in_semesters', 'work_study_plan_courses_in_semesters.id', '=', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id')
+            ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
+            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
+            ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
+            ->where('user_id', '=', Auth::user()->id)
+            ->where('group_id', '=', $groupId)
+            ->select(
+                'work_study_plan_courses_in_semesters.id',
+                'disciplines.name',
+                'control_types.name as control_name',
+                'work_study_plan_courses_in_semesters.lecture_hours',
+                'work_study_plan_courses_in_semesters.practical_hours',
+                'work_study_plan_courses_in_semesters.laboratory_hours',
+                'work_study_plan_courses_in_semesters.semester_number as half_year'
+            )
+            ->distinct()->get()->toArray();
     }
 
     public function getAcademicYear($currentMonth)
