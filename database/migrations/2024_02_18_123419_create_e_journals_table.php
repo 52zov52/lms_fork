@@ -29,10 +29,10 @@ return new class extends Migration
 
             $table->boolean('is_signature')->default(false);
             
-            $table->unsignedBigInteger('who_signed');
+            $table->unsignedBigInteger('who_signed')->nullable();
             $table->foreign('who_signed')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
 
-            $table->dataTime('signatured_at');
+            $table->dataTime('signatured_at')->nullable();
             $table->timestamps();
         });
     }

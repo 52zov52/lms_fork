@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('course_id');
             $table->foreign('course_id')
                 ->references('id')
-                ->on('study_plan_courses_in_semesters')
+                ->on('work_study_plan_courses_in_semesters')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
 

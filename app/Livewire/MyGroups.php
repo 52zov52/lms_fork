@@ -3,11 +3,10 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\ContingentController;
+use App\Models\ActiveUser;
 use App\Models\CourseTeacher;
-use App\Models\Group;
 use App\Models\GroupTeacher;
-use App\Models\Schedule;
-use App\Models\UserData;
+use App\Models\StudyThreadGroup;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,20 +14,43 @@ use Livewire\Component;
 
 class MyGroups extends Component
 {
+    protected $listUserId = array();
+
+    public function mount()
+    {
+        $activeUser = ActiveUser::where('user_id', Auth::user()->id)->select('list_user_id')->first();
+
+        if (!is_null($activeUser)) {
+            $this->listUserId = json_decode($activeUser->list_user_id)->id;
+        } else {
+            $this->listUserId = array(Auth::user()->id);
+        }
+    }
+
     public function render()
     {
         $academicYear = $this->getAcademicYear(Carbon::now()->format('m'));
         $countGroup = GroupTeacher::where('teacher_id', Auth::user()->id)->count();
 
         if ($countGroup == 0) {
-            $findGroups = $this->searchGroups();
+            $findGroups = $this->searchGroups($this->listUserId);
 
-            foreach ($findGroups as $key => $value) {
+            foreach ($findGroups as $group) {
                 GroupTeacher::create([
-                    'group_id' => $value,
+                    'group_id' => $group,
                     'teacher_id' => Auth::user()->id,
                     'academic_year' => $academicYear
                 ]);
+
+                $availableCourses = $this->getAvailableCourses($this->listUserId, $group);
+                foreach ($availableCourses as $course) {
+                    CourseTeacher::create([
+                        'course_id' => $course->work_study_plan_courses_in_semester_id,
+                        'group_id' => $course->group_id,
+                        'teacher_id' => Auth::user()->id,
+                        'academic_year' => $academicYear
+                    ]);
+                }
             }
         }
 
@@ -38,7 +60,8 @@ class MyGroups extends Component
             ->select(
                 'groups.id',
                 'groups.group_name',
-                DB::raw('COUNT(course_teacher.group_id) as count_courses'))
+                DB::raw('COUNT(course_teacher.group_id) as count_courses')
+            )
             ->groupBy('groups.id')
             ->get();
 
@@ -61,44 +84,31 @@ class MyGroups extends Component
         return $result;
     }
 
-    public function searchGroups()
+    public function searchGroups($listUserId)
     {
         $contingentController = new ContingentController();
 
-        $userData = UserData::select('last_name', 'first_name', 'middle_name')->where('user_id', '=', Auth::user()->id)->first();
-        $fio = $userData->last_name . ' ' . mb_substr($userData->first_name, 0, 1) . '.' . mb_substr($userData->middle_name, 0, 1) . '.';
-
-        $listOfGroupName = Schedule::select('group')
-            ->where('teacher', 'like', '%' . $fio . '%')
-            ->distinct()
-            ->get()->toArray();
-
-        $groupsName = array();
-
-        foreach ($listOfGroupName as $key => $value) {
-            array_push($groupsName, str_replace('-', '', $value['group']));
-        }
-
-        $listOfGroupId = Group::select('id')
-            ->whereIn(DB::raw("REPLACE(group_name, '-', '')"), $groupsName)
-            ->get()->toArray();
+        $studyThreadGroup = StudyThreadGroup::whereIn('user_id', $listUserId)->select('group_id')->distinct()->get()->toArray();
 
         $groupsId = array();
 
-        foreach ($listOfGroupId as $key => $value) {
-            array_push($groupsId, str_replace('-', '', $value['id']));
+        foreach ($studyThreadGroup as $key => $value) {
+            array_push($groupsId, $value['group_id']);
         }
 
         return array_intersect($contingentController->groupId, $groupsId);
     }
 
+    public function getAvailableCourses($listUserId, $groupId)
+    {
+        return StudyThreadGroup::whereIn('user_id', $listUserId)
+            ->where('group_id', '=', $groupId)
+            ->select('group_id', 'work_study_plan_courses_in_semester_id')
+            ->distinct()->get();
+    }
+
     public function showTeacherCourse($groupId)
     {
         return redirect()->route('teacher.courses', ['groupId' => $groupId]);
-    }
-
-    public function showAvailableCourses($groupId)
-    {
-        return redirect()->route('available.courses', ['groupId' => $groupId]);
     }
 }

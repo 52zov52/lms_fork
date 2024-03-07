@@ -10,7 +10,7 @@
                         <td class="w-32 border px-2 py-2 text-center font-semibold">Кол-во часов лекций</td>
                         <td class="w-32 border px-2 py-2 text-center font-semibold">Кол-во часов практик</td>
                         <td class="w-32 border px-2 py-2 text-center font-semibold">Кол-во часов лабораторных</td>
-                        <td class="w-20 border px-2 py-2 text-center font-semibold">Полугодие</td>
+                        <td class="w-20 border px-2 py-2 text-center font-semibold">Семестр</td>
                         <td class="w-20 border px-2 py-2 text-center font-semibold">Действия</td>
                     </tr>
                     @foreach($teacherCourses as $key => $value)
@@ -21,7 +21,7 @@
                         <td class="w-32 border px-2 py-2 text-center">{{ $value->lecture_hours }}</td>
                         <td class="w-32 border px-2 py-2 text-center">{{ $value->practical_hours }}</td>
                         <td class="w-32 border px-2 py-2 text-center">{{ $value->laboratory_hours }}</td>
-                        <td class="w-20 border px-2 py-2 text-center">{{ $value->half_year }}</td>
+                        <td class="w-20 border px-2 py-2 text-center">{{ $value->semester_number }}</td>
                         <td class="w-20 border px-2 py-2 text-center">
                             <button wire:click="showEJournal({{ $value->id }})" class="bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Журнал группы">
                                 <i class="fa-solid fa-address-book"></i>
@@ -57,8 +57,8 @@
                     <span>{{ $value->laboratory_hours }}</span>
                 </div>
                 <div class="flex flex-col">
-                    <span class="font-semibold">Полугодие:</span>
-                    <span>{{ $value->half_year }}</span>
+                    <span class="font-semibold">Семестр:</span>
+                    <span>{{ $value->semester_number }}</span>
                 </div>
                 <div class="flex flex-col">
                     <button wire:click="showEJournal({{ $value->id }})" class="w-auto grow bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Журнал группы">

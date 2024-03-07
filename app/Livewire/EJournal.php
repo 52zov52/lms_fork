@@ -64,9 +64,9 @@ class EJournal extends Component
         $journal = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)->orderBy('lesson_date', 'asc')->get();
         $infoAboutGroupAndCourse = CourseTeacher::where('course_teacher.id', '=', $this->courseTeacherId)
             ->join('groups', 'course_teacher.group_id', '=', 'groups.id')
-            ->join('study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'study_plan_courses_in_semesters.id')
-            ->join('study_plan_courses', 'study_plan_courses_in_semesters.study_plan_course_id', '=', 'study_plan_courses.id')
-            ->join('disciplines', 'study_plan_courses.discipline_id', '=', 'disciplines.id')
+            ->join('work_study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
+            ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
             ->select('groups.group_name', 'disciplines.name as discipline_name')
             ->first();
 
