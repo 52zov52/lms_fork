@@ -22,24 +22,11 @@ return new class extends Migration
             $table->foreignIdFor(User::class)
                 ->cascadeOnDelete();
 
-            $table->foreignIdFor(Country::class)
-                ->nullable()
-                ->cascadeOnDelete();
-
+            $table->unsignedBigInteger('country_id');
             $table->string('zip_code')->nullable();
-
-            $table->foreignIdFor(Region::class)
-                ->nullable()
-                ->cascadeOnDelete();
-
-            $table->foreignIdFor(City::class)
-                ->nullable()
-                ->cascadeOnDelete();
-
-            $table->foreignIdFor(District::class)
-                ->nullable()
-                ->cascadeOnDelete();
-
+            $table->unsignedBigInteger('region_id');
+            $table->unsignedBigInteger('city_id');
+            $table->unsignedBigInteger('district_id');
             $table->string('street')->nullable();
             $table->string('building')->nullable();
             $table->string('flat')->nullable();
