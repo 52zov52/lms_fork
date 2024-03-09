@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(StudyPlan::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->integer('semester_number');
@@ -23,6 +24,7 @@ return new class extends Migration
 
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_GStudyPlanSemesters
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

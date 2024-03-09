@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(OrderType::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->string('order_number');

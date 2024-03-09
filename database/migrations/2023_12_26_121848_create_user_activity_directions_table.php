@@ -17,9 +17,11 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(ActivityDirection::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->timestamps();

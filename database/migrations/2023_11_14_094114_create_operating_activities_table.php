@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('file_path', 2048)->nullable();
 
             $table->foreignIdFor(User::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->timestamps();

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(WorkStudyPlan::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->integer('semester_number');

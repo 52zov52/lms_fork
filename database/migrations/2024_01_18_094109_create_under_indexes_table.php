@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('sorting_order')->default(999);
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_UndeCycle2
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

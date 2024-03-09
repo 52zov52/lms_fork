@@ -19,10 +19,12 @@ return new class extends Migration
             $table->integer('sorting_order')->default(999);
 
             $table->foreignIdFor(LevelEducation::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_Cycle
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

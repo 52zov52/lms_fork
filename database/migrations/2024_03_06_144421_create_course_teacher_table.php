@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreign('course_id')->references('id')->on('work_study_plan_courses_in_semesters')->onDelete('cascade');
 
             $table->foreignIdFor(Group::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('teacher_id');

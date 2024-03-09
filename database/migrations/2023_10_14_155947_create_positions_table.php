@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('position_title', 100);
 
             $table->foreignIdFor(EmployeeCategory::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Appointment

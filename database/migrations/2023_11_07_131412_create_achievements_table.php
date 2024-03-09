@@ -20,8 +20,9 @@ return new class extends Migration
             $table->date('year');
             $table->string('file_path', 2048)->nullable();
             $table->integer('score')->default(0);
-            
+
             $table->foreignIdFor(User::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->timestamps();

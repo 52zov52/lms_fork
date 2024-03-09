@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->string('document_number')->nullable();

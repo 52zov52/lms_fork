@@ -19,12 +19,15 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(Status::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(Speciality::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('department_position_id');

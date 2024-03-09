@@ -20,9 +20,11 @@ return new class extends Migration
             $table->string('specialty_code', 50);
 
             $table->foreignIdFor(LevelEducation::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(Qualification::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('department_position_id');

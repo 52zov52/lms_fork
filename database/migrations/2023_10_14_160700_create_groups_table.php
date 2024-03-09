@@ -23,12 +23,15 @@ return new class extends Migration
             $table->date('year_completion')->nullable();
 
             $table->foreignIdFor(StudyPlan::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(WorkStudyPlan::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(Branch::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_Group

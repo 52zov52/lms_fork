@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(Group::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('teacher_id');

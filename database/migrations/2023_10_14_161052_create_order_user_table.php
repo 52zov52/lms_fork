@@ -17,9 +17,11 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(Order::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(User::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->string('notes')->nullable();

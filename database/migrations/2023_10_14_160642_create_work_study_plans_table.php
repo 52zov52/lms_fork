@@ -21,23 +21,27 @@ return new class extends Migration
             $table->string('plan_name', 100);
 
             $table->foreignIdFor(Speciality::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(TeachingForm::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(LevelEducation::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(Branch::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->dateTime('creation_date');
             $table->dateTime('approval_date');
-            
+
             $table->foreignIdFor(StudyPlan::class)
                 ->cascadeOnDelete();
-            
+
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_StudyPlan
             $table->timestamps();
             $table->softDeletes();

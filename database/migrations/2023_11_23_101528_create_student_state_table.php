@@ -18,12 +18,15 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(State::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(Group::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Student_State

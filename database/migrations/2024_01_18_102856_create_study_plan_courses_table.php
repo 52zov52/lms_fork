@@ -18,24 +18,30 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(StudyPlan::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(Discipline::class)
+                ->nullable()
+                ->constrained()
                 ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('index_id');
+            $table->unsignedBigInteger('index_id')->nullable();
             $table->foreign('index_id')->references('id')->on('indexes')->onDelete('cascade');
 
-            $table->unsignedBigInteger('under_index_id');
+            $table->unsignedBigInteger('under_index_id')->nullable();
             $table->foreign('under_index_id')->references('id')->on('under_indexes')->onDelete('cascade');
 
-            $table->integer('number_index');
+            $table->integer('number_index')->nullable();
 
             $table->foreignIdFor(Section::class)
+                ->nullable()
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_GCourse
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

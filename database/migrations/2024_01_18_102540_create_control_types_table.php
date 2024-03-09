@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_TypeControl
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

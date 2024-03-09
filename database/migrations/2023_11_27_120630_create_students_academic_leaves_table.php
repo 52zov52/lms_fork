@@ -17,9 +17,11 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(Group::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->date('academic_leave_start_date')->nullable();

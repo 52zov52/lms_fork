@@ -20,15 +20,19 @@ return new class extends Migration
             $table->string('plan_name', 100);
 
             $table->foreignIdFor(Speciality::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(TeachingForm::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(LevelEducation::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(Qualification::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->integer('number_semesters');

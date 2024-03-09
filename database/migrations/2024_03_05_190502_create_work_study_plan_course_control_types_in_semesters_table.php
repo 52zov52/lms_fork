@@ -20,7 +20,7 @@ return new class extends Migration
                 ->on('work_study_plan_courses_in_semesters')
                 ->onDelete('cascade');
 
-            $table->unsignedBigInteger('control_type_id');
+            $table->unsignedBigInteger('control_type_id')->nullable();
             $table->foreign('control_type_id', 'work_study_plan_control_type_id_foreign')
                 ->references('id')
                 ->on('control_types')

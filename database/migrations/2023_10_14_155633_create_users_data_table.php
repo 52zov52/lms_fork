@@ -25,6 +25,7 @@ return new class extends Migration
             $table->integer('sex');
 
             $table->foreignIdFor(Document::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->string('passport_series', 10);
@@ -36,6 +37,7 @@ return new class extends Migration
             $table->string('inn', 15);
 
             $table->foreignIdFor(FamilyStatus::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->boolean('is_residence');
@@ -49,9 +51,11 @@ return new class extends Migration
             $table->string('middle_name_dative', 50);
 
             $table->foreignIdFor(Branch::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->foreignIdFor(User::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('external_user_data_id'); //Table name in IMBL BD dbo.UserData_

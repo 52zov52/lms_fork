@@ -20,7 +20,7 @@ return new class extends Migration
                 ->on('study_plan_courses_in_semesters')
                 ->onDelete('cascade');
 
-            $table->unsignedBigInteger('control_type_id');
+            $table->unsignedBigInteger('control_type_id')->nullable();
             $table->foreign('control_type_id', 'control_type_id_foreign')
                 ->references('id')
                 ->on('control_types')
@@ -28,6 +28,7 @@ return new class extends Migration
 
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_GCodeControlsInSemestr
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

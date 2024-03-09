@@ -20,13 +20,31 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
+                ->constrained()
                 ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('country_id');
+            $table->foreignIdFor(Country::class)
+                ->nullable()
+                ->constrained()
+                ->cascadeOnDelete();
+
             $table->string('zip_code')->nullable();
-            $table->unsignedBigInteger('region_id');
-            $table->unsignedBigInteger('city_id');
-            $table->unsignedBigInteger('district_id');
+
+            $table->foreignIdFor(Region::class)
+                ->nullable()
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->foreignIdFor(City::class)
+                ->nullable()
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->foreignIdFor(District::class)
+                ->nullable()
+                ->constrained()
+                ->cascadeOnDelete();
+
             $table->string('street')->nullable();
             $table->string('building')->nullable();
             $table->string('flat')->nullable();
