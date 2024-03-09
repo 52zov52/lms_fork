@@ -29,13 +29,13 @@ return new class extends Migration
             $table->unsignedBigInteger('who_checked')->nullable();
             $table->foreign('who_checked')->references('id')->on('users')->onDelete('cascade');
 
-            $table->dataTime('checked_at')->nullable();
+            $table->dateTime('checked_at')->nullable();
             $table->boolean('is_signature')->default(false);
             
             $table->unsignedBigInteger('who_signed')->nullable();
             $table->foreign('who_signed')->references('id')->on('users')->onDelete('cascade');
 
-            $table->dataTime('signatured_at')->nullable();
+            $table->dateTime('signatured_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
