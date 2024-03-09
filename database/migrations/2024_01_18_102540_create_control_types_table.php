@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('control_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->unsignedBigInteger('control_type_kis_id'); //Table name in IMBL BD dbo.Project_TypeControl
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_TypeControl
             $table->timestamps();
         });
     }

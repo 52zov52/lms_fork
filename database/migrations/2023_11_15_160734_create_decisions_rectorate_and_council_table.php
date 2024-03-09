@@ -14,8 +14,10 @@ return new class extends Migration
     {
         Schema::create('decisions_rectorate_and_council', function (Blueprint $table) {
             $table->id();
+            $table->date('date_decision')->nullable();
+            $table->string('number_decision', 50)->nullable();
             $table->string('position');
-            $table->string('task');
+            $table->string('task', 1500);
             $table->string('description', 1500)->nullable();
             $table->string('due_date');
             $table->integer('status')->default(1);
@@ -23,9 +25,7 @@ return new class extends Migration
             $table->string('file_path', 2048)->nullable();
 
             $table->foreignIdFor(User::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->timestamps();
             $table->softDeletes();

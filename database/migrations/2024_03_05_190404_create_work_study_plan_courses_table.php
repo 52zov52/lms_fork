@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Discipline;
-use App\Models\StudyPlanSection;
+use App\Models\Section;
 use App\Models\WorkStudyPlan;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -18,41 +18,26 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(WorkStudyPlan::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(Discipline::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('study_plan_index_id');
-            $table->foreign('study_plan_index_id')
-                ->references('id')
-                ->on('study_plan_indexes')
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+            $table->unsignedBigInteger('index_id');
+            $table->foreign('index_id')->references('id')->on('indexes')->onDelete('cascade');
 
-            $table->unsignedBigInteger('study_plan_under_index_id');
-            $table->foreign('study_plan_under_index_id')
-                ->references('id')
-                ->on('study_plan_under_indexes')
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+            $table->unsignedBigInteger('under_index_id');
+            $table->foreign('under_index_id')->references('id')->on('under_indexes')->onDelete('cascade');
 
             $table->integer('number_index');
 
-            $table->foreignIdFor(StudyPlanSection::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+            $table->foreignIdFor(Section::class)
+                ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('work_study_plan_course_kis_id'); //Table name in IMBL BD dbo.Project_Course
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_Course
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

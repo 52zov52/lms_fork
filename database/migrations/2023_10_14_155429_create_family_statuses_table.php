@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('family_statuses', function (Blueprint $table) {
             $table->id();
             $table->string('status_name', 50);
-            $table->unsignedBigInteger('family_status_kis_id'); //Table name in IMBL BD dbo.FamilyMariedType
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.FamilyMariedType
             $table->timestamps();
             $table->softDeletes();
         });

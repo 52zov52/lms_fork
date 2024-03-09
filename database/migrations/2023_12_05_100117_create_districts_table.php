@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('districts', function (Blueprint $table) {
             $table->id();
             $table->string('district_name');
-            $table->unsignedBigInteger('district_kis_id'); //Table name in IMBL BD dbo.District
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.District
             $table->timestamps();
             $table->softDeletes();
         });

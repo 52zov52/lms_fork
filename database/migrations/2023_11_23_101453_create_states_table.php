@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('states', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->unsignedBigInteger('state_kis_id'); //Table name in IMBL BD dbo.Student_StateType
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Student_StateType
             $table->timestamps();
             $table->softDeletes();
         });

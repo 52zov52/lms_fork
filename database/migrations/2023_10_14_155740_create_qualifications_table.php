@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('qualifications', function (Blueprint $table) {
             $table->id();
             $table->string('qualification_name', 100);
-            $table->unsignedBigInteger('qualification_kis_id'); //Table name in IMBL BD dbo.Project_Qualification
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_Qualification
             $table->timestamps();
             $table->softDeletes();
         });

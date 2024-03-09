@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('branch_name', 100);
             $table->string('city', 50);
-            $table->unsignedBigInteger('branch_kis_id'); //Table name in IMBL BD dbo.ERP_RCity
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.ERP_RCity
             $table->timestamps();
             $table->softDeletes();
         });

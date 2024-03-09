@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('teaching_forms', function (Blueprint $table) {
             $table->id();
             $table->string('teaching_form_name', 50);
-            $table->unsignedBigInteger('teaching_form_kis_id'); //Table name in IMBL BD dbo.Project_TeachingForm
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_TeachingForm
             $table->timestamps();
             $table->softDeletes();
         });

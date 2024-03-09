@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\CourseTeacher;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +15,7 @@ return new class extends Migration
             $table->id();
 
             $table->unsignedBigInteger('student_id');
-            $table->foreign('student_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('student_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->integer('status')->default(2);
             $table->date('lesson_date');
@@ -25,15 +24,20 @@ return new class extends Migration
             $table->string('lesson_theme', 1500);
 
             $table->unsignedBigInteger('course_teacher_id');
-            $table->foreign('course_teacher_id')->references('id')->on('course_teacher')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('course_teacher_id')->references('id')->on('course_teacher')->onDelete('cascade');
 
+            $table->unsignedBigInteger('who_checked')->nullable();
+            $table->foreign('who_checked')->references('id')->on('users')->onDelete('cascade');
+
+            $table->dataTime('checked_at')->nullable();
             $table->boolean('is_signature')->default(false);
             
             $table->unsignedBigInteger('who_signed')->nullable();
-            $table->foreign('who_signed')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('who_signed')->references('id')->on('users')->onDelete('cascade');
 
             $table->dataTime('signatured_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

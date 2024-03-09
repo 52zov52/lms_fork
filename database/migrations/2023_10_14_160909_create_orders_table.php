@@ -16,13 +16,11 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(OrderType::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->string('order_number');
             $table->date('order_date');
-            $table->unsignedBigInteger('orders_kis_id'); //Table name in IMBL BD dbo.DocumentParams
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.DocumentParams
             $table->timestamps();
             $table->softDeletes();
         });

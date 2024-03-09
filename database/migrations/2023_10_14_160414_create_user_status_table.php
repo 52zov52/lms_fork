@@ -19,27 +19,19 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(Status::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(Speciality::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->unsignedBigInteger('department_position_id');
             $table->foreign('department_position_id')->references('id')->on('department_position')
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('status_user_kis_id'); //Table name in IMBL BD dbo.UserStatus
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.UserStatus
             $table->timestamps();
             $table->softDeletes();
         });

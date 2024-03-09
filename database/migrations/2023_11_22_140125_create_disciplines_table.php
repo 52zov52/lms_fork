@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 1500);
             $table->string('short_name', 1500);
-            $table->unsignedBigInteger('discipline_kis_id'); //Table name in IMBL BD dbo.Project_Discipline
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_Discipline
             $table->timestamps();
             $table->softDeletes();
         });

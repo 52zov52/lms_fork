@@ -16,9 +16,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(StudyPlanCourse::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
             
             $table->integer('semester_number');
             $table->integer('lecture_hours');
@@ -32,12 +30,12 @@ return new class extends Migration
             $table->integer('course_work_hours')->nullable();
             $table->integer('test')->nullable();
             $table->integer('week_hours')->nullable();
-            $table->integer('work_content_first')->nullable();
-            $table->integer('work_content_second')->nullable();
+            $table->float('work_content_first')->nullable();
+            $table->float('work_content_second')->nullable();
             $table->integer('individual_consultation_hours')->nullable();
             $table->integer('group_consultation_hours')->nullable();
             $table->integer('control_hours')->nullable();
-            $table->unsignedBigInteger('study_plan_courses_in_semesters_kis_id'); //Table name in IMBL BD dbo.Project_GCodeCourseInSemestr
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_GCodeCourseInSemestr
             $table->timestamps();
         });
     }

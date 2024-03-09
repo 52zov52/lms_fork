@@ -20,22 +20,16 @@ return new class extends Migration
             $table->string('specialty_code', 50);
 
             $table->foreignIdFor(LevelEducation::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(Qualification::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->unsignedBigInteger('department_position_id');
             $table->foreign('department_position_id')->references('id')->on('department_position')
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('speciality_kis_id'); //Table name in IMBL BD dbo.Project_Speciality
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_Speciality
             $table->timestamps();
             $table->softDeletes();
         });

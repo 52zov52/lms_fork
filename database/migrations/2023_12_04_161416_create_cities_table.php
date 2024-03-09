@@ -17,11 +17,9 @@ return new class extends Migration
             $table->string('city_name');
 
             $table->foreignIdFor(CityType::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('city_kis_id'); //Table name in IMBL BD dbo.PCity
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.PCity
             $table->timestamps();
             $table->softDeletes();
         });

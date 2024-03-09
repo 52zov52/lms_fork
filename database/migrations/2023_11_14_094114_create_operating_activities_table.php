@@ -15,15 +15,13 @@ return new class extends Migration
         Schema::create('operating_activities', function (Blueprint $table) {
             $table->id();
             $table->string('activity_direction');
-            $table->string('task', 1000);
-            $table->string('description', 1500)->nullable();
+            $table->string('task', 2500);
+            $table->string('description', 3500)->nullable();
             $table->integer('status')->default(1);
             $table->string('file_path', 2048)->nullable();
 
             $table->foreignIdFor(User::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->timestamps();
             $table->softDeletes();

@@ -16,13 +16,12 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(Group::class)
-                ->constrained()
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
+                ->cascadeOnUpdate();
 
             $table->boolean('is_active')->default(true);
             $table->string('academic_year');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

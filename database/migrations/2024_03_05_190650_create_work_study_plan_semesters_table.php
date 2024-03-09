@@ -16,15 +16,14 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(WorkStudyPlan::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->integer('semester_number');
             $table->integer('weeks_count')->default(0);
 
-            $table->unsignedBigInteger('work_study_plan_semester_kis_id'); //Table name in IMBL BD dbo.Project_StudyPlanSemesters
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_StudyPlanSemesters
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

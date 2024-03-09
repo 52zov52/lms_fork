@@ -30,9 +30,7 @@ return new class extends Migration
             $table->foreign('confirmiter_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->foreignIdFor(DocumentOrderRequest::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->timestamps();
             $table->softDeletes();

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->string('document_type', 50);
-            $table->unsignedBigInteger('document_kis_id'); //Table name in IMBL BD dbo.Document
+            $table->string('document_type', 100);
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Document
             $table->timestamps();
             $table->softDeletes();
         });

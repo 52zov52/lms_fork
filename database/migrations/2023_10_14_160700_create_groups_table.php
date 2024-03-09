@@ -19,22 +19,19 @@ return new class extends Migration
             $table->string('group_name', 10);
             $table->integer('course');
 
+            $table->date('year_admission')->nullable();
+            $table->date('year_completion')->nullable();
+
             $table->foreignIdFor(StudyPlan::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(WorkStudyPlan::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(Branch::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('group_kis_id'); //Table name in IMBL BD dbo.Project_Group
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_Group
             $table->timestamps();
             $table->softDeletes();
         });

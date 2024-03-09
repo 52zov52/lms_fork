@@ -20,43 +20,33 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
-            ->constrained()
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(Country::class)
-            ->nullable()
-            ->constrained()
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
+                ->nullable()
+                ->cascadeOnDelete();
 
             $table->string('zip_code')->nullable();
 
             $table->foreignIdFor(Region::class)
-            ->nullable()
-            ->constrained()
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
+                ->nullable()
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(City::class)
-            ->nullable()
-            ->constrained()
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
+                ->nullable()
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(District::class)
-            ->nullable()
-            ->constrained()
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
+                ->nullable()
+                ->cascadeOnDelete();
 
             $table->string('street')->nullable();
             $table->string('building')->nullable();
             $table->string('flat')->nullable();
             $table->string('phone')->nullable();
 
-            $table->string('users_address_kis_id'); //Table name in IMBL BD dbo.UserAdress
-            $table->unsignedBigInteger('address_kis_id'); //Table name in IMBL BD dbo.Adress
+            $table->string('external_users_address_id'); //Table name in IMBL BD dbo.UserAdress
+            $table->unsignedBigInteger('external_address_id'); //Table name in IMBL BD dbo.Adress
             $table->timestamps();
             $table->softDeletes();
         });

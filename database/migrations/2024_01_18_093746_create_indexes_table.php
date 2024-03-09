@@ -12,17 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('study_plan_indexes', function (Blueprint $table) {
+        Schema::create('indexes', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('index_name');
 
             $table->foreignIdFor(LevelEducation::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('study_plan_index_kis_id'); //Table name in IMBL BD dbo.Project_Cycle
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_Cycle
             $table->timestamps();
         });
     }
@@ -32,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('study_plan_indexes');
+        Schema::dropIfExists('indexes');
     }
 };

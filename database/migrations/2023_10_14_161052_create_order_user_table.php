@@ -17,17 +17,13 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(Order::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(User::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->string('notes')->nullable();
-            $table->unsignedBigInteger('order_user_kis_id'); //Table name in IMBL BD dbo.Student_DocMovePerson
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Student_DocMovePerson
             $table->timestamps();
             $table->softDeletes();
         });

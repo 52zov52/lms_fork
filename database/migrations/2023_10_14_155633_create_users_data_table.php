@@ -25,9 +25,7 @@ return new class extends Migration
             $table->integer('sex');
 
             $table->foreignIdFor(Document::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->string('passport_series', 10);
             $table->string('passport_number', 15);
@@ -38,13 +36,11 @@ return new class extends Migration
             $table->string('inn', 15);
 
             $table->foreignIdFor(FamilyStatus::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->boolean('is_residence');
             $table->integer('citizenship');
-            $table->integer('country');
+            $table->integer('country')->default(155);
             $table->string('last_name_genitive', 50);
             $table->string('first_name_genitive', 50);
             $table->string('middle_name_genitive', 50);
@@ -53,17 +49,13 @@ return new class extends Migration
             $table->string('middle_name_dative', 50);
 
             $table->foreignIdFor(Branch::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(User::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('user_data_kis_id'); //Table name in IMBL BD dbo.UserData_
-            $table->unsignedBigInteger('user_kis_id'); //Table name in IMBL BD dbo.User
+            $table->unsignedBigInteger('external_user_data_id'); //Table name in IMBL BD dbo.UserData_
+            $table->unsignedBigInteger('external_user_id'); //Table name in IMBL BD dbo.User
             $table->boolean('is_deleted');
             $table->timestamps();
             $table->softDeletes();

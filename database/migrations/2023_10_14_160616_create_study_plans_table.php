@@ -20,24 +20,16 @@ return new class extends Migration
             $table->string('plan_name', 100);
 
             $table->foreignIdFor(Speciality::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(TeachingForm::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(LevelEducation::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(Qualification::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->integer('number_semesters');
             $table->integer('number_years');
@@ -46,7 +38,7 @@ return new class extends Migration
             $table->dateTime('end_date')->nullable();
             $table->dateTime('creation_date');
             $table->dateTime('approval_date');
-            $table->unsignedBigInteger('study_plan_kis_id')->nullable(); //Table name in IMBL BD dbo.Project_GStudyPlan
+            $table->unsignedBigInteger('external_id')->nullable(); //Table name in IMBL BD dbo.Project_GStudyPlan
             $table->timestamps();
             $table->softDeletes();
         });

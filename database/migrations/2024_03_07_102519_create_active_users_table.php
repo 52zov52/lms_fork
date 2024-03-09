@@ -16,13 +16,12 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
             
             $table->json('list_user_id')->nullable();
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

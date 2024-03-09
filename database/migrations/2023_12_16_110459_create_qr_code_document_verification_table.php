@@ -16,9 +16,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->string('document_number')->nullable();
             $table->date('document_date')->nullable();
@@ -34,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('q_r_code_document_verifications');
+        Schema::dropIfExists('qr_code_document_verifications');
     }
 };

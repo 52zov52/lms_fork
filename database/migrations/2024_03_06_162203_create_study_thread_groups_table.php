@@ -18,24 +18,22 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(User::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(Group::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->integer('student_count');
 
             $table->unsignedBigInteger('work_study_plan_courses_in_semester_id');
             $table->foreign('work_study_plan_courses_in_semester_id', 'study_threads_wsp_courses_in_semester_id_foreign')
+                ->references('id')
                 ->on('work_study_plan_courses_in_semesters')
-                ->references('id')->onUpdate('cascade')->onDelete('cascade');
+                ->onDelete('cascade');
 
-            $table->unsignedBigInteger('study_thread_groups_kis_id'); //Table name in IMBL BD dbo.StudyThread_Trainer
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.StudyThread_Trainer
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

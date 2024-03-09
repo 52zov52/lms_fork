@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('country_name');
             $table->string('country_code')->nullable();
-            $table->unsignedBigInteger('country_kis_id'); //Table name in IMBL BD dbo.Country
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Country
             $table->timestamps();
             $table->softDeletes();
         });

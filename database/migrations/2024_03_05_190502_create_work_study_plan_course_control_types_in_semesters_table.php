@@ -18,18 +18,17 @@ return new class extends Migration
             $table->foreign('work_study_plan_courses_in_semester_id', 'work_study_plan_courses_in_semester_id_foreign')
                 ->references('id')
                 ->on('work_study_plan_courses_in_semesters')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->onDelete('cascade');
 
             $table->unsignedBigInteger('control_type_id');
             $table->foreign('control_type_id', 'work_study_plan_control_type_id_foreign')
                 ->references('id')
                 ->on('control_types')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->onDelete('cascade');
 
-            $table->unsignedBigInteger('work_study_plan_course_control_types_in_semester_kis_id'); //Table name in IMBL BD dbo.Project_CodeControlsInSemestr
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_CodeControlsInSemestr
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

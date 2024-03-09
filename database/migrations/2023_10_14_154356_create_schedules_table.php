@@ -22,9 +22,9 @@ return new class extends Migration
             $table->string('week', 10);
             $table->string('date', 15);
             $table->string('time', 15);
-            $table->string('lesson_place', 10);
+            $table->string('lesson_place', 255);
             $table->string('discipline', 255);
-            $table->string('lesson_type', 10);
+            $table->string('lesson_type', 255);
             $table->string('teacher', 50);
             $table->string('chair', 255);
             $table->timestamps();

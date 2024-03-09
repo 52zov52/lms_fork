@@ -19,9 +19,7 @@ return new class extends Migration
             $table->string('respons', 5000);
 
             $table->foreignIdFor(FeedbackMessage::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->timestamps();
             $table->softDeletes();

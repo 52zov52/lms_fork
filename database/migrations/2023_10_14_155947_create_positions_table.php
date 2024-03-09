@@ -14,14 +14,12 @@ return new class extends Migration
     {
         Schema::create('positions', function (Blueprint $table) {
             $table->id();
-            $table->string('position_title', 50);
+            $table->string('position_title', 100);
 
             $table->foreignIdFor(EmployeeCategory::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('position_kis_id'); //Table name in IMBL BD dbo.Appointment
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Appointment
             $table->timestamps();
             $table->softDeletes();
         });

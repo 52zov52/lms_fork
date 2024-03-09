@@ -14,13 +14,18 @@ return new class extends Migration
         Schema::create('document_order_requests', function (Blueprint $table) {
             $table->id();
             $table->integer('document_type');
-            $table->integer('document_number')->nullable();
+            $table->integer('document_number', 50)->nullable();
             $table->integer('status');
+            
             $table->unsignedBigInteger('requester_id');
             $table->foreign('requester_id')->references('id')->on('users')->onDelete('cascade');
+            
             $table->unsignedBigInteger('issuer_id')->nullable();
             $table->foreign('issuer_id')->references('id')->on('users')->onDelete('cascade');
+           
             $table->dateTime('request_date');
+            $table->dateTime('confirmed_date')->nullable();
+            $table->dateTime('print_date')->nullable();
             $table->dateTime('issue_date')->nullable();
             $table->timestamps();
             $table->softDeletes();

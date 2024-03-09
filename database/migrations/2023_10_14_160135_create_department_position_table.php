@@ -17,16 +17,12 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(Department::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(Position::class)
-                ->constrained()
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
-            $table->unsignedBigInteger('department_position_kis_id'); //Table name in IMBL BD dbo.DepartmentAppointments
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.DepartmentAppointments
             $table->timestamps();
             $table->softDeletes();
         });

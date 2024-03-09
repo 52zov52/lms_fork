@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('employee_categories', function (Blueprint $table) {
             $table->id();
             $table->string('category_name', 50);
-            $table->unsignedBigInteger('employee_category_kis_id'); //Table name in IMBL BD dbo.Category
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Category
             $table->timestamps();
             $table->softDeletes();
         });

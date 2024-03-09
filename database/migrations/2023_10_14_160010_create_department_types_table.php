@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('department_types', function (Blueprint $table) {
             $table->id();
             $table->string('type_name', 50);
-            $table->unsignedBigInteger('department_type_kis_id'); //Table name in IMBL BD dbo.DepartmentType
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.DepartmentType
             $table->timestamps();
             $table->softDeletes();
         });

@@ -19,11 +19,10 @@ return new class extends Migration
             $table->string('description', 1500)->nullable();
             $table->date('year');
             $table->string('file_path', 2048)->nullable();
-
+            $table->integer('score')->default(0);
+            
             $table->foreignIdFor(User::class)
-            ->constrained()
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
+                ->cascadeOnDelete();
 
             $table->timestamps();
             $table->softDeletes();

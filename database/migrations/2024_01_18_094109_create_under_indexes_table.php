@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('document_order_requests', function (Blueprint $table) {
-            $table->dateTime('print_date')->nullable()->after('confirmed_date');
+        Schema::create('under_indexes', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('index_name');
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_UndeCycle2
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('document_order_requests', function (Blueprint $table) {
-            $table->dropColumn('print_date');
-        });
+        Schema::dropIfExists('under_indexes');
     }
 };

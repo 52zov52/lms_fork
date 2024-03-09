@@ -16,27 +16,18 @@ return new class extends Migration
             $table->id();
 
             $table->unsignedBigInteger('course_id');
-            $table->foreign('course_id')
-                ->references('id')
-                ->on('work_study_plan_courses_in_semesters')
-                ->onUpdate('cascade')
-                ->onDelete('cascade');
+            $table->foreign('course_id')->references('id')->on('work_study_plan_courses_in_semesters')->onDelete('cascade');
 
             $table->foreignIdFor(Group::class)
-                ->constrained()
-                ->cascadeOnUpdate()
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('teacher_id');
-            $table->foreign('teacher_id')
-                ->references('id')
-                ->on('users')
-                ->onUpdate('cascade')
-                ->onDelete('cascade');
+            $table->foreign('teacher_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->boolean('is_active')->default(true);
             $table->string('academic_year');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

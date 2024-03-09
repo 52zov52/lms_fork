@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('city_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->unsignedBigInteger('city_type_kis_id'); //Table name in IMBL BD dbo.ERP_CityType
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.ERP_CityType
             $table->timestamps();
             $table->softDeletes();
         });

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('level_educations', function (Blueprint $table) {
             $table->id();
             $table->string('level_name', 50);
-            $table->unsignedBigInteger('level_education_kis_id'); //Table name in IMBL BD dbo.Project_EducationLevel
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_EducationLevel
             $table->timestamps();
             $table->softDeletes();
         });
