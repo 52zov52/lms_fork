@@ -16,7 +16,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('index_name');
-
+            $table->integer('sorting_order')->default(999);
+            
             $table->foreignIdFor(LevelEducation::class)
                 ->cascadeOnDelete();
 
