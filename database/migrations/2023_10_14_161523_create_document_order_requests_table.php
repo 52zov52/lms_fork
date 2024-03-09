@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('document_order_requests', function (Blueprint $table) {
             $table->id();
             $table->integer('document_type');
-            $table->integer('document_number', 50)->nullable();
+            $table->string('document_number', 50)->nullable();
             $table->integer('status');
             
             $table->unsignedBigInteger('requester_id');
