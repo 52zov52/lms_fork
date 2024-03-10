@@ -1,8 +1,6 @@
 <div class="flex flex-col space-y-2">
 
-    @if(session()->has('message-success'))
-    <x-alert type="success" title="Информация!" message="{{ session('message-success') }}" />
-    @endif
+    <x-toastr message="{{ session('message-success') }}" />
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
         @role('Teacher')
@@ -20,7 +18,7 @@
             @endforeach
         </select>
         @can('update-schedule')
-        <button type="button" wire:click="uploadSchedule" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
+        <button type="button" onclick="showToast()" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
             <i class="fa-solid fa-rotate"></i>
             Обновить расписание
         </button>
@@ -40,36 +38,36 @@
                     @if(\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) (Сегодня) @endif
                 </td>
             </tr>
-                @if(in_array($dayOfWeek['en'], array_column($currentSchedule, 'day')))
-                    @foreach($currentSchedule as $value)
-                        @if(\Carbon\Carbon::parse($value['date'])->shortEnglishDayOfWeek == $dayOfWeek['en'])
-                            @foreach($value['schedule']['data'] as $schedule)
-                            <tr class="{{ (\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) ? 'border-l-4 border-l-green-500' : ''}}">
-                                <td class="w-8 border py-2 text-center">{{ $schedule['lesson_number'] }}</td>
-                                <td class="w-16 lg:w-24 border py-2 text-center">{{ $schedule['time'] }}</td>
-                                <td class="w-auto border px-2 py-2">{{ $schedule['discipline'] }} ({{ $schedule['lesson_type'] }})</td>
-                                <td class="w-auto border px-2 py-2">
-                                    @foreach($schedule['data'] as $data)
-                                        @role('Student')
-                                            {{ $data['teacher'] }}
-                                        @endrole
-                                        @role('Teacher')
-                                            {{ $data['group'] }}
-                                        @endrole
-                                    @endforeach
-                                </td>
-                                <td class="w-10 lg:w-32 border px-2 py-2">{{ $schedule['lesson_place'] }}</td>
-                            </tr>
-                            @endforeach
-                        @endif
+            @if(in_array($dayOfWeek['en'], array_column($currentSchedule, 'day')))
+            @foreach($currentSchedule as $value)
+            @if(\Carbon\Carbon::parse($value['date'])->shortEnglishDayOfWeek == $dayOfWeek['en'])
+            @foreach($value['schedule']['data'] as $schedule)
+            <tr class="{{ (\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) ? 'border-l-4 border-l-green-500' : ''}}">
+                <td class="w-8 border py-2 text-center">{{ $schedule['lesson_number'] }}</td>
+                <td class="w-16 lg:w-24 border py-2 text-center">{{ $schedule['time'] }}</td>
+                <td class="w-auto border px-2 py-2">{{ $schedule['discipline'] }} ({{ $schedule['lesson_type'] }})</td>
+                <td class="w-auto border px-2 py-2">
+                    @foreach($schedule['data'] as $data)
+                    @role('Student')
+                    {{ $data['teacher'] }}
+                    @endrole
+                    @role('Teacher')
+                    {{ $data['group'] }}
+                    @endrole
                     @endforeach
-                @else
-                    <tr class="{{ (\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) ? 'border-l-4 border-l-green-500' : ''}}">
-                        <td colspan="5" class="border px-4 py-2">
-                            <span class="bg-orange-500 rounded px-2 py-1 text-xs text-white font-bold">Занятия отсутствуют</span>
-                        </td>
-                    </tr>
-                @endif
+                </td>
+                <td class="w-10 lg:w-32 border px-2 py-2">{{ $schedule['lesson_place'] }}</td>
+            </tr>
+            @endforeach
+            @endif
+            @endforeach
+            @else
+            <tr class="{{ (\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) ? 'border-l-4 border-l-green-500' : ''}}">
+                <td colspan="5" class="border px-4 py-2">
+                    <span class="bg-orange-500 rounded px-2 py-1 text-xs text-white font-bold">Занятия отсутствуют</span>
+                </td>
+            </tr>
+            @endif
             </tr>
             @endforeach
         </table>
@@ -78,3 +76,18 @@
         @endif
     </div>
 </div>
+
+@push('scripts')
+<script>
+    async function showToast() {
+        await @this.uploadSchedule();
+
+        const toast = document.getElementById("toast");
+        toast.className = toast.className.replace(" translate-x-full ease-out opacity-0", " translate-x-0 ease-in opacity-100");
+
+        setTimeout(function() {
+            toast.className = toast.className.replace(" translate-x-0 ease-in opacity-100", " translate-x-full ease-out opacity-0");
+        }, 3500);
+    }
+</script>
+@endpush

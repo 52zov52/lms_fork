@@ -199,7 +199,6 @@
 
     @livewireScripts
     @stack('scripts')
-    </script>
 </body>
 
 </html>
