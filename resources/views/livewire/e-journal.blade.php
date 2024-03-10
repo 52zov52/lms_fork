@@ -54,7 +54,7 @@
                             px-2 py-2 text-center font-semibold">
                             {{ \Carbon\Carbon::parse($dateAndTime->lesson_date)->format('d.m.Y') }} {{ $dateAndTime->lesson_time }}
                             @if(!$dateAndTime->is_signature)
-                            <button wire:click="setSignature('{{ $dateAndTime->lesson_date }}', '{{ $dateAndTime->lesson_time }}')" class="w-full bg-gray-500 hover:bg-gray-600 rounded p-1 text-white" title="" data-tippy-content="Подписать">
+                            <button wire:click="setSignature('{{ $dateAndTime->lesson_date }}', '{{ $dateAndTime->lesson_time }}', {{ $dateAndTime->lesson_type }})" class="w-full bg-gray-500 hover:bg-gray-600 rounded p-1 text-white" title="" data-tippy-content="Подписать">
                                 <i class="fa-solid fa-signature"></i>
                             </button>
                             @endif
@@ -82,33 +82,31 @@
                                 @endforeach
                             </select>
                             @else
-                            <span class="font-bold">
                                 @switch($status[$item->id])
                                     @case(1)
-                                        .
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Присутствовал">.</div>
                                     @break
                                     @case(2)
-                                        Н
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал">Н</div>
                                     @break
                                     @case(3)
-                                        НУ
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал по уважительной причине">НУ</div>
                                     @break
                                     @case(4)
-                                        2
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Неудовлетворительно">2</div>
                                     @break
                                     @case(5)
-                                        3
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Удовлетворительно">3</div>
                                     @break
                                     @case(6)
-                                        4
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Хорошо">4</div>
                                     @break
-                                    @case(6)
-                                        5
+                                    @case(7)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Отлично">5</div>
                                     @break
                                     @default
                                         -
                                 @endswitch
-                            </span>
                             @endif
                         </td>
                         @endif

@@ -119,12 +119,14 @@ class EJournal extends Component
         foreach ($contingent as $key => $value) {
             ModelsEJournal::create([
                 'student_id' => $value->user_id,
-                'status' => false,
+                'status' => 1,
                 'lesson_date' => Carbon::parse($this->lesson_date)->format('Y-m-d'),
                 'lesson_time' => $this->lesson_time,
                 'lesson_type' => $this->lesson_type,
                 'lesson_theme' => $this->lesson_theme,
                 'course_teacher_id' => $this->courseTeacherId,
+                'who_checked' => Auth::user()->id,
+                'checked_at' => Carbon::now()->format('Y-m-d H:i:s')
             ]);
         }
 
@@ -147,13 +149,18 @@ class EJournal extends Component
     public function setStatus($id, $studentId)
     {
         $eJournal = ModelsEJournal::where('id', '=', $id)
-            ->where('student_id', '=', $studentId)->update(['status' => $this->status[$id]]);
+            ->where('student_id', '=', $studentId)->update([
+                'status' => $this->status[$id],
+                'who_checked' => Auth::user()->id,
+                'checked_at' => Carbon::now()->format('Y-m-d H:i:s')
+            ]);
     }
 
-    public function setSignature($lessonDate, $lessonTime)
+    public function setSignature($lessonDate, $lessonTime, $lessonType)
     {
-        $eJournal = ModelsEJournal::where('lesson_date', '=', Carbon::parse($this->lesson_date)->format('Y-m-d'))
+        $eJournal = ModelsEJournal::where('lesson_date', '=', Carbon::parse($lessonDate)->format('Y-m-d'))
             ->where('lesson_time', '=', $lessonTime)
+            ->where('lesson_type', '=', $lessonType)
             ->where('course_teacher_id', '=', $this->courseTeacherId)
             ->update([
                 'is_signature' => true,

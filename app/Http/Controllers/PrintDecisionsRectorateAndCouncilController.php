@@ -45,7 +45,7 @@ class PrintDecisionsRectorateAndCouncilController extends Controller
             $table->addRow();
             $table->addCell(3500)->addText($value->position, $tableFontStyle);
             $table->addCell(3500)->addText($value->task, $tableFontStyle);
-            $table->addCell(3500)->addText(Carbon::parse($value->due_date)->format('d.m.Y'), $tableFontStyle);
+            $table->addCell(3500)->addText($value->due_date, $tableFontStyle);
         }
 
         $templateProcessor->setComplexBlock('table', $table);

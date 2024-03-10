@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\StudyPlan;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use PhpParser\Node\Expr\Empty_;
-use PhpParser\Node\Stmt\Return_;
 
 class StudyPlanController extends Controller
 {
@@ -15,19 +12,19 @@ class StudyPlanController extends Controller
         $studyPlan = StudyPlan::where('study_plans.id', 520)
             ->join('study_plan_courses', 'study_plans.id', '=', 'study_plan_courses.study_plan_id')
             ->join('disciplines', 'study_plan_courses.discipline_id', '=', 'disciplines.id')
-            ->join('study_plan_indexes', 'study_plan_courses.study_plan_index_id', '=', 'study_plan_indexes.id')
-            ->join('study_plan_under_indexes', 'study_plan_courses.study_plan_under_index_id', '=', 'study_plan_under_indexes.id')
-            ->join('study_plan_sections', 'study_plan_courses.study_plan_section_id', '=', 'study_plan_sections.id')
+            ->join('indexes', 'study_plan_courses.index_id', '=', 'indexes.id')
+            ->join('under_indexes', 'study_plan_courses.under_index_id', '=', 'under_indexes.id')
+            ->join('sections', 'study_plan_courses.section_id', '=', 'sections.id')
             ->join('study_plan_courses_in_semesters', 'study_plan_courses.id', '=', 'study_plan_courses_in_semesters.study_plan_course_id')
             ->select(
                 'study_plan_courses.id',
-                'study_plan_sections.name as section_name',
-                'study_plan_sections.index_name as section',
-                'study_plan_indexes.name as full_name_index',
-                'study_plan_indexes.index_name as index',
+                'sections.name as section_name',
+                'sections.index_name as section',
+                'indexes.name as full_name_index',
+                'indexes.index_name as index',
                 'study_plan_courses.number_index',
-                'study_plan_under_indexes.name as full_name_under_index',
-                'study_plan_under_indexes.index_name as under_index',
+                'under_indexes.name as full_name_under_index',
+                'under_indexes.index_name as under_index',
                 'disciplines.name as discipline_name',
                 DB::raw('SUM(study_plan_courses_in_semesters.lecture_hours + study_plan_courses_in_semesters.practical_hours + study_plan_courses_in_semesters.laboratory_hours + study_plan_courses_in_semesters.individual_consultation_hours + study_plan_courses_in_semesters.group_consultation_hours + study_plan_courses_in_semesters.control_hours + study_plan_courses_in_semesters.self_study_hours) as sum_1'),
                 DB::raw('SUM(study_plan_courses_in_semesters.lecture_hours + study_plan_courses_in_semesters.practical_hours + study_plan_courses_in_semesters.laboratory_hours + study_plan_courses_in_semesters.individual_consultation_hours + study_plan_courses_in_semesters.group_consultation_hours + study_plan_courses_in_semesters.control_hours) as sum_2'),
@@ -41,9 +38,9 @@ class StudyPlanController extends Controller
                 DB::raw('SUM(study_plan_courses_in_semesters.work_content_first) as work_content_first')
             )
             ->groupBy('study_plan_courses.id')
-            ->orderBy('study_plan_indexes.sorting_order')
-            ->orderBy('study_plan_sections.sorting_order')
-            ->orderBy('study_plan_under_indexes.sorting_order')
+            ->orderBy('indexes.sorting_order')
+            ->orderBy('sections.sorting_order')
+            ->orderBy('under_indexes.sorting_order')
             ->orderBy('number_index')
             ->get()->toArray();
 

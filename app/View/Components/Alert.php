@@ -9,18 +9,14 @@ use Illuminate\View\Component;
 class Alert extends Component
 {
     public string $type;
-    public string $header;
+    public string $title;
     public string $message;
 
-    public bool $static;
-
-    public function __construct($type, $header, $message, $static = false)
+    public function __construct($type, $title, $message)
     {
         $this->type = $type;
-        $this->header = $header;
+        $this->title = $title;
         $this->message = $message;
-        
-        $this->static = $static;
     }
 
     public function render(): View|Closure|string

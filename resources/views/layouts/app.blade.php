@@ -133,12 +133,6 @@
                     </a>
                 </li>
                 @endcan
-                <li class="rounded {{ (request()->routeIs('achievement')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
-                    <a href="{{ route('achievement') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
-                        <i class="fa-solid fa-award"></i>
-                        <span>Портфолио обучающегося</span>
-                    </a>
-                </li>
                 <li class="rounded {{ (request()->routeIs('reports')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                     <a href="{{ route('reports') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                         <i class="fa-solid fa-chart-simple"></i>
@@ -187,7 +181,7 @@
         <!-- Content -->
         <main class="mt-16 px-6 py-4">
 
-            <x-alert type="warning" header="Внимание!" message="Ежедневно в период с 00:00 по 02:00 проходит синхронизация информации. В данный промежуток времени платформа может быть недоступна или функции платформы могут работать некорректно" static="true" />
+            <x-alert type="warning" title="Внимание!" message="Ежедневно в период с 00:00 по 03:30 проходит синхронизация информации. В данный промежуток времени платформа может быть недоступна или функции платформы могут работать некорректно" />
 
             <div class="mt-2">
                 {{ $breadcrumb }}

@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\CourseTeacher;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class TeacherCourses extends Component

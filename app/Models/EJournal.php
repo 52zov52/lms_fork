@@ -17,6 +17,8 @@ class EJournal extends Model
         'lesson_type',
         'lesson_theme',
         'course_teacher_id',
+        'who_checked',
+        'checked_at',
         'is_signature',
         'who_signed',
         'signatured_at'

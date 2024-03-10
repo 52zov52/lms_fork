@@ -1,12 +1,7 @@
 <div class="flex flex-col space-y-2">
 
     @if(session()->has('message-success'))
-    <div class="flex items-center bg-green-500 border-t-4 border-green-700 rounded shadow-xl p-4 text-white" role="alert">
-        <i class="fa-solid fa-circle-check fa-lg"></i>
-        <div class="ml-3 text-base font-medium">
-                {{ session('message-success') }}
-        </div>
-    </div>
+    <x-alert type="success" title="Информация!" message="{{ session('message-success') }}" />
     @endif
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
@@ -34,7 +29,7 @@
 
     <div class="bg-white rounded shadow-xl p-4">
         <div class="py-1 text-xs md:text-base text-right font-medium">
-            Дата и время последнего обновления расписания: {{ $lastUpdateDate }}
+            Дата и время последнего обновления расписания: <span class="{{ (is_null($lastUpdateDate) || empty($lastUpdateDate)) ? 'bg-orange-500' : 'bg-green-500' }} rounded-full py-0.5 px-2 text-white">{{ (is_null($lastUpdateDate) || empty($lastUpdateDate)) ? 'отсутствует' : $lastUpdateDate }}</span>
         </div>
         @if(!is_null($currentSchedule) && count($currentSchedule) != 0)
         <table class="w-full bg-white border shadow-md text-xs md:text-sm lg:text-base">
@@ -79,12 +74,7 @@
             @endforeach
         </table>
         @else
-        <div class="flex items-center bg-orange-500 border-t-4 border-orange-700 rounded shadow-xl p-4 text-white" role="alert">
-            <i class="fa-solid fa-circle-exclamation fa-lg"></i>
-            <div class="ml-3 text-base font-medium">
-                На текущей неделе у Вас занятия не проводятся. Для отображения информации за предыдущие или будущие недели выберите соответствующие данные из выпадающих списков.
-            </div>
-        </div>
+        <x-alert type="info" title="Информация!" message="На текущей неделе у Вас занятия не проводятся. Для отображения информации за предыдущие или будущие недели выберите соответствующие данные из выпадающих списков." />
         @endif
     </div>
 </div>
