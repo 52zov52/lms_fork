@@ -28,12 +28,6 @@
         <h4 class="text-lg xl:text-xl font-semibold">{{ $infoAboutGroupAndCourse->group_name }} - {{ $infoAboutGroupAndCourse->discipline_name }}</h4>
     </div>
 
-    <div class="flex flex-row space-x-1">
-        <span class="bg-purple-600 rounded px-2 py-1 text-sm text-white">Лекции</span>
-        <span class="bg-sky-600 rounded px-2 py-1 text-sm text-white">Лабораторные</span>
-        <span class="bg-yellow-600 rounded px-2 py-1 text-sm text-white">Практические</span>
-    </div>
-
     <div class="w-full bg-white rounded shadow-xl p-4">
         <div class="overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
             <table class="w-auto bg-white shadow-md border text-xs">
@@ -43,16 +37,8 @@
                         <td class="sticky left-0 w-auto bg-white border px-2 py-2 font-semibold">ФИО</td>
                         <td class="w-20 border px-2 py-2 text-center font-semibold">№ зачетки</td>
                         @foreach($dates as $dateAndTime)
-                        <td class="w-20 border border-t-4 border-r-4
-                            @if($dateAndTime->lesson_type == 1) 
-                                border-t-purple-600 
-                            @elseif($dateAndTime->lesson_type == 2) 
-                                border-t-sky-600
-                            @else 
-                                border-t-yellow-600
-                            @endif
-                            px-2 py-2 text-center font-semibold">
-                            {{ \Carbon\Carbon::parse($dateAndTime->lesson_date)->format('d.m.Y') }} {{ $dateAndTime->lesson_time }}
+                        <td class="w-20 border border-t-4 border-r-4 px-2 py-2 text-center font-semibold">
+                            {{ \Carbon\Carbon::parse($dateAndTime->lesson_date)->format('d.m.Y') }}
                             @if(!$dateAndTime->is_signature)
                             <button wire:click="setSignature('{{ $dateAndTime->lesson_date }}', '{{ $dateAndTime->lesson_time }}', {{ $dateAndTime->lesson_type }})" class="w-full bg-gray-500 hover:bg-gray-600 rounded p-1 text-white" title="" data-tippy-content="Подписать">
                                 <i class="fa-solid fa-signature"></i>
@@ -61,7 +47,7 @@
                         </td>
                         @endforeach
                         <td class="w-20 border px-2 py-2 text-center font-semibold">
-                            {{ $currentData }} {{ $currentTime }}
+                            {{ $currentData }}
                             <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full bg-green-500 hover:bg-green-600 rounded p-1 text-white" title="" data-tippy-content="Добавить новый столбец">
                                 <i class="fa-solid fa-plus"></i>
                             </button>

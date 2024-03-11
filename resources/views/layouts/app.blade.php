@@ -93,7 +93,7 @@
                     </a>
                 </li>
                 @endcan
-                @role('Teacher')
+                @can('access-to-e-journal')
                 <li class="rounded {{ (request()->routeIs('my.groups')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }}">
                     <a href="{{ route('my.groups') }}" class="w-full inline-flex items-baseline space-x-2 px-2 py-3">
                         <i class="fa-solid fa-user-group"></i>
