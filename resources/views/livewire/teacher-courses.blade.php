@@ -26,9 +26,6 @@
                             <button wire:click="showEJournal({{ $value->id }})" class="bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Журнал группы">
                                 <i class="fa-solid fa-address-book"></i>
                             </button>
-                            <button wire:click="destroy({{ $value->id }})" class="bg-red-500 hover:bg-red-600 rounded px-2 py-1.5 text-xs text-white" title="" data-tippy-content="Удалить">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
                         </td>
                     </tr>
                     @endforeach
