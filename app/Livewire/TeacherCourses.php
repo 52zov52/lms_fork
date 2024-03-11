@@ -38,6 +38,12 @@ class TeacherCourses extends Component
         return view('livewire.teacher-courses', ['teacherCourses' => $teacherCourses]);
     }
 
+    public function destroy($id): void
+    {
+        $courseTeacher = CourseTeacher::findOrFail($id);
+        $courseTeacher->delete();
+    }
+
     public function showEJournal($courseTeacherId)
     {
         return redirect()->route('e.journal', ['courseTeacherId' => $courseTeacherId]);
