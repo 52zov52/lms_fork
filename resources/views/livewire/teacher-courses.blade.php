@@ -15,7 +15,7 @@
                     </tr>
                     @foreach($teacherCourses as $key => $value)
                     <tr class="{{ ($loop->iteration % 2 === 0) ? 'bg-gray-100' : '' }} hover:bg-gray-300">
-                        <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
+                        <td class="w-12 border px-2 py-2 text-center">{{ $value->id }}</td>
                         <td class="w-auto border px-2 py-2">{{ $value->name }}</td>
                         <td class="w-32 border px-2 py-2 text-center">{{ $value->control_name }}</td>
                         <td class="w-32 border px-2 py-2 text-center">{{ $value->lecture_hours }}</td>
