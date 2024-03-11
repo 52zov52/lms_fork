@@ -119,7 +119,7 @@ class EJournal extends Component
         foreach ($contingent as $key => $value) {
             ModelsEJournal::create([
                 'student_id' => $value->user_id,
-                'status' => 1,
+                'status' => 2,
                 'lesson_date' => Carbon::parse($this->lesson_date)->format('Y-m-d'),
                 'lesson_time' => $this->lesson_time,
                 'lesson_type' => $this->lesson_type,
