@@ -1,67 +1,41 @@
 <div class="flex flex-col space-y-2">
 
-    @if(session()->has('message-success'))
-    <div class="flex items-center bg-green-500 border-t-4 border-green-700 rounded shadow-xl p-4 text-white" role="alert">
-        <i class="fa-solid fa-circle-exclamation fa-lg"></i>
-        <div class="ml-3 text-base font-medium">
-            {{ session('message-success') }}
-        </div>
-    </div>
-    @endif
-
-    @if(session()->has('message-error'))
-    <div class="flex items-center bg-red-500 border-t-4 border-red-700 rounded shadow-xl p-4 text-white" role="alert">
-        <i class="fa-solid fa-circle-exclamation fa-lg"></i>
-        <div class="ml-3 text-base font-medium">
-            {{ session('message-error') }}
-        </div>
-    </div>
-    @endif
-
-    <div class="w-full bg-white rounded shadow-xl p-4">
-        @if(!$studentsAcademicLeaves->isEmpty())
-        <table class="w-full bg-white border shadow-md text-xs">
-            <tbody>
-                <tr class="bg-gray-100">
-                    <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
-                    <td class="w-auto border px-2 py-2 font-semibold">ФИО</td>
-                    <td class="w-64 border px-2 py-2 font-semibold">Группа</td>
-                    <td class="w-64 border px-2 py-2 font-semibold">Дата выхода из академ. отпуска</td>
-                    <td class="w-64 border px-2 py-2 font-semibold">Комментарий</td>
-                    <td class="w-40 border px-2 py-2 font-semibold">Действия</td>
-                </tr>
-                @foreach($studentsAcademicLeaves as $student)
+    @if(!$studentsAcademicLeaves->isEmpty())
+    <div class="border rounded border-slate-200 dark:border-slate-400/20">
+        <table class="w-full text-xs lg:text-sm">
+            <thead class="bg-gray-50 dark:bg-gray-700 uppercase">
                 <tr>
-                    <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                    <td class="w-auto border px-2 py-2">{{ $student->last_name }} {{ $student->first_name }} {{ $student->middle_name }}</td>
-                    <td class="w-64 border px-2 py-2">{{ $student->group_name }}</td>
-                    <td class="w-64 border px-2 py-2">
+                    <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
+                    <th scope="col" class="w-auto px-2 py-2 font-semibold">ФИО</th>
+                    <th scope="col" class="w-64 px-2 py-2 font-semibold">Группа</th>
+                    <th scope="col" class="w-64 px-2 py-2 font-semibold">Дата выхода из академ. отпуска</th>
+                    <th scope="col" class="w-64 px-2 py-2 font-semibold">Комментарий</th>
+                    <th scope="col" class="w-40 px-2 py-2 font-semibold">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($studentsAcademicLeaves as $student)
+                <tr class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-600 border-b dark:border-gray-700">
+                    <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
+                    <td class="w-auto px-2 py-2 ">{{ $student->last_name }} {{ $student->first_name }} {{ $student->middle_name }}</td>
+                    <td class="w-64 px-2 py-2 text-center">{{ $student->group_name }}</td>
+                    <td class="w-64 px-2 py-2 text-center">
                         @if(!empty($student->academic_leave_end_date))
-                        {{ \Carbon\Carbon::parse($student->academic_leave_end_date)->format('d.m.Y') }}
+                            {{ \Carbon\Carbon::parse($student->academic_leave_end_date)->format('d.m.Y') }}
                         @endif
                     </td>
-                    <td class="w-64 border px-2 py-2">{{ $student->description }}</td>
-                    <td class="w-40 border px-2 py-2 text-center">
-                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $student->id }})" title="Редактировать" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white">
+                    <td class="w-64 px-2 py-2">{{ $student->description }}</td>
+                    <td class="w-40 px-2 py-2 text-center">
+                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $student->id }})" class="hover:text-blue-500" data-tippy-content="Редактировать">
                             <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button wire:click="redirectToDocumentsStudentsAcademicLeaves({{ $student->user_id }}, {{ $student->group_id }})" title="Оформление документов по академическому отпуску" class="w-auto grow bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
-                            <i class="fa-solid fa-elevator"></i>
                         </button>
                     </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
-        @else
-        <div class="flex items-center bg-orange-500 border-t-4 border-orange-700 rounded shadow-xl p-4 text-white" role="alert">
-            <i class="fa-solid fa-circle-exclamation fa-lg"></i>
-            <div class="ml-3 text-base font-medium">
-                Информация отсутсвует.
-            </div>
-        </div>
-        @endif
     </div>
+    @endif
 
     <!-- Creating And Editing Modal Form -->
     <x-dialog-modal wire:model="isCreatingAndEditingModalFormVisible">

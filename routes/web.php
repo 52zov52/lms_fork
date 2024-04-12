@@ -76,10 +76,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         })->name('e.journal');
     });
 
+    Route::get('/document-order-requests', function () {
+        return view('pages.document-order-request');
+    })->name('document.order.requests');
+
     Route::group(['middleware' => ['role:Student']], function () {
-        Route::get('/document-order-requests', function () {
-            return view('pages.document-order-request');
-        })->name('document.order.requests');
+        
     });
 
     Route::group(['middleware' => ['permission:access-to-student-requests-for-certificates-full|access-to-student-requests-for-certificates-spo|access-to-student-requests-for-certificates-vo']], function () {

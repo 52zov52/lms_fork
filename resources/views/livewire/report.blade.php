@@ -1,22 +1,20 @@
 <div class="flex flex-col space-y-2">
-    <div class="bg-white rounded shadow-xl p-4">
-        <h2 class="font-semibold">Расписание:</h2>
-        <ul class="list-disc px-4">
-            <li><a wire:click="teacherModalVisible" href="#" class="hover:font-semibold hover:underline">Отчет по преподавателям</a></li>
-            <li><a wire:click="groupModalVisible" href="#" class="hover:font-semibold hover:underline">Отчет по группе</a></li>
-            @role('Teacher')
-            <li><a wire:click="roomsModalVisible" href="#" class="hover:font-semibold hover:underline">Отчет по загруженности аудиторий</a></li>
-            @endrole
-        </ul>
-        @can('access-to-contingent')
-        <h2 class="mt-2 font-semibold">Контингент:</h2>
-        <ul class="list-disc px-4">
-            <li><a wire:click="generateContingentReport" href="#"  class="hover:font-semibold hover:underline">Отчет по численности контингента в разрезе уровней и форм обучения</a></li>
-            <li><a wire:click="generateContingentByAgeAndGenderReport" href="#"  class="hover:font-semibold hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней и форм обучения</a></li>
-            <li><a wire:click="generateContingentByAgeAndGenderWithoutTeachingFromReport" href="#"  class="hover:font-semibold hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней обучения</a></li>
-        </ul>
-        @endcan
-    </div>
+    <h2 class="font-semibold">Расписание:</h2>
+    <ul class="list-disc px-4">
+        <li><a wire:click="teacherModalVisible" href="#" class="text-blue-500 hover:underline">Отчет по преподавателям</a></li>
+        <li><a wire:click="groupModalVisible" href="#" class="text-blue-500 hover:underline">Отчет по группе</a></li>
+        @role('Teacher')
+        <li><a wire:click="roomsModalVisible" href="#" class="text-blue-500 hover:underline">Отчет по загруженности аудиторий</a></li>
+        @endrole
+    </ul>
+    @can('access-to-contingent')
+    <h2 class="mt-2 font-semibold">Контингент:</h2>
+    <ul class="list-disc px-4">
+        <li><a wire:click="generateContingentReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента в разрезе уровней и форм обучения</a></li>
+        <li><a wire:click="generateContingentByAgeAndGenderReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней и форм обучения</a></li>
+        <li><a wire:click="generateContingentByAgeAndGenderWithoutTeachingFromReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней обучения</a></li>
+    </ul>
+    @endcan
 
     <!-- Modal dialog schedule by teacher -->
     <x-dialog-modal wire:model="isTeacherModalVisible">
