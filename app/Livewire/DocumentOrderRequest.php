@@ -14,8 +14,6 @@ class DocumentOrderRequest extends Component
     
     public int $documentType = 0;
 
-    public bool $isAlertVisible = false, $isConfirmOrderDocumentModalVisible = false;
-
     public function render()
     {
         $documentOrderRequest = ModelsDocumentOrderRequest::where('requester_id', '=', Auth::user()->id)->paginate(25);
@@ -25,14 +23,9 @@ class DocumentOrderRequest extends Component
             ]);
     }
 
-    public function alertVisible(): void
+    public function callMethod($methodName)
     {
-        $this->isAlertVisible = false;
-    }
-
-    public function confirmOrderDocumentModalVisible(): void
-    {
-        $this->isConfirmOrderDocumentModalVisible = true;
+        $this->{$methodName}();
     }
 
     public function store(): void
@@ -45,13 +38,11 @@ class DocumentOrderRequest extends Component
                 'request_date' => Carbon::now()
             ]);
 
-            $this->isConfirmOrderDocumentModalVisible = false;
-            $this->isAlertVisible = true;
-            session()->flash('message-success', 'Заявка успешно создана!');
+            session()->flash('type', 'success');
+            session()->flash('message', 'Заявка успешно создана!');
         } else {
-            $this->isConfirmOrderDocumentModalVisible = false;
-            $this->isAlertVisible = true;
-            session()->flash('message-error', 'Ошибка в процессе создания заявки! Не выбран тип документа (справки).');
+            session()->flash('type', 'error');
+            session()->flash('message', 'Ошибка! Не выбран тип документа (справки).');
         }
     }
 }

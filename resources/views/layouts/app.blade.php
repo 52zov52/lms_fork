@@ -12,6 +12,13 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <script type="module">
+        if (localStorage.getItem('theme') != null) {
+            document.getElementById('theme-id').classList.add(localStorage.getItem('theme'));
+        }
+        document.getElementById('footer-id').innerHTML = "© 2023 - " + new Date().getFullYear();
+    </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
@@ -20,21 +27,21 @@
     @livewireStyles
 </head>
 
-<body onload="afterLoadContent()">
+<body>
     <div id="app" x-data="setting()" class="h-screen overflow-hidden flex bg-white dark:bg-slate-800 text-gray-600 dark:text-white font-sans font-light antialiased">
         <!-- Desktop sideber -->
         <aside class="hidden h-full lg:flex lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5 transition-all duration-700 ease-in-out"
-            :class="{ 'w-16': !isSideBarOpen, 'w-80': isSideBarOpen }" @mouseover="isSideBarOpen = true" @mouseleave="isSideBarOpen = false">
-            <div class="inline-flex items-center px-2" :class="{ 'justify-center': !isSideBarOpen }">
+            :class="{ 'w-16': !isExpandSideBar, 'w-72': isExpandSideBar }">
+            <div class="inline-flex items-center px-2" :class="{ 'justify-center': !isExpandSideBar }">
                 <img src="{{ asset('storage/logo.png') }}" alt="" class="w-12">
-                <span x-show="isSideBarOpen" class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
+                <span x-show="isExpandSideBar" class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
             </div>
             <!-- Navigation menu -->
             @include('layouts.navigation-menu')
         </aside>
         <!-- Mobile sidebar -->
         <aside class="lg:hidden fixed w-80 h-full flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 transition-all duration-700 ease-in-out"
-            :class="{ '-translate-x-full': !isSideBarOpen, 'translate-x-0': isSideBarOpen }">
+            :class="{ '-translate-x-full opacity-0': !isSideBarOpen, 'translate-x-0 opacity-100': isSideBarOpen }">
             <div class="flex justify-between p-4">
                 <div class="inline-flex items-center" :class="{ 'justify-center': !isSideBarOpen }">
                     <img src="{{ asset('storage/logo.png') }}" alt="" class="w-12">
@@ -49,7 +56,12 @@
         </aside>
         <div class="flex-1 flex flex-col">
             <header class="shrink-0 w-full h-16 border-b border-slate-200 dark:border-slate-400/20">
-                <div class="h-full flex justify-between lg:justify-end px-5">
+                <div class="h-full flex justify-between px-5">
+                    <!-- Desktop sideber -->
+                    <button @click="toggleSideBar()" class="hidden lg:block">
+                        <i class="fa-solid fa-bars fa-lg"></i>
+                    </button>
+                    <!-- Mobile sidebar -->
                     <button @click="isSideBarOpen = !isSideBarOpen" class="block lg:hidden">
                         <i class="fa-solid fa-bars fa-lg"></i>
                     </button>
@@ -63,7 +75,9 @@
                             </template>
                         </button>
                         <div class="flex">
-                            <img class="object-cover h-12 w-12 border border-slate-200 dark:border-slate-400/20 rounded-full" src="./src/img/miziukov_g_s.jpg">
+                            <span class="bg-slate-200 dark:bg-slate-700 rounded-full border-slate-200 dark:border-slate-400/20 px-3.5 py-3 font-semibold">
+                                {{ mb_substr(auth()->user()->userData->last_name, 0, 1) }}{{ mb_substr(auth()->user()->userData->first_name, 0, 1) }}
+                            </span>
                             <div class="ml-2">
                                 <p>{{ auth()->user()->userData->last_name }}</p>
                                 <p>{{ auth()->user()->userData->first_name }} {{ auth()->user()->userData->middle_name }}</p>
@@ -92,17 +106,15 @@
     @stack('scripts')
 
     <script>
-        function afterLoadContent() {
-            if (localStorage.getItem('theme') != null) {
-                document.getElementById('theme-id').classList.add(localStorage.getItem('theme'));
-            }
-            document.getElementById('footer-id').innerHTML = "© 2023 - " + new Date().getFullYear();
-        }
-
         function setting() {
             return {
                 isDarkMode: (localStorage.getItem('theme') === 'dark'),
+                isExpandSideBar: (localStorage.getItem('isExpandSideBar') === 'open'),
                 isSideBarOpen: false,
+                toggleSideBar() {
+                    this.isExpandSideBar = !this.isExpandSideBar;
+                    localStorage.setItem('isExpandSideBar', this.isExpandSideBar ? 'open' : 'close');
+                },
                 toggleDarkMode() {
                     this.isDarkMode = !this.isDarkMode;
                     localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');

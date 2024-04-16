@@ -8,10 +8,12 @@ use Illuminate\View\Component;
 
 class Toastr extends Component
 {
+    public string $type;
     public string $message;
     
-    public function __construct($message)
+    public function __construct($type, $message)
     {
+        $this->type = $type;
         $this->message = $message;
     }
 

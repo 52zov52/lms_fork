@@ -7,6 +7,7 @@ use App\View\Components\Toastr;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\Attributes\On;
 
 class Schedule extends Component
 {
@@ -17,10 +18,10 @@ class Schedule extends Component
     public function render()
     {
         $scheduleController = new ScheduleController();
-        
-        if(Auth::user()->hasRole('Teacher'))
+
+        if (Auth::user()->hasRole('Teacher'))
             $this->teachers = $scheduleController->getTeachersByLastName(Auth::user()->userData->last_name);
-        
+
         $this->weeksRange = $scheduleController->getWeeksRange();
         $lastUpdateDate = $scheduleController->getlastUpdate();
 
@@ -32,7 +33,7 @@ class Schedule extends Component
         $day = $weekStartDate;
         $daysOfWeek = array();
 
-        for ($i=0; $i < 7; $i++) {
+        for ($i = 0; $i < 7; $i++) {
             array_push($daysOfWeek, [
                 'en' => $scheduleController->daysOfWeek[$i]['en'],
                 'ru' => $scheduleController->daysOfWeek[$i]['ru'],
@@ -51,17 +52,22 @@ class Schedule extends Component
         ]);
     }
 
-    public function changeTeacher() : void
+    public function callMethod($methodName)
+    {
+        $this->{$methodName}();
+    }
+
+    public function changeTeacher(): void
     {
         $this->teacher = $this->teacher;
     }
 
-    public function changeWeekRange() : void
+    public function changeWeekRange(): void
     {
         $this->week = $this->splitWeekRange();
     }
 
-    public function splitWeekRange() : string
+    public function splitWeekRange(): string
     {
         $data = explode('-', $this->weekRange);
         return $data[0];
@@ -71,7 +77,8 @@ class Schedule extends Component
     {
         $scheduleController = new ScheduleController();
         $scheduleController->uploadSchedule();
-        
-        session()->flash('message-success', 'Данные расписания обновлены!');
+
+        session()->flash('type', 'success');
+        session()->flash('message', 'Данные расписания обновлены!');
     }
 }
