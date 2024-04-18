@@ -15,6 +15,7 @@
     </div>
 
     @if(!$documentOrderRequest->isEmpty())
+    <!-- Desktop -->
     <div class="hidden md:block border rounded border-slate-200 dark:border-slate-400/20">
         <table class="w-full text-xs lg:text-sm">
             <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
@@ -70,6 +71,7 @@
             </tbody>
         </table>
     </div>
+    <!-- Mobile -->
     <div class="md:hidden flex flex-col space-y-2">
         @foreach($documentOrderRequest as $item)
         <div class="flex flex-col space-y-2 bg-slate-200 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 p-4 text-xs">
@@ -84,22 +86,13 @@
             <div class="flex flex-col">
                 <span class="font-semibold">Статус заявки:</span>
                 @if($item->status == 1)
-                <div class="w-24 flex flex-col bg-orange-400 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-white dark:text-orange-400 font-bold">
-                    <span>В обработке</span>
-                </div>
+                <span class="text-orange-400 font-semibold">В обработке</span>
                 @elseif($item->status == 2)
-                <div class="w-40 flex flex-col bg-sky-400 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-white dark:text-sky-400 font-bold">
-                    <span>Готово к выдаче</span>
-                    <span>{{ \Carbon\Carbon::parse($item->confirmed_date)->addDay()->format('d.m.Y') }} после 13:00</span>
-                </div>
+                <span class="text-sky-400 font-semibold">Готово к выдаче {{ \Carbon\Carbon::parse($item->confirmed_date)->addDay()->format('d.m.Y') }} после 13:00</span>
                 @elseif($item->status == 3)
-                <div class="w-24 flex flex-col bg-red-400 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-white dark:text-red-400 font-bold">
-                    <span>Отклонена</span>
-                </div>
+                <span class="text-red-400 font-semibold">Отклонена</span>
                 @else
-                <div class="w-24 flex flex-col bg-green-400 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-white dark:text-green-400 font-bold">
-                    <span>Выполнена</span>
-                </div>
+                <span class="text-green-400 font-semibold">Выполнена</span>
                 @endif
             </div>
             <div class="flex flex-col">

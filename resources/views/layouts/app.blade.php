@@ -33,7 +33,7 @@
         <aside class="hidden h-full lg:flex lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5 transition-all duration-700 ease-in-out"
             :class="{ 'w-16': !isExpandSideBar, 'w-72': isExpandSideBar }">
             <div class="inline-flex items-center px-2" :class="{ 'justify-center': !isExpandSideBar }">
-                <img src="{{ asset('storage/logo.png') }}" alt="" class="w-12">
+                <img id="logo-pc-id" x-bind:src="logo" alt="" class="w-12">
                 <span x-show="isExpandSideBar" class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
             </div>
             <!-- Navigation menu -->
@@ -44,7 +44,7 @@
             :class="{ '-translate-x-full opacity-0': !isSideBarOpen, 'translate-x-0 opacity-100': isSideBarOpen }">
             <div class="flex justify-between p-4">
                 <div class="inline-flex items-center" :class="{ 'justify-center': !isSideBarOpen }">
-                    <img src="{{ asset('storage/logo.png') }}" alt="" class="w-12">
+                    <img id="logo-mobile-id" x-bind:src="logo" alt="" class="w-12">
                     <span class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
                 </div>
                 <button @click="isSideBarOpen = !isSideBarOpen">
@@ -108,6 +108,7 @@
     <script>
         function setting() {
             return {
+                logo: (localStorage.getItem('theme') === 'dark') ? "{{ asset('storage/logo_dark.png') }}" : "{{ asset('storage/logo_light.png') }}",
                 isDarkMode: (localStorage.getItem('theme') === 'dark'),
                 isExpandSideBar: (localStorage.getItem('isExpandSideBar') === 'open'),
                 isSideBarOpen: false,
@@ -120,9 +121,15 @@
                     localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
 
                     if (this.isDarkMode) {
+                        document.getElementById("logo-pc-id").src = "{{ asset('storage/logo_dark.png') }}";
+                        document.getElementById("logo-mobile-id").src = "{{ asset('storage/logo_dark.png') }}";
+
                         document.getElementById('theme-id').classList.remove('light');
                         document.getElementById('theme-id').classList.add('dark');
                     } else {
+                        document.getElementById("logo-pc-id").src = "{{ asset('storage/logo_light.png') }}";
+                        document.getElementById("logo-mobile-id").src = "{{ asset('storage/logo_light.png') }}";
+
                         document.getElementById('theme-id').classList.remove('dark');
                         document.getElementById('theme-id').classList.add('light');
                     }
