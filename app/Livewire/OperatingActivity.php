@@ -173,6 +173,11 @@ class OperatingActivity extends Component
         ]);
     }
 
+    public function callMethod($methodName)
+    {
+        $this->{$methodName}();
+    }
+
     public function creatingAndEditingModalFormVisible($isEdit, $id = 0, $userId = 0): void
     {
         $this->resetFields();
@@ -273,11 +278,10 @@ class OperatingActivity extends Component
         ]);
 
         $this->isCreatingAndEditingModalFormVisible = false;
-        $this->isAlertVisible = true;
-
         $this->resetFields();
 
-        session()->flash('message-success', 'Запись успешно добавлена!');
+        session()->flash('type', 'success');
+        session()->flash('message', 'Запись успешно добавлена!');
     }
 
     public function edit($id, $userId): void
@@ -340,16 +344,15 @@ class OperatingActivity extends Component
             $operatingActivity->update();
 
             $this->isCreatingAndEditingModalFormVisible = false;
-            $this->isAlertVisible = true;
-
             $this->resetFields();
 
-            session()->flash('message-success', 'Запись успешно отредактирована!');
+            session()->flash('type', 'success');
+            session()->flash('message', 'Запись успешно отредактирована!');
         } else {
             $this->isCreatingAndEditingModalFormVisible = false;
-            $this->isAlertVisible = true;
 
-            session()->flash('message-error', 'Ошибка редактирования записи! У вас нет прав на редактирование записи!');
+            session()->flash('type', 'error');
+            session()->flash('message', 'Ошибка редактирования записи! У вас нет прав на редактирование записи!');
         }
     }
 
@@ -365,14 +368,14 @@ class OperatingActivity extends Component
             $operatingActivity->delete();
 
             $this->isConfirmDeleteRecordModalVisible = false;
-            $this->isAlertVisible = true;
 
-            session()->flash('message-success', 'Запись успешно удалена!');
+            session()->flash('type', 'success');
+            session()->flash('message', 'Запись успешно удалена!');
         } else {
             $this->isConfirmDeleteRecordModalVisible = false;
-            $this->isAlertVisible = true;
 
-            session()->flash('message-error', 'Ошибка удаления записи! У вас нет прав на удаление записи!');
+            session()->flash('type', 'error');
+            session()->flash('message', 'Ошибка удаления записи! У вас нет прав на удаление записи!');
         }
     }
 
@@ -382,9 +385,8 @@ class OperatingActivity extends Component
         $operatingActivity->status = 3;
         $operatingActivity->update();
 
-        $this->isAlertVisible = true;
-
-        session()->flash('message-success', 'Статус записи успешно изменен!');
+        session()->flash('type', 'success');
+        session()->flash('message', 'Статус записи успешно изменен!');
     }
 
     public function resetFields(): void

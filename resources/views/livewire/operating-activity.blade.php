@@ -1,43 +1,21 @@
 <div class="flex flex-col space-y-2">
 
-    @if(session()->has('message-success') && $isAlertVisible)
-    <div class="flex items-center justify-between bg-green-500 border-t-4 border-green-700 rounded shadow-xl p-4 text-white" role="alert">
-        <div class="flex items-center">
-            <i class="fa-solid fa-circle-check fa-lg"></i>
-            <div class="ml-3 text-base font-medium">
-                {{ session('message-success') }}
-            </div>
-        </div>
-        <button wire:click="alertVisible"><i class="fa-solid fa-xmark fal-lg"></i></button>
-    </div>
-    @endif
-
-    @if(session()->has('message-error') && $isAlertVisible)
-    <div class="flex items-center justify-between bg-red-500 border-t-4 border-red-700 rounded shadow-xl p-4 text-white" role="alert">
-        <div class="flex items-center">
-            <i class="fa-solid fa-xmark fa-lg"></i>
-            <div class="ml-3 text-base font-medium">
-                {{ session('message-error') }}
-            </div>
-        </div>
-        <button wire:click="alertVisible"><i class="fa-solid fa-xmark fal-lg"></i></button>
-    </div>
-    @endif
+    <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-        <select wire:model="filterYear" wire:change="setFilterYear" name="filter-year" id="filter-year-id" class="w-full md:w-auto border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+        <select wire:model="filterYear" wire:change="setFilterYear" name="filter-year" id="filter-year-id" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option value="0">Выберите год</option>
             @foreach($years as $year)
             <option value="{{ $year->year }}">{{ $year->year }}</option>
             @endforeach
         </select>
-        <select wire:model="filterMonthYear" wire:change="setFilterMonthYear" name="filter-month-year" id="filter-month-year-id" class="w-full md:w-auto border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+        <select wire:model="filterMonthYear" wire:change="setFilterMonthYear" name="filter-month-year" id="filter-month-year-id" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option value="0">Выберите месяц</option>
             @foreach($monthsYears as $monthYear)
             <option value="{{ $monthYear->monthYear }}">{{ $monthYear->monthYear }}</option>
             @endforeach
         </select>
-        <select wire:model="filterWeeks" wire:change="setFilterWeeks" name="filter-weeks" id="filter-week-id" class="w-full md:w-auto border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+        <select wire:model="filterWeeks" wire:change="setFilterWeeks" name="filter-weeks" id="filter-week-id" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option value="0">Выберите неделю</option>
             @foreach($weeksRange as $weekRange)
             <option value="{{ $weekRange }}">{{ $weekRange }}</option>
@@ -46,156 +24,159 @@
     </div>
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-        <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-2 text-sm text-left text-white">
+        <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
             <i class="fa-solid fa-circle-plus fa-lg"></i>
             Добавить запись
         </button>
-        <button wire:click="generateOperatingActivityReport" class="w-full md:w-auto bg-green-500 hover:bg-green-600 rounded px-2 py-2 text-sm text-left text-white">
+        <button wire:click="generateOperatingActivityReport" class="w-full md:w-auto bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
             <i class="fa-solid fa-file-excel"></i>
             Скачать отчет
         </button>
-        <button wire:click="filterModalFormVisible" class="block xl:hidden w-full md:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-2 text-sm text-left text-white">
+        <button wire:click="filterModalFormVisible" class="block md:hidden w-full md:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
             <i class="fa-solid fa-filter"></i>
             Фильтры
         </button>
     </div>
 
-    <div class="w-full bg-white rounded shadow-xl p-4">
-        <div class="hidden xl:block">
-            <table class="w-full bg-white border shadow-md text-xs">
-                <tbody>
-                    <tr class="bg-gray-100">
-                        <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
-                        <td class="w-72 border px-2 py-2 font-semibold">Направление деятельности</td>
-                        <td class="w-60 border px-2 py-2 font-semibold">Исполнитель</td>
-                        <td class="w-auto border px-2 py-2 font-semibold">Задачи</td>
-                        <td class="w-28 border px-2 py-2 text-center font-semibold">Статус</td>
-                        <td class="w-32 border px-2 py-2 text-center font-semibold">Действия</td>
-                    </tr>
-                    <tr class="bg-gray-100">
-                        <td class="w-12 border px-2"></td>
-                        <td class="w-72 border px-2">
-                            <select wire:model="filterActivityDirection" wire:change="setFilterActivityDirection" name="filterActivityDirection" id="filter-activity-direction-id" class="w-72 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option value="">Все направления деятельности</option>
-                                @foreach($listOfActivityDirections as $value)
-                                <option value="{{ $value->name }}">{{ $value->name }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td class="w-60 border px-2 py-1">
-                            <select wire:model="filterExecutor" wire:change="setFilterExecutor" name="filterExecutor" id="filter-executor-id" class="w-60 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option value="">Все исполнители</option>
-                                @foreach($listOfExecutors as $value)
-                                <option value="{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}">{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td class="w-auto border px-2"></td>
-                        <td class="w-28 border px-2">
-                            <select wire:model="filterStatus" wire:change="setFilterStatus" name="filterStatus" id="filter-status-id" class="w-28 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                <option value="0">Все статусы</option>
-                                <option value="1">В работе</option>
-                                <option value="2">На утверждение</option>
-                                <option value="3">Выполнено</option>
-                            </select>
-                        <td class="w-32 border px-2 text-center"></td>
-                    </tr>
-                    @foreach($operatingActivity as $value)
-                    <tr>
-                        <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                        <td class="w-72 border px-2 py-2">{{ $value->activity_direction }}</td>
-                        <td class="w-60 border px-2 py-2">{{ $value->fio }}</td>
-                        <td class="w-auto border px-2 py-2">{{ $value->task }}</td>
-                        <td class="w-28 border px-2 py-2 text-center">
-                            @if($value->status == 1)
-                            <div class="flex flex-col bg-orange-500 rounded py-1 text-xs text-white font-bold">
-                                <span>В работе</span>
-                            </div>
-                            @elseif($value->status == 2)
-                            <div class="flex flex-col bg-blue-500 rounded py-1 text-xs text-white font-bold">
-                                <span>На утверждение</span>
-                            </div>
-                            @else
-                            <div class="flex flex-col bg-green-500 rounded py-1 text-xs text-white font-bold">
-                                <span>Выполнено</span>
-                            </div>
-                            @endif
-                        </td>
-                        <td class="w-32 border px-2 py-2 text-center">
-                            @can('confirm-operating-activity')
-                            <button wire:click="confirmActivity({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Подтверждение">
-                                <i class="fa-solid fa-check"></i>
-                            </button>
-                            @endcan
-                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Доп. информация">
-                                <i class="fa-solid fa-up-right-from-square"></i>
-                            </button>
-                            @if($value->status != 3)
-                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-sky-500 hover:bg-sky-600 rounded px-1.5 py-1.5 text-xs text-white" title=""data-tippy-content="Редактировать">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="bg-red-500 hover:bg-red-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Удалить">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                            @endif
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <div class="block xl:hidden flex flex-col space-y-2">
-            @foreach($operatingActivity as $value)
-            <div class="flex flex-col space-y-2 border shadow-md p-4 text-xs">
-                <div class="flex flex-col">
-                    <span class="font-semibold">Направление деятельности:</span>
-                    <span>{{ $value->activity_direction }}</span>
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-semibold">Исполнитель:</span>
-                    <span>{{ $value->fio }}</span>
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-semibold">Задача:</span>
-                    <span>{{ $value->task }}</span>
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-semibold">Статус:</span>
-                    @if($value->status == 1)
-                    <span class="w-[4.7rem] bg-orange-500 rounded px-2 py-1 text-xs text-white font-bold">В работе</span>
-                    @elseif($value->status == 2)
-                    <span class="w-28 bg-blue-500 rounded px-2 py-1 text-xs text-white font-bold">На утверждение</span>
-                    @else
-                    <span class="w-[5.4rem] bg-green-500 rounded px-2 py-1 text-xs text-white font-bold">Выполнено</span>
-                    @endif
-                </div>
-                <div class="flex flex-col">
-                    <span class="font-semibold">Действия:</span>
-                    <div class="flex flex-row space-x-2">
+    <!-- Desktop -->
+    <div class="hidden lg:block border rounded border-slate-200 dark:border-slate-400/20">
+        <table class="w-full text-xs">
+            <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
+                <tr>
+                    <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
+                    <th scope="col" class="w-60 px-2 py-2 font-semibold">Направление деятельности</th>
+                    <th scope="col" class="w-52 px-2 py-2 font-semibold">Исполнитель</th>
+                    <th scope="col" class="w-auto px-2 py-2 font-semibold">Задачи</th>
+                    <th scope="col" class="w-28 px-2 py-2 font-semibold">Статус</th>
+                    <th scope="col" class="w-32 px-2 py-2 font-semibold">Действия</th>
+                </tr>
+                <tr>
+                    <th scope="col" class="w-12 px-2 py-2"></th>
+                    <th scope="col" class="w-60 px-2 py-2 font-semibold">
+                        <select wire:model="filterActivityDirection" wire:change="setFilterActivityDirection" name="filterActivityDirection" id="filter-activity-direction-id" class="w-60 bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="">Все направления деятельности</option>
+                            @foreach($listOfActivityDirections as $value)
+                            <option value="{{ $value->name }}">{{ $value->name }}</option>
+                            @endforeach
+                        </select>
+                    </th>
+                    <th scope="col" class="w-52 px-2 py-2 font-semibold">
+                        <select wire:model="filterExecutor" wire:change="setFilterExecutor" name="filterExecutor" id="filter-executor-id" class="w-52 bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="">Все исполнители</option>
+                            @foreach($listOfExecutors as $value)
+                            <option value="{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}">{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}</option>
+                            @endforeach
+                        </select>
+                    </th>
+                    <th scope="col" class="w-auto px-2 py-2"></th>
+                    <th scope="col" class="w-28 px-2 py-2 font-semibold">
+                        <select wire:model="filterStatus" wire:change="setFilterStatus" name="filterStatus" id="filter-status-id" class="w-28 bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="0">Все статусы</option>
+                            <option value="1">В работе</option>
+                            <option value="2">На утверждение</option>
+                            <option value="3">Выполнено</option>
+                        </select>
+                    </th>
+                    <th scope="col" class="w-32 px-2 py-2"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($operatingActivity as $value)
+                <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-600 border-b dark:border-slate-700">
+                    <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
+                    <td class="w-72 px-2 py-2 ">{{ $value->activity_direction }}</td>
+                    <td class="w-60 px-2 py-2">{{ $value->fio }}</td>
+                    <td class="w-auto px-2 py-2">{{ $value->task }}</td>
+                    <td class="w-28 px-2 py-2 text-center">
+                        @if($value->status == 1)
+                        <div class="bg-orange-400 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 py-1 text-xs text-white dark:text-orange-400 font-bold">
+                            <span>В работе</span>
+                        </div>
+                        @elseif($value->status == 2)
+                        <div class="bg-sky-400 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 py-1 text-xs text-white dark:text-sky-400 font-bold">
+                            <span>На утверждение</span>
+                        </div>
+                        @else
+                        <div class="bg-green-400 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 py-1 text-xs text-white dark:text-green-400 font-bold">
+                            <span>Выполнено</span>
+                        </div>
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2">
                         @can('confirm-operating-activity')
-                        <button wire:click="confirmActivity({{ $value->id }})" class="w-auto grow bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Подтверждение">
+                        <button wire:click="confirmActivity({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Подтверждение">
                             <i class="fa-solid fa-check"></i>
                         </button>
                         @endcan
-                        <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="w-auto grow bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Доп. информация">
+                        <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Доп. информация">
                             <i class="fa-solid fa-up-right-from-square"></i>
                         </button>
                         @if($value->status != 3)
-                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Редактировать">
+                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-sky-500 hover:bg-sky-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Редактировать">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="w-auto grow bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Удалить">
+                        <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="bg-red-500 hover:bg-red-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Удалить">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                         @endif
-                    </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    <!-- Mobile -->
+    <div class="lg:hidden flex flex-col space-y-2">
+        @foreach($operatingActivity as $value)
+        <div class="flex flex-col space-y-2 bg-slate-200 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 p-4 text-xs">
+            <div class="flex flex-col">
+                <span class="font-semibold">Направление деятельности:</span>
+                <span>{{ $value->activity_direction }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Исполнитель:</span>
+                <span>{{ $value->fio }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Задача:</span>
+                <span>{{ $value->task }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Статус:</span>
+                @if($value->status == 1)
+                <span class="text-orange-400 font-semibold">В работе</span>
+                @elseif($value->status == 2)
+                <span class="text-sky-400 font-semibold">На утверждение</span>
+                @else
+                <span class="text-green-400 font-semibold">Выполнено</span>
+                @endif
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Действия:</span>
+                <div class="flex flex-row space-x-2">
+                    @can('confirm-operating-activity')
+                    <button wire:click="confirmActivity({{ $value->id }})" class="w-auto grow bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Подтверждение">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                    @endcan
+                    <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="w-auto grow bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Доп. информация">
+                        <i class="fa-solid fa-up-right-from-square"></i>
+                    </button>
+                    @if($value->status != 3)
+                    <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Редактировать">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="w-auto grow bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Удалить">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    @endif
                 </div>
             </div>
-            @endforeach
         </div>
-        <div class="mt-2">
-            {{ $operatingActivity->links() }}
-        </div>
+        @endforeach
+    </div>
+    <div class="mt-2">
+        {{ $operatingActivity->links() }}
     </div>
 
     <!-- Creating And Editing Modal Form -->
@@ -278,7 +259,7 @@
                 <button wire:click="$toggle('isCreatingAndEditingModalFormVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                     {{ __('Закрыть') }}
                 </button>
-                <button wire:click.prevent="{{ (!$isEdit) ? 'store' : 'update' }}" type="button" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1 text-white">
+                <button id="btn-id" type="button" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1 text-white">
                     {{ (!$isEdit) ? __('Создать') : __('Обновить') }}
                 </button>
             </x-slot>
@@ -377,7 +358,7 @@
             <button type="button" wire:click="$toggle('isConfirmDeleteRecordModalVisible')" class="w-full sm:w-12 bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                 Нет
             </button>
-            <button type="button" wire:click="destroy" class="ml-2 w-full sm:w-12 bg-red-500 hover:bg-red-600 rounded shadow-xl px-2 py-1 text-white">
+            <button type="button" onclick="showToast('destroy')" class="ml-2 w-full sm:w-12 bg-red-500 hover:bg-red-600 rounded shadow-xl px-2 py-1 text-white">
                 Да
             </button>
         </x-slot>
@@ -386,22 +367,25 @@
 
 @push('scripts')
 <script>
-    var pickerStartDate = new Pikaday({
-        field: document.getElementById('start-date-id'),
-        format: 'DD.MM.YYYY',
-        onSelect: function() {
-            var data = this.getMoment().format('DD.MM.YYYY');
-            @this.set('startDate', data);
+    const element = document.getElementById('btn-id');
+    element.addEventListener('click', function(event) {
+        event.preventDefault();
+        if(!@this.isEdit) {
+           showToast('store');
+        }
+        else {
+            showToast('update');
         }
     });
+    async function showToast(methodName) {
+        await @this.callMethod(methodName);;
 
-    var pickerEndDate = new Pikaday({
-        field: document.getElementById('end-date-id'),
-        format: 'DD.MM.YYYY',
-        onSelect: function() {
-            var data = this.getMoment().format('DD.MM.YYYY');
-            @this.set('endDate', data);
-        }
-    });
+        const toast = document.getElementById("toast");
+        toast.className = toast.className.replace(" translate-x-full opacity-0", " translate-x-0 opacity-100");
+
+        setTimeout(function() {
+            toast.className = toast.className.replace(" translate-x-0 opacity-100", " translate-x-full opacity-0");
+        }, 3500);
+    }
 </script>
 @endpush
