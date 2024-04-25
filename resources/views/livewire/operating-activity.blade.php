@@ -2,53 +2,53 @@
 
     <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
-    <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-        <select wire:model="filterYear" wire:change="setFilterYear" name="filter-year" id="filter-year-id" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-            <option value="0">Выберите год</option>
-            @foreach($years as $year)
-            <option value="{{ $year->year }}">{{ $year->year }}</option>
-            @endforeach
-        </select>
-        <select wire:model="filterMonthYear" wire:change="setFilterMonthYear" name="filter-month-year" id="filter-month-year-id" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-            <option value="0">Выберите месяц</option>
-            @foreach($monthsYears as $monthYear)
-            <option value="{{ $monthYear->monthYear }}">{{ $monthYear->monthYear }}</option>
-            @endforeach
-        </select>
-        <select wire:model="filterWeeks" wire:change="setFilterWeeks" name="filter-weeks" id="filter-week-id" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-            <option value="0">Выберите неделю</option>
-            @foreach($weeksRange as $weekRange)
-            <option value="{{ $weekRange }}">{{ $weekRange }}</option>
-            @endforeach
-        </select>
-    </div>
-
-    <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-        <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
-            <i class="fa-solid fa-circle-plus fa-lg"></i>
-            Добавить запись
-        </button>
-        <button wire:click="generateOperatingActivityReport" class="w-full md:w-auto bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
-            <i class="fa-solid fa-file-excel"></i>
-            Скачать отчет
-        </button>
-        <button wire:click="filterModalFormVisible" class="block md:hidden w-full md:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-2 text-sm text-left text-white">
-            <i class="fa-solid fa-filter"></i>
-            Фильтры
-        </button>
+    <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:justify-between">
+        <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
+            <select wire:model="filterYear" wire:change="setFilterYear" name="filter-year" id="filter-year-id" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <option value="0">Выберите год</option>
+                @foreach($years as $year)
+                <option value="{{ $year->year }}">{{ $year->year }}</option>
+                @endforeach
+            </select>
+            <select wire:model="filterMonthYear" wire:change="setFilterMonthYear" name="filter-month-year" id="filter-month-year-id" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <option value="0">Выберите месяц</option>
+                @foreach($monthsYears as $monthYear)
+                <option value="{{ $monthYear->monthYear }}">{{ $monthYear->monthYear }}</option>
+                @endforeach
+            </select>
+            <select wire:model="filterWeeks" wire:change="setFilterWeeks" name="filter-weeks" id="filter-week-id" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <option value="0">Выберите неделю</option>
+                @foreach($weeksRange as $weekRange)
+                <option value="{{ $weekRange }}">{{ $weekRange }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
+            <button wire:click="creatingAndEditingModalFormVisible(false)" class="bg-white hover:bg-slate-200 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-blue-400 font-bold">
+                <i class="fa-solid fa-circle-plus fa-lg"></i>
+                Добавить запись
+            </button>
+            <button wire:click="generateOperatingActivityReport" class="bg-white hover:bg-slate-200 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-green-400 font-bold">
+                <i class="fa-solid fa-file-excel"></i>
+                Скачать отчет
+            </button>
+            <button wire:click="filterModalFormVisible" class="block md:hidden bg-white hover:bg-slate-200 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-gray-400 dark:text-white font-bold">
+                <i class="fa-solid fa-filter"></i>
+                Фильтры
+            </button>
+        </div>
     </div>
 
     <!-- Desktop -->
-    <div class="hidden lg:block border rounded border-slate-200 dark:border-slate-400/20">
+    <div class="hidden lg:block border rounded border-slate-300 dark:border-slate-400/20">
         <table class="w-full text-xs">
-            <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
+            <thead class="bg-slate-300 dark:bg-slate-700 uppercase">
                 <tr>
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
                     <th scope="col" class="w-60 px-2 py-2 font-semibold">Направление деятельности</th>
-                    <th scope="col" class="w-52 px-2 py-2 font-semibold">Исполнитель</th>
+                    <th scope="col" class="w-40 px-2 py-2 font-semibold">Исполнитель</th>
                     <th scope="col" class="w-auto px-2 py-2 font-semibold">Задачи</th>
-                    <th scope="col" class="w-28 px-2 py-2 font-semibold">Статус</th>
-                    <th scope="col" class="w-32 px-2 py-2 font-semibold">Действия</th>
+                    <th scope="col" class="w-16 px-2 py-2 font-semibold">Действия</th>
                 </tr>
                 <tr>
                     <th scope="col" class="w-12 px-2 py-2"></th>
@@ -60,65 +60,41 @@
                             @endforeach
                         </select>
                     </th>
-                    <th scope="col" class="w-52 px-2 py-2 font-semibold">
-                        <select wire:model="filterExecutor" wire:change="setFilterExecutor" name="filterExecutor" id="filter-executor-id" class="w-52 bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                    <th scope="col" class="w-40 px-2 py-2 font-semibold">
+                        <select wire:model="filterExecutor" wire:change="setFilterExecutor" name="filterExecutor" id="filter-executor-id" class="w-40 bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             <option value="">Все исполнители</option>
                             @foreach($listOfExecutors as $value)
-                            <option value="{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}">{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}</option>
+                            <option value="{{ $value->last_name }} {{ $value->first_name }} {{ $value->middle_name }}">{{ $value->last_name }} {{ mb_substr($value->first_name, 0, 1) }}. {{ mb_substr($value->middle_name, 0, 1) }}.</option>
                             @endforeach
                         </select>
                     </th>
                     <th scope="col" class="w-auto px-2 py-2"></th>
-                    <th scope="col" class="w-28 px-2 py-2 font-semibold">
-                        <select wire:model="filterStatus" wire:change="setFilterStatus" name="filterStatus" id="filter-status-id" class="w-28 bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="0">Все статусы</option>
-                            <option value="1">В работе</option>
-                            <option value="2">На утверждение</option>
-                            <option value="3">Выполнено</option>
-                        </select>
-                    </th>
-                    <th scope="col" class="w-32 px-2 py-2"></th>
+                    <th scope="col" class="w-16 px-2 py-2"></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($operatingActivity as $value)
-                <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-600 border-b dark:border-slate-700">
+                <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-600 border-b dark:border-slate-400/20">
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                    <td class="w-72 px-2 py-2 ">{{ $value->activity_direction }}</td>
-                    <td class="w-60 px-2 py-2">{{ $value->fio }}</td>
+                    <td class="w-60 px-2 py-2 ">{{ $value->activity_direction }}</td>
+                    <td class="w-40 px-2 py-2">{{ $value->fio }}</td>
                     <td class="w-auto px-2 py-2">{{ $value->task }}</td>
-                    <td class="w-28 px-2 py-2 text-center">
-                        @if($value->status == 1)
-                        <div class="bg-orange-400 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 py-1 text-xs text-white dark:text-orange-400 font-bold">
-                            <span>В работе</span>
+                    <td class="w-16 px-2 py-2">
+                        <div class="grid gap-1 grid-cols-2">
+                            <button wire:click="confirmActivity({{ $value->id }})" class="bg-white hover:bg-slate-400/20 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-green-400 font-bold" title="" data-tippy-content="Подтверждение">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-white hover:bg-slate-400/20 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-indigo-400 font-bold" title="" data-tippy-content="Доп. информация">
+                                <i class="fa-solid fa-up-right-from-square"></i>
+                            </button>
+                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-white hover:bg-slate-400/20 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-sky-400 font-bold" title="" data-tippy-content="Редактировать">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="bg-white hover:bg-slate-400/20 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-red-400 font-bold" title="" data-tippy-content="Удалить">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </div>
-                        @elseif($value->status == 2)
-                        <div class="bg-sky-400 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 py-1 text-xs text-white dark:text-sky-400 font-bold">
-                            <span>На утверждение</span>
-                        </div>
-                        @else
-                        <div class="bg-green-400 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 py-1 text-xs text-white dark:text-green-400 font-bold">
-                            <span>Выполнено</span>
-                        </div>
-                        @endif
-                    </td>
-                    <td class="w-32 px-2 py-2">
-                        @can('confirm-operating-activity')
-                        <button wire:click="confirmActivity({{ $value->id }})" class="bg-green-500 hover:bg-green-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Подтверждение">
-                            <i class="fa-solid fa-check"></i>
-                        </button>
-                        @endcan
-                        <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-indigo-500 hover:bg-indigo-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Доп. информация">
-                            <i class="fa-solid fa-up-right-from-square"></i>
-                        </button>
-                        @if($value->status != 3)
-                        <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-sky-500 hover:bg-sky-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Редактировать">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="bg-red-500 hover:bg-red-600 rounded px-1.5 py-1.5 text-xs text-white" title="" data-tippy-content="Удалить">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                        @endif
+
                     </td>
                 </tr>
                 @endforeach
@@ -370,10 +346,9 @@
     const element = document.getElementById('btn-id');
     element.addEventListener('click', function(event) {
         event.preventDefault();
-        if(!@this.isEdit) {
-           showToast('store');
-        }
-        else {
+        if (!@this.isEdit) {
+            showToast('store');
+        } else {
             showToast('update');
         }
     });
