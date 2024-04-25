@@ -24,15 +24,15 @@
             </select>
         </div>
         <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-            <button wire:click="creatingAndEditingModalFormVisible(false)" class="bg-white hover:bg-slate-200 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-blue-400 font-bold">
+            <button wire:click="creatingAndEditingModalFormVisible(false)" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-blue-400 font-bold">
                 <i class="fa-solid fa-circle-plus fa-lg"></i>
                 Добавить запись
             </button>
-            <button wire:click="generateOperatingActivityReport" class="bg-white hover:bg-slate-200 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-green-400 font-bold">
+            <button wire:click="generateOperatingActivityReport" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-green-400 font-bold">
                 <i class="fa-solid fa-file-excel"></i>
                 Скачать отчет
             </button>
-            <button wire:click="filterModalFormVisible" class="block md:hidden bg-white hover:bg-slate-200 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-gray-400 dark:text-white font-bold">
+            <button wire:click="filterModalFormVisible" class="block md:hidden bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-gray-400 dark:text-white font-bold">
                 <i class="fa-solid fa-filter"></i>
                 Фильтры
             </button>
@@ -40,17 +40,18 @@
     </div>
 
     <!-- Desktop -->
-    <div class="hidden lg:block border rounded border-slate-300 dark:border-slate-400/20">
+    <div class="hidden lg:block border rounded border-slate-400/20 dark:border-slate-400/20">
         <table class="w-full text-xs">
-            <thead class="bg-slate-300 dark:bg-slate-700 uppercase">
+            <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr>
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
                     <th scope="col" class="w-60 px-2 py-2 font-semibold">Направление деятельности</th>
                     <th scope="col" class="w-40 px-2 py-2 font-semibold">Исполнитель</th>
                     <th scope="col" class="w-auto px-2 py-2 font-semibold">Задачи</th>
+                    <th scope="col" class="w-16 px-2 py-2 font-semibold">Статус</th>
                     <th scope="col" class="w-16 px-2 py-2 font-semibold">Действия</th>
                 </tr>
-                <tr>
+                <tr class="border-b border-slate-400/20 dark:border-slate-400/20">
                     <th scope="col" class="w-12 px-2 py-2"></th>
                     <th scope="col" class="w-60 px-2 py-2 font-semibold">
                         <select wire:model="filterActivityDirection" wire:change="setFilterActivityDirection" name="filterActivityDirection" id="filter-activity-direction-id" class="w-60 bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
@@ -70,31 +71,46 @@
                     </th>
                     <th scope="col" class="w-auto px-2 py-2"></th>
                     <th scope="col" class="w-16 px-2 py-2"></th>
+                    <th scope="col" class="w-16 px-2 py-2"></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($operatingActivity as $value)
-                <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-600 border-b dark:border-slate-400/20">
+                <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20 dark:border-slate-400/20">
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="w-60 px-2 py-2 ">{{ $value->activity_direction }}</td>
                     <td class="w-40 px-2 py-2">{{ $value->fio }}</td>
                     <td class="w-auto px-2 py-2">{{ $value->task }}</td>
+                    <td class="w-16 px-2 py-2 text-center">
+                        @if($value->status == 1)
+                        <span class="text-orange-400 cursor-pointer">
+                            <i class="fa-solid fa-pen-ruler" data-tippy-content="В работе"></i>
+                        </span>
+                        @elseif($value->status == 2)
+                        <span class="text-sky-400 cursor-pointer">
+                            <i class="fa-solid fa-stamp" data-tippy-content="На утверждение"></i>
+                        </span>
+                        @else
+                        <span class="text-green-400 cursor-pointer">
+                            <i class="fa-solid fa-circle-check" data-tippy-content="Выполнено"></i>
+                        </span>
+                        @endif
+                    </td>
                     <td class="w-16 px-2 py-2">
                         <div class="grid gap-1 grid-cols-2">
-                            <button wire:click="confirmActivity({{ $value->id }})" class="bg-white hover:bg-slate-400/20 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-green-400 font-bold" title="" data-tippy-content="Подтверждение">
+                            <button wire:click="confirmActivity({{ $value->id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-green-400 font-bold" title="" data-tippy-content="Подтверждение">
                                 <i class="fa-solid fa-check"></i>
                             </button>
-                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-white hover:bg-slate-400/20 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-indigo-400 font-bold" title="" data-tippy-content="Доп. информация">
+                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-indigo-400 font-bold" title="" data-tippy-content="Доп. информация">
                                 <i class="fa-solid fa-up-right-from-square"></i>
                             </button>
-                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-white hover:bg-slate-400/20 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-sky-400 font-bold" title="" data-tippy-content="Редактировать">
+                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-sky-400 font-bold" title="" data-tippy-content="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="bg-white hover:bg-slate-400/20 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-red-400 font-bold" title="" data-tippy-content="Удалить">
+                            <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-red-400 font-bold" title="" data-tippy-content="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
-
                     </td>
                 </tr>
                 @endforeach
