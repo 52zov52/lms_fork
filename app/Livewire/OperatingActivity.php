@@ -173,9 +173,9 @@ class OperatingActivity extends Component
         ]);
     }
 
-    public function callMethod($methodName)
+    public function callMethod($methodName, $param = null)
     {
-        $this->{$methodName}();
+        $this->{$methodName}($param);
     }
 
     public function creatingAndEditingModalFormVisible($isEdit, $id = 0, $userId = 0): void

@@ -4,8 +4,6 @@ namespace App\Livewire;
 
 use App\Http\Controllers\ContingentController;
 use App\Models\Group;
-use App\Models\StudentsAcademicLeave;
-use Carbon\Carbon;
 use Livewire\Component;
 
 class Contingent extends Component
@@ -20,11 +18,15 @@ class Contingent extends Component
 
         $groups = Group::select('id', 'group_name')->whereIn('id', $groupId)->orderBy('group_name', 'asc')->get();
         
-
         return view('livewire.contingent', [
             'groups' => $groups,
             'contingent' => $this->contingent
         ]);
+    }
+
+    public function callMethod($methodName)
+    {
+        $this->{$methodName}();
     }
 
     public function getContingent(): void
@@ -39,7 +41,8 @@ class Contingent extends Component
             return redirect()->route('generate.list.of.student.in.group.report', ['groupId' => $this->groupId]);
         }
         else {
-            session()->flash('message-error', 'Невозможно сформировать отчет, т.к. не выбрана группа из списка!');
+            session()->flash('type', 'error');
+            session()->flash('message', 'Невозможно сформировать отчет, т.к. не выбрана группа из списка!');
         }
     }
 }

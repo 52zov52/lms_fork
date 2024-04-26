@@ -40,8 +40,8 @@
     </div>
 
     <!-- Desktop -->
-    <div class="hidden lg:block border rounded border-slate-400/20 dark:border-slate-400/20">
-        <table class="w-full text-xs">
+    <div class="hidden lg:block border rounded border-slate-400/20">
+        <table class="w-full text-xs lg:text-sm">
             <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr>
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
@@ -51,7 +51,7 @@
                     <th scope="col" class="w-16 px-2 py-2 font-semibold">Статус</th>
                     <th scope="col" class="w-16 px-2 py-2 font-semibold">Действия</th>
                 </tr>
-                <tr class="border-b border-slate-400/20 dark:border-slate-400/20">
+                <tr class="border-b border-slate-400/20">
                     <th scope="col" class="w-12 px-2 py-2"></th>
                     <th scope="col" class="w-60 px-2 py-2 font-semibold">
                         <select wire:model="filterActivityDirection" wire:change="setFilterActivityDirection" name="filterActivityDirection" id="filter-activity-direction-id" class="w-60 bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
@@ -76,38 +76,34 @@
             </thead>
             <tbody>
                 @foreach($operatingActivity as $value)
-                <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20 dark:border-slate-400/20">
+                <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="w-60 px-2 py-2 ">{{ $value->activity_direction }}</td>
                     <td class="w-40 px-2 py-2">{{ $value->fio }}</td>
                     <td class="w-auto px-2 py-2">{{ $value->task }}</td>
                     <td class="w-16 px-2 py-2 text-center">
                         @if($value->status == 1)
-                        <span class="text-orange-400 cursor-pointer">
-                            <i class="fa-solid fa-pen-ruler" data-tippy-content="В работе"></i>
-                        </span>
+                        <span class="text-orange-400 font-bold cursor-pointer">Р</span>
                         @elseif($value->status == 2)
-                        <span class="text-sky-400 cursor-pointer">
-                            <i class="fa-solid fa-stamp" data-tippy-content="На утверждение"></i>
-                        </span>
+                        <span class="text-sky-400 font-bold cursor-pointer">У</span>
                         @else
-                        <span class="text-green-400 cursor-pointer">
-                            <i class="fa-solid fa-circle-check" data-tippy-content="Выполнено"></i>
-                        </span>
+                        <span class="text-green-400 font-bold cursor-pointer">В</span>
                         @endif
                     </td>
                     <td class="w-16 px-2 py-2">
                         <div class="grid gap-1 grid-cols-2">
-                            <button wire:click="confirmActivity({{ $value->id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-green-400 font-bold" title="" data-tippy-content="Подтверждение">
+                            @can('confirm-operating-activity')
+                            <button onclick="showToast('confirmActivity', '{{ $value->id }}')" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-green-400 font-bold" title="" data-tippy-content="Подтверждение">
                                 <i class="fa-solid fa-check"></i>
                             </button>
-                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-indigo-400 font-bold" title="" data-tippy-content="Доп. информация">
+                            @endcan
+                            <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-indigo-400 font-bold" title="" data-tippy-content="Доп. информация">
                                 <i class="fa-solid fa-up-right-from-square"></i>
                             </button>
-                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-sky-400 font-bold" title="" data-tippy-content="Редактировать">
+                            <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-sky-400 font-bold" title="" data-tippy-content="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-400/20 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-red-400 font-bold" title="" data-tippy-content="Удалить">
+                            <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-red-400 font-bold" title="" data-tippy-content="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -147,18 +143,18 @@
                 <span class="font-semibold">Действия:</span>
                 <div class="flex flex-row space-x-2">
                     @can('confirm-operating-activity')
-                    <button wire:click="confirmActivity({{ $value->id }})" class="w-auto grow bg-green-500 hover:bg-green-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Подтверждение">
+                    <button onclick="showToast('confirmActivity', '{{ $value->id }}')" class="w-auto grow bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-green-400 font-bold" title="" data-tippy-content="Подтверждение">
                         <i class="fa-solid fa-check"></i>
                     </button>
                     @endcan
-                    <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="w-auto grow bg-indigo-500 hover:bg-indigo-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Доп. информация">
+                    <button wire:click="descriptionModalFormVisible({{ $value->id }})" class="w-auto grow bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-indigo-400 font-bold" title="" data-tippy-content="Доп. информация">
                         <i class="fa-solid fa-up-right-from-square"></i>
                     </button>
                     @if($value->status != 3)
-                    <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="w-auto grow bg-sky-500 hover:bg-sky-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Редактировать">
+                    <button wire:click="creatingAndEditingModalFormVisible(true, {{ $value->id }}, {{ $value->user_id }})" class="w-auto grow bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-sky-400 font-bold" title="" data-tippy-content="Редактировать">
                         <i class="fa-solid fa-pen"></i>
                     </button>
-                    <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="w-auto grow bg-red-500 hover:bg-red-600 rounded px-2 py-1 text-white" title="" data-tippy-content="Удалить">
+                    <button wire:click="confirmDeleteRecordModalVisible({{ $value->id }}, {{ $value->user_id }})" class="w-auto grow bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-red-400 font-bold" title="" data-tippy-content="Удалить">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                     @endif
@@ -368,8 +364,8 @@
             showToast('update');
         }
     });
-    async function showToast(methodName) {
-        await @this.callMethod(methodName);;
+    async function showToast(methodName, param = null) {
+        await @this.callMethod(methodName, param);;
 
         const toast = document.getElementById("toast");
         toast.className = toast.className.replace(" translate-x-full opacity-0", " translate-x-0 opacity-100");
