@@ -1,4 +1,4 @@
-<div class="flex flex-col space-y-2">
+<div id="myDiv" class="h-full flex flex-col space-y-2">
 
     @if(session()->has('message-success') && $isAlertVisible)
     <div class="flex items-center justify-between bg-green-500 border-t-4 border-green-700 rounded shadow-xl p-4 text-white" role="alert">
@@ -28,8 +28,7 @@
         <h4 class="text-lg xl:text-xl font-semibold">{{ $infoAboutGroupAndCourse->group_name }} - {{ $infoAboutGroupAndCourse->discipline_name }}</h4>
     </div>
 
-    <div class="w-full bg-white rounded shadow-xl p-4">
-        <div class="overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+    <div id="divJ" class="overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
             <table class="w-auto bg-white shadow-md border text-xs">
                 <tbody>
                     <tr class="z-10 sticky top-0 border">
@@ -103,7 +102,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
 
     <!-- Creating And Editing Modal Form -->
     <x-dialog-modal wire:model="isCreatingAndEditingModalFormVisible">
@@ -159,6 +157,20 @@
 
 @push('scripts')
 <script>
+    var offsetHeight = (document.getElementById("main-id").offsetHeight - 130);
+    var offsetWidth = (window.innerWidth - 100);
+    console.log("H" + offsetHeight);
+    console.log("W" + offsetWidth);
+
+    document.getElementById("divJ").setAttribute("style", "width: " + offsetWidth + "px; " + "height: "+ offsetHeight +"px");
+
+    window.addEventListener('resize', function(event) {
+        var w = (window.innerWidth - 100);
+        var h = (document.getElementById("main-id").offsetHeight - 130);
+        console.log("W" + w);
+        document.getElementById("divJ").setAttribute("style", "width: " + w + "px; " + "height: "+ h +"px");
+    });
+
     var pickerLessonDate = new Pikaday({
         field: document.getElementById('lesson-date-id'),
         format: 'DD.MM.YYYY',

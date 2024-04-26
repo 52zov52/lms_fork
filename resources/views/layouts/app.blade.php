@@ -86,7 +86,7 @@
                     </div>
                 </div>
             </header>
-            <main class="w-full overflow-x-hidden overflow-y-auto grow p-5 scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+            <main id="main-id" class="w-full overflow-x-hidden overflow-y-auto grow p-5 scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
                 <div class="flex flex-col">
                     <div class="mb-4">
                         <h1 class="text-2xl font-semibold">{{ $header }}</h1>
