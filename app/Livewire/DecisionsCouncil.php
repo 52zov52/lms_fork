@@ -167,6 +167,11 @@ class DecisionsCouncil extends Component
         ]);
     }
 
+    public function callMethod($methodName, $param = null)
+    {
+        $this->{$methodName}($param);
+    }
+
     public function alertVisible(): void
     {
         $this->isAlertVisible = false;
@@ -290,7 +295,8 @@ class DecisionsCouncil extends Component
         $this->isAlertVisible = true;
         $this->resetFields();
 
-        session()->flash('message-success', 'Запись успешно добавлена!');
+        session()->flash('type', 'success');
+        session()->flash('message', 'Запись успешно добавлена!');
     }
 
     public function edit($id): void
@@ -357,7 +363,8 @@ class DecisionsCouncil extends Component
         $this->isAlertVisible = true;
         $this->resetFields();
 
-        session()->flash('message-success', 'Запись успешно отредактирована!');
+        session()->flash('type', 'success');
+        session()->flash('message', 'Запись успешно отредактирована!');
     }
 
     public function destroy(): void
@@ -368,7 +375,8 @@ class DecisionsCouncil extends Component
         $this->isConfirmDeleteRecordModalVisible = false;
         $this->isAlertVisible = true;
 
-        session()->flash('message-success', 'Запись успешно удалена!');
+        session()->flash('type', 'success');
+        session()->flash('message', 'Запись успешно удалена!');
     }
 
     public function confirmDecisions($id): void
@@ -378,7 +386,8 @@ class DecisionsCouncil extends Component
         $decisionsRectorateAndCouncil->update();
         $this->isAlertVisible = true;
 
-        session()->flash('message-success', 'Запись успешно обновлена!');
+        session()->flash('type', 'success');
+        session()->flash('message', 'Запись успешно обновлена!');
     }
 
     public function undoDecisions($id): void
@@ -388,7 +397,8 @@ class DecisionsCouncil extends Component
         $decisionsRectorateAndCouncil->update();
         $this->isAlertVisible = true;
 
-        session()->flash('message-success', 'Запись успешно обновлена!');
+        session()->flash('type', 'success');
+        session()->flash('message', 'Запись успешно обновлена!');
     }
 
     public function resetFields(): void

@@ -167,6 +167,11 @@ class DecisionsRectorate extends Component
         ]);
     }
 
+    public function callMethod($methodName, $param = null)
+    {
+        $this->{$methodName}($param);
+    }
+
     public function alertVisible(): void
     {
         $this->isAlertVisible = false;
