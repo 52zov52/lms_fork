@@ -42,30 +42,38 @@
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Решение уч. совета</span>
             </a>
         </li>
+        @can('access-to-e-journal')
         <li class="{{ (request()->routeIs('my.groups')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('my.groups') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
                 <i class="fa-solid fa-user-group fa-lg"></i>
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Мои группы</span>
             </a>
         </li>
+        @endcan
+        @role('Student')
         <li class="{{ (request()->routeIs('document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('document.order.requests') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
                 <i class="fa-solid fa-file-invoice fa-lg"></i>
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Заказ документов (справок)</span>
             </a>
         </li>
+        @endrole
+        @role('Teacher')
         <li class="{{ (request()->routeIs('contingent')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('contingent') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
                 <i class="fa-solid fa-people-group fa-lg"></i>
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Контингент</span>
             </a>
         </li>
+        @endrole
+        @can('access-to-data-on-students-academic-leaves')
         <li class="{{ (request()->routeIs('academic.leave.calendar')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('academic.leave.calendar') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
                 <i class="fa-solid fa-calendar-day fa-lg"></i>
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Календарь академ. отпусков</span>
             </a>
         </li>
+        @endcan
         <li class="{{ (request()->routeIs('reports')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('reports') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
                 <i class="fa-solid fa-chart-simple fa-lg"></i>

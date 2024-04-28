@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" id="theme-id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" id="theme-id">
 
 <head>
     <meta charset="UTF-8">
