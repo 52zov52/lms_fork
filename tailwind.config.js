@@ -19,5 +19,5 @@ export default {
         },
     },
 
-    plugins: [forms, typography, require('tailwind-scrollbar')({ nocompatible: true })],
+plugins: [forms, typography, require('tailwind-scrollbar')({ nocompatible: true })],
 };

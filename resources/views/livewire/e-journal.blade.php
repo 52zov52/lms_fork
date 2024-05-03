@@ -1,65 +1,43 @@
-<div id="myDiv" class="h-full flex flex-col space-y-2">
+<div class="flex flex-col space-y-2">
 
-    @if(session()->has('message-success') && $isAlertVisible)
-    <div class="flex items-center justify-between bg-green-500 border-t-4 border-green-700 rounded shadow-xl p-4 text-white" role="alert">
-        <div class="flex items-center">
-            <i class="fa-solid fa-circle-check fa-lg"></i>
-            <div class="ml-3 text-base font-medium">
-                {{ session('message-success') }}
-            </div>
-        </div>
-        <button wire:click="alertVisible"><i class="fa-solid fa-xmark fal-lg"></i></button>
-    </div>
-    @endif
+    <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
-    @if(session()->has('message-error') && $isAlertVisible)
-    <div class="flex items-center justify-between bg-red-500 border-t-4 border-red-700 rounded shadow-xl p-4 text-white" role="alert">
-        <div class="flex items-center">
-            <i class="fa-solid fa-xmark fa-lg"></i>
-            <div class="ml-3 text-base font-medium">
-                {{ session('message-error') }}
-            </div>
-        </div>
-        <button wire:click="alertVisible"><i class="fa-solid fa-xmark fal-lg"></i></button>
-    </div>
-    @endif
+    <h4 class="text-base lg:text-base font-semibold">{{ $infoAboutGroupAndCourse->group_name }} - {{ $infoAboutGroupAndCourse->discipline_name }}</h4>
 
-    <div>
-        <h4 class="text-lg xl:text-xl font-semibold">{{ $infoAboutGroupAndCourse->group_name }} - {{ $infoAboutGroupAndCourse->discipline_name }}</h4>
-    </div>
-
-    <div id="e-journal-id" class="overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
-        <table class="w-auto border-slate-400/20 text-xs">
-            <tbody>
-                <tr class="z-10 sticky top-0 bg-slate-200 dark:bg-slate-700 border">
-                    <td class="w-12 border px-2 py-2 text-center font-semibold">№ пп</td>
-                    <td class="sticky left-0 w-auto bg-slate-200 dark:bg-slate-700 border px-2 py-2 font-semibold">ФИО</td>
-                    <td class="w-20 border px-2 py-2 text-center font-semibold">№ зачетки</td>
+    <div class="w-e-journal h-e-journal overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+        <table class="text-xs lg:text-sm">
+            <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
+                <tr class="z-10 sticky top-0 bg-slate-200 dark:bg-slate-700 border-b border-slate-400/20">
+                    <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
+                    <th scope="col" class="sticky left-0 w-auto bg-slate-200 dark:bg-slate-700 px-2 py-2 font-semibold">ФИО</th>
+                    <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">№ зачетки</th>
                     @foreach($dates as $dateAndTime)
-                    <td class="w-20 border px-2 py-2 text-center font-semibold">
+                    <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">
                         {{ \Carbon\Carbon::parse($dateAndTime->lesson_date)->format('d.m.Y') }}
                         @if(!$dateAndTime->is_signature)
                         <button wire:click="setSignature('{{ $dateAndTime->lesson_date }}', '{{ $dateAndTime->lesson_time }}', {{ $dateAndTime->lesson_type }})" class="w-full bg-gray-500 hover:bg-gray-600 rounded p-1 text-white" title="" data-tippy-content="Подписать">
                             <i class="fa-solid fa-signature"></i>
                         </button>
                         @endif
-                    </td>
+                    </th>
                     @endforeach
-                    <td class="w-20 border px-2 py-2 text-center font-semibold">
+                    <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">
                         {{ $currentData }}
                         <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full bg-green-500 hover:bg-green-600 rounded p-1 text-white" title="" data-tippy-content="Добавить новый столбец">
                             <i class="fa-solid fa-plus"></i>
                         </button>
-                    </td>
+                    </th>
                 </tr>
+            </thead>
+            <tbody>
                 @foreach($contingent as $student)
-                <tr>
-                    <td class="w-12 border px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                    <td class="z-0 sticky left-0 w-auto bg-white dark:bg-slate-800 border px-2 py-2">{{ $student->last_name }} {{ $student->first_name }} {{ $student->middle_name }}</td>
-                    <td class="w-20 border px-2 py-2 text-center">{{ $student->ticket_number }}</td>
+                <tr class="bg-white dark:bg-slate-800 border-b border-slate-400/20">
+                    <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
+                    <td class="z-0 sticky left-0 w-auto bg-white dark:bg-slate-800 px-2 py-2">{{ $student->last_name }} {{ $student->first_name }} {{ $student->middle_name }}</td>
+                    <td class="w-20 px-2 py-2 text-center">{{ $student->ticket_number }}</td>
                     @foreach($journal as $item)
                     @if($student->user_id == $item->student_id)
-                    <td class="w-20 border px-2 py-2 text-center {{ ($item->is_signature) ? 'bg-green-200' : '' }}">
+                    <td class="w-20 px-2 py-2 text-center {{ ($item->is_signature) ? 'bg-green-200' : '' }}">
                         @if(!$item->is_signature)
                         <select wire:model="status.{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $student->user_id }})" name="status" id="" class="bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($item->is_signature) disabled @endif>
                             @foreach($listOfStatuses as $key => $value)
@@ -96,13 +74,13 @@
                     </td>
                     @endif
                     @endforeach
-                    <td class="w-20 border px-2 py-2 text-center"></td>
+                    <td class="w-20 px-2 py-2 text-center"></td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
-
+    
     <!-- Creating And Editing Modal Form -->
     <x-dialog-modal wire:model="isCreatingAndEditingModalFormVisible">
         <form>
@@ -154,41 +132,3 @@
         </form>
     </x-dialog-modal>
 </div>
-
-@push('scripts')
-<script>
-    var wWidth = window.screen.width;
-    var wHeight = window.screen.height;
-    
-    var offsetWidth = 100;
-    var offsetHeight = 130;
-
-    if(wWidth <= 450) {
-        offsetWidth = 50;
-    }
-
-    if (wHeight <= 950) {
-        offsetHeight = 230;
-    }
-
-    offsetHeight = (document.getElementById("main-id").offsetHeight - offsetHeight);
-    offsetWidth = (window.innerWidth - offsetWidth);
-
-    document.getElementById("e-journal-id").setAttribute("style", "width: " + offsetWidth + "px; " + "height: " + offsetHeight + "px");
-
-    window.addEventListener('resize', function(event) {
-        var w = (window.innerWidth - offsetWidth);
-        var h = (document.getElementById("main-id").offsetHeight - offsetHeight);
-        console.log("W" + w);
-        document.getElementById("e-journal-id").setAttribute("style", "width: " + w + "px; " + "height: " + h + "px");
-    });
-
-    var pickerLessonDate = new Pikaday({
-        field: document.getElementById('lesson-date-id'),
-        format: 'DD.MM.YYYY',
-        onSelect: function() {
-            @this.set('lesson_date', document.getElementById('lesson-date-id').value);
-        }
-    });
-</script>
-@endpush

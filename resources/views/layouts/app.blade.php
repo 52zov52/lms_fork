@@ -12,6 +12,18 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <style>
+        @media screen and (min-width: 1024px) {
+            .w-e-journal {
+                width: calc(100vw - 105px);
+            }
+        }
+
+        .h-e-journal {
+            height: calc(100vh - 280px);
+        }
+    </style>
+
     <script type="module">
         if (localStorage.getItem('theme') != null) {
             document.getElementById('theme-id').classList.add(localStorage.getItem('theme'));
@@ -28,20 +40,24 @@
 </head>
 
 <body>
-    <div id="app" x-data="setting()" class="h-screen overflow-hidden flex bg-white dark:bg-slate-800 text-gray-600 dark:text-white font-sans font-light antialiased">
+    <div x-data="setting()" id="app" class="h-screen relative flex bg-white dark:bg-slate-800 text-gray-600 dark:text-white font-sans font-light antialiased overflow-hidden">
         <!-- Desktop sideber -->
-        <aside class="hidden h-full lg:flex lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5 transition-all duration-700 ease-in-out"
-            :class="{ 'w-16': !isExpandSideBar, 'w-72': isExpandSideBar }">
+        <aside :class="{ 'absolute z-20 w-72': isExpandSideBar, 'w-16': !isExpandSideBar }" class="hidden h-full lg:flex lg:flex-shrink-0 lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5 transition-all">
             <div class="inline-flex items-center px-2" :class="{ 'justify-center': !isExpandSideBar }">
                 <img id="logo-pc-id" x-bind:src="logo" alt="" class="w-12">
                 <span x-show="isExpandSideBar" class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
+
+            </div>
+            <div class="relative">
+                <button class="absolute -top-7 -right-4 bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded-full border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2.5 py-0.5" @click="isExpandSideBar = !isExpandSideBar">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
             </div>
             <!-- Navigation menu -->
             @include('layouts.navigation-menu')
         </aside>
         <!-- Mobile sidebar -->
-        <aside class="lg:hidden fixed w-80 h-full flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 transition-all duration-700 ease-in-out"
-            :class="{ '-translate-x-full opacity-0': !isSideBarOpen, 'translate-x-0 opacity-100': isSideBarOpen }">
+        <aside class="lg:hidden fixed z-20 w-80 h-full flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 transition-all duration-700 ease-in-out" :class="{ '-translate-x-full opacity-0': !isSideBarOpen, 'translate-x-0 opacity-100': isSideBarOpen }">
             <div class="flex justify-between p-4">
                 <div class="inline-flex items-center" :class="{ 'justify-center': !isSideBarOpen }">
                     <img id="logo-mobile-id" x-bind:src="logo" alt="" class="w-12">
@@ -54,13 +70,10 @@
             <!-- Navigation menu -->
             @include('layouts.navigation-menu')
         </aside>
-        <div class="flex-1 flex flex-col">
-            <header class="shrink-0 w-full h-16 border-b border-slate-200 dark:border-slate-400/20">
-                <div class="h-full flex justify-between px-5">
-                    <!-- Desktop sideber -->
-                    <button @click="toggleSideBar()" class="hidden lg:block">
-                        <i class="fa-solid fa-bars fa-lg"></i>
-                    </button>
+
+        <div class="w-full flex flex-col">
+            <header class="shrink-0 h-16 border-b border-slate-200 dark:border-slate-400/20">
+                <div class="h-full flex justify-between lg:justify-end px-5">
                     <!-- Mobile sidebar -->
                     <button @click="isSideBarOpen = !isSideBarOpen" class="block lg:hidden">
                         <i class="fa-solid fa-bars fa-lg"></i>
@@ -86,16 +99,17 @@
                     </div>
                 </div>
             </header>
-            <main id="main-id" class="w-full overflow-x-hidden overflow-y-auto grow p-5 scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+
+            <main class="grow p-5 overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
                 <div class="flex flex-col">
-                    <div class="mb-4">
-                        <h1 class="text-2xl font-semibold">{{ $header }}</h1>
+                    <div class="mb-2">
+                        <h1 class="text-lg lg:text-xl font-semibold">{{ $header }}</h1>
                     </div>
                     {{ $slot }}
                 </div>
             </main>
             <footer class="shrink-0 w-full h-14 flex items-center justify-center border-t border-slate-200 dark:border-slate-400/20">
-                <span id="footer-id">foo</span>
+                <span id="footer-id"></span>
             </footer>
         </div>
     </div>
