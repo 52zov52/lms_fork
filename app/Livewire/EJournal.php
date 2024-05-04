@@ -11,7 +11,6 @@ use Livewire\Component;
 
 class EJournal extends Component
 {
-    public $isAlertVisible = false;
     public $courseTeacherId = 0;
     public $status = array();
 
@@ -93,6 +92,11 @@ class EJournal extends Component
         ]);
     }
 
+    public function callMethod($methodName, $param = null)
+    {
+        $this->{$methodName}($param);
+    }
+
     public function creatingAndEditingModalFormVisible($isEdit): void
     {
         $this->isEdit = $isEdit;
@@ -104,11 +108,6 @@ class EJournal extends Component
         $this->lesson_theme = 'Тема ' . ($this->getCountLessons($this->lesson_type) + 1);
 
         $this->isCreatingAndEditingModalFormVisible = true;
-    }
-
-    public function alertVisible(): void
-    {
-        $this->isAlertVisible = false;
     }
 
     public function store()
@@ -132,18 +131,20 @@ class EJournal extends Component
 
         $this->isCreatingAndEditingModalFormVisible = false;
 
-        session()->flash('message-success', 'Запись успешно добавлена!');
-        $this->isAlertVisible = true;
+        session()->flash('type', 'success');
+        session()->flash('message', 'Запись успешно добавлена!');
     }
 
-    public function destroy($id)
+    public function destroy($param)
     {
-        $eJournal = ModelsEJournal::findOrFail($this->id);
-        $eJournal->delete();
+        $eJournal = ModelsEJournal::where('lesson_date', '=', Carbon::parse($param['lesson_date'])->format('Y-m-d'))
+            ->where('lesson_time', '=', $param['lesson_time'])
+            ->where('lesson_type', '=', (int)$param['lesson_type'])
+            ->where('course_teacher_id', '=', $this->courseTeacherId)
+            ->delete();
 
-        $this->isAlertVisible = true;
-
-        session()->flash('message-success', 'Запись успешно удалена!');
+        session()->flash('type', 'success');
+        session()->flash('message', 'Запись успешно удалена!');
     }
 
     public function setStatus($id, $studentId)
@@ -156,23 +157,25 @@ class EJournal extends Component
             ]);
     }
 
-    public function setSignature($lessonDate, $lessonTime, $lessonType)
+    public function setSignature($param)
     {
-        $eJournal = ModelsEJournal::where('lesson_date', '=', Carbon::parse($lessonDate)->format('Y-m-d'))
-            ->where('lesson_time', '=', $lessonTime)
-            ->where('lesson_type', '=', $lessonType)
+        $eJournal = ModelsEJournal::where('lesson_date', '=', Carbon::parse($param['lesson_date'])->format('Y-m-d'))
+            ->where('lesson_time', '=', $param['lesson_time'])
+            ->where('lesson_type', '=', (int)$param['lesson_type'])
             ->where('course_teacher_id', '=', $this->courseTeacherId)
             ->update([
                 'is_signature' => true,
                 'who_signed' => Auth::user()->id,
                 'signatured_at' => Carbon::now()->format('Y-m-d H:i:s')
             ]);
+
+        session()->flash('type', 'success');
+        session()->flash('message', 'Журнал успешно подписан!');
     }
 
     public function setTypelesson()
     {
         $this->lesson_type = $this->lesson_type;
-
         $this->lesson_theme = 'Тема ' . ($this->getCountLessons($this->lesson_type) + 1);
     }
 

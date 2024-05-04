@@ -63,6 +63,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     });
 
     Route::group(['middleware' => ['role:Teacher']], function () {
+        Route::get('/my-publications', function() {
+            return view('pages.my-publications');
+        })->name('my.publications');
+
         Route::get('/my-groups', function() {
             return view('pages.my-groups');
         })->name('my.groups');

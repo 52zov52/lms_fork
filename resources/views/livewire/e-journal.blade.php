@@ -5,25 +5,31 @@
     <h4 class="text-base lg:text-base font-semibold">{{ $infoAboutGroupAndCourse->group_name }} - {{ $infoAboutGroupAndCourse->discipline_name }}</h4>
 
     <div class="w-e-journal h-e-journal overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
-        <table class="text-xs lg:text-sm">
-            <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
+        <table class="border border-slate-400/20 text-xs lg:text-sm">
+            <thead class="bg-slate-200 dark:bg-slate-700">
                 <tr class="z-10 sticky top-0 bg-slate-200 dark:bg-slate-700 border-b border-slate-400/20">
-                    <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
-                    <th scope="col" class="sticky left-0 w-auto bg-slate-200 dark:bg-slate-700 px-2 py-2 font-semibold">ФИО</th>
-                    <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">№ зачетки</th>
+                    <th scope="col" class="w-12 px-2 py-2 text-center font-semibold uppercase">№ пп</th>
+                    <th scope="col" class="sticky left-0 w-auto bg-slate-200 dark:bg-slate-700 px-2 py-2 font-semibold uppercase">ФИО</th>
+                    <th scope="col" class="w-20 px-2 py-2 text-center font-semibold uppercase">№ зачетки</th>
                     @foreach($dates as $dateAndTime)
                     <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">
                         {{ \Carbon\Carbon::parse($dateAndTime->lesson_date)->format('d.m.Y') }}
+                        {{ $dateAndTime->lesson_time }}
                         @if(!$dateAndTime->is_signature)
-                        <button wire:click="setSignature('{{ $dateAndTime->lesson_date }}', '{{ $dateAndTime->lesson_time }}', {{ $dateAndTime->lesson_type }})" class="w-full bg-gray-500 hover:bg-gray-600 rounded p-1 text-white" title="" data-tippy-content="Подписать">
-                            <i class="fa-solid fa-signature"></i>
-                        </button>
+                        <div class="flex space-x-1">
+                            <button onclick="showToast('setSignature', { lesson_date: '{{ $dateAndTime->lesson_date }}', lesson_time: '{{ $dateAndTime->lesson_time }}', lesson_type: '{{ $dateAndTime->lesson_type }}' })" class="w-8 bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-blue-400 font-bold" title="" data-tippy-content="Подписать">
+                                <i class="fa-solid fa-signature"></i>
+                            </button>
+                            <button onclick="showToast('destroy', { lesson_date: '{{ $dateAndTime->lesson_date }}', lesson_time: '{{ $dateAndTime->lesson_time }}', lesson_type: '{{ $dateAndTime->lesson_type }}' })" class="w-8 bg-red-400 hover:bg-red-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-400 hover:border-red-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-red-400 font-bold" title="" data-tippy-content="Удалить">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
                         @endif
                     </th>
                     @endforeach
                     <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">
                         {{ $currentData }}
-                        <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full bg-green-500 hover:bg-green-600 rounded p-1 text-white" title="" data-tippy-content="Добавить новый столбец">
+                        <button wire:click="creatingAndEditingModalFormVisible(false)" class="w-full bg-green-400 hover:bg-green-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 hover:border-green-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-green-400 font-bold" title="" data-tippy-content="Добавить новый столбец">
                             <i class="fa-solid fa-plus"></i>
                         </button>
                     </th>
@@ -37,7 +43,7 @@
                     <td class="w-20 px-2 py-2 text-center">{{ $student->ticket_number }}</td>
                     @foreach($journal as $item)
                     @if($student->user_id == $item->student_id)
-                    <td class="w-20 px-2 py-2 text-center {{ ($item->is_signature) ? 'bg-green-200' : '' }}">
+                    <td class="w-20 px-2 py-2 text-center {{ ($item->is_signature) ? 'bg-green-200 dark:bg-slate-700' : '' }}">
                         @if(!$item->is_signature)
                         <select wire:model="status.{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $student->user_id }})" name="status" id="" class="bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($item->is_signature) disabled @endif>
                             @foreach($listOfStatuses as $key => $value)
@@ -80,7 +86,7 @@
             </tbody>
         </table>
     </div>
-    
+
     <!-- Creating And Editing Modal Form -->
     <x-dialog-modal wire:model="isCreatingAndEditingModalFormVisible">
         <form>
@@ -93,20 +99,20 @@
                 <div class="flex flex-col space-y-2">
                     <div class="flex flex-col space-x-0 space-y-2 md:flex-row md:space-x-2 md:space-y-0">
                         <div class="w-full flex flex-col">
-                            <label for="lesson-date-id" class="font-semibold">Дата занятия</label>
-                            <input wire:model="lesson_date" type="text" id="lesson-date-id" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" tabindex="-1">
+                            <label for="lesson-date" class="font-semibold">Дата занятия<span class="ml-1 text-red-500">*</span></label>
+                            <input wire:model="lesson_date" type="text" id="lesson-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" tabindex="-1">
                         </div>
                         <div class="w-full flex flex-col">
-                            <label for="lesson-time-id" class="font-semibold">Время занятия<span class="ml-1 text-red-500">*</span></label>
-                            <select wire:model="lesson_time" name="lesson_time" id="lesson-time-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="lesson-time" class="font-semibold">Время занятия<span class="ml-1 text-red-500">*</span></label>
+                            <select wire:model="lesson_time" name="lesson_time" id="lesson-time" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                 @foreach($listOfLessonTime as $time)
                                 <option value="{{ $time }}">{{ $time }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="w-full flex flex-col">
-                            <label for="lesson-type-id" class="font-semibold">Тип занятия<span class="ml-1 text-red-500">*</span></label>
-                            <select wire:model="lesson_type" wire:change="setTypelesson()" name="lesson_type" id="lesson-type-id" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="lesson-type" class="font-semibold">Тип занятия<span class="ml-1 text-red-500">*</span></label>
+                            <select wire:model="lesson_type" wire:change="setTypelesson()" name="lesson_type" id="lesson-type" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                 @foreach($listfOfLessonType as $key => $type)
                                 <option value="{{ $key }}">{{ $type }}</option>
                                 @endforeach
@@ -114,8 +120,8 @@
                         </div>
                     </div>
                     <div class="flex flex-col">
-                        <label for="lesson-theme-id" class="font-semibold">Тема занятия</label>
-                        <input wire:model="lesson_theme" type="text" id="lesson-theme-id" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <label for="lesson-theme" class="font-semibold">Тема занятия<span class="ml-1 text-red-500">*</span></label>
+                        <input wire:model="lesson_theme" type="text" id="lesson-theme" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </div>
                 </div>
 
@@ -125,10 +131,44 @@
                 <button wire:click="$toggle('isCreatingAndEditingModalFormVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
                     {{ __('Закрыть') }}
                 </button>
-                <button wire:click.prevent="{{ (!$isEdit) ? 'store' : 'update' }}" type="button" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1 text-white">
+                <button id="btn-action" type="button" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1 text-white">
                     {{ (!$isEdit) ? __('Создать') : __('Обновить') }}
                 </button>
             </x-slot>
         </form>
     </x-dialog-modal>
 </div>
+
+@push('scripts')
+<script>
+    const element = document.getElementById('btn-action');
+
+    element.addEventListener('click', function(event) {
+        event.preventDefault();
+        if (!@this.isEdit) {
+            showToast('store');
+        } else {
+            showToast('update');
+        }
+    });
+
+    async function showToast(methodName, param = null) {
+        await @this.callMethod(methodName, param);;
+
+        const toast = document.getElementById("toast");
+        toast.className = toast.className.replace(" translate-x-full opacity-0", " translate-x-0 opacity-100");
+
+        setTimeout(function() {
+            toast.className = toast.className.replace(" translate-x-0 opacity-100", " translate-x-full opacity-0");
+        }, 3500);
+    }
+
+    var pickerLessonDate = new Pikaday({
+        field: document.getElementById('lesson-date'),
+        format: 'DD.MM.YYYY',
+        onSelect: function() {
+            @this.set('lesson_date', document.getElementById('lesson-date').value);
+        }
+    });
+</script>
+@endpush

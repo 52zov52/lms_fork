@@ -2,7 +2,7 @@
     <ul class="flex flex-col space-y-2 px-2 py-2 text-sm" :class="{ 'items-center': !isExpandSideBar && !isSideBarOpen }">
         <li class="{{ (request()->routeIs('dashboard')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('dashboard') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
-                <i class="fa-solid fa-house"></i>
+                <i class="fa-solid fa-house fa-lg"></i>
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Главная</span>
             </a>
         </li>
@@ -24,6 +24,7 @@
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Расписание</span>
             </a>
         </li>
+        @can('show-operating-activity-and-decisions-rectorate-and-council')
         <li class="{{ (request()->routeIs('operating.activity')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('operating.activity') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
                 <i class="fa-solid fa-list-check fa-lg"></i>
@@ -42,14 +43,21 @@
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Решение уч. совета</span>
             </a>
         </li>
-        @can('access-to-e-journal')
+        @endcan
+        @role('Teacher')
+        <li class="{{ (request()->routeIs('my.publications')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('my.publications') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
+                <i class="fa-regular fa-rectangle-list fa-lg"></i>
+                <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Список трудов</span>
+            </a>
+        </li>
         <li class="{{ (request()->routeIs('my.groups')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('my.groups') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
                 <i class="fa-solid fa-user-group fa-lg"></i>
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Мои группы</span>
             </a>
         </li>
-        @endcan
+        @endrole
         @role('Student')
         <li class="{{ (request()->routeIs('document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('document.order.requests') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">

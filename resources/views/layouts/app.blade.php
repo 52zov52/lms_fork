@@ -28,36 +28,40 @@
         if (localStorage.getItem('theme') != null) {
             document.getElementById('theme-id').classList.add(localStorage.getItem('theme'));
         }
-        document.getElementById('footer-id').innerHTML = "© 2023 - " + new Date().getFullYear();
+        document.getElementById('footer-id').innerHTML = "ЧОУ ВО ЮУ (ИУБиП) © 2023 - " + new Date().getFullYear();
     </script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
 
     <!-- Styles -->
     @livewireStyles
+
+    <script src="{{ asset('public/js/moment.min.js') }}"></script>
+    <script src="{{ asset('public/js/pikaday.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ asset('public/css/pikaday.css') }}">
 </head>
 
 <body>
     <div x-data="setting()" id="app" class="h-screen relative flex bg-white dark:bg-slate-800 text-gray-600 dark:text-white font-sans font-light antialiased overflow-hidden">
         <!-- Desktop sideber -->
-        <aside :class="{ 'absolute z-20 w-72': isExpandSideBar, 'w-16': !isExpandSideBar }" class="hidden h-full lg:flex lg:flex-shrink-0 lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5 transition-all">
+        <aside :class="{ 'absolute z-20 w-72': isExpandSideBar, 'w-16': !isExpandSideBar }" class="hidden h-full lg:flex lg:flex-shrink-0 lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5 transition-all duration-500 ease-in-out">
             <div class="inline-flex items-center px-2" :class="{ 'justify-center': !isExpandSideBar }">
                 <img id="logo-pc-id" x-bind:src="logo" alt="" class="w-12">
                 <span x-show="isExpandSideBar" class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
-
             </div>
             <div class="relative">
-                <button class="absolute -top-7 -right-4 bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded-full border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2.5 py-0.5" @click="isExpandSideBar = !isExpandSideBar">
-                    <i class="fa-solid fa-chevron-right"></i>
+                <button @click="isExpandSideBar = !isExpandSideBar" class="absolute -top-7 -right-3 bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded-full border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2">
+                    <template x-if="!isExpandSideBar">
+                        <i class="fa-solid fa-chevron-right fa-xs"></i>
+                    </template>
+                    <template x-if="isExpandSideBar">
+                        <i class="fa-solid fa-chevron-left fa-xs"></i>
+                    </template>
                 </button>
             </div>
             <!-- Navigation menu -->
             @include('layouts.navigation-menu')
         </aside>
         <!-- Mobile sidebar -->
-        <aside class="lg:hidden fixed z-20 w-80 h-full flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 transition-all duration-700 ease-in-out" :class="{ '-translate-x-full opacity-0': !isSideBarOpen, 'translate-x-0 opacity-100': isSideBarOpen }">
+        <aside class="lg:hidden fixed z-20 w-80 h-full flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 transition-all duration-500 ease-in-out" :class="{ '-translate-x-full opacity-0': !isSideBarOpen, 'translate-x-0 opacity-100': isSideBarOpen }">
             <div class="flex justify-between p-4">
                 <div class="inline-flex items-center" :class="{ 'justify-center': !isSideBarOpen }">
                     <img id="logo-mobile-id" x-bind:src="logo" alt="" class="w-12">
