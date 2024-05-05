@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('name_co_authors', 500)->nullable();
             $table->string('bibliographic_description', 1500);
             $table->string('file_path', 2048)->nullable();
+            $table->string('link_elibrary')->nullable();
             $table->boolean('is_university_affiliation')->default(false);
 
             $table->foreignIdFor(User::class)

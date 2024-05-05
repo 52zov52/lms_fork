@@ -24,6 +24,7 @@ class MyPublication extends Model
         'name_co_authors',
         'bibliographic_description',
         'file_path',
+        'link_elibrary',
         'is_university_affiliation',
         'user_id'
     ];
