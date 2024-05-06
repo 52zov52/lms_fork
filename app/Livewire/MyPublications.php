@@ -206,6 +206,11 @@ class MyPublications extends Component
         session()->flash('message', 'Запись успешно удалена!');
     }
 
+    public function print()
+    {
+        return redirect()->route('print.my.publications');
+    }
+
     public function calk_printed_sheets($pages)
     {
         return round($pages / (0.93 * 16), 2);

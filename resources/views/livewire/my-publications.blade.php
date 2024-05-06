@@ -2,10 +2,14 @@
 
     <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
-    <div class="flex flex-col md:flex-row md:justify-end">
+    <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-end">
         <button wire:click="setEntryModalVisible(false)" class="bg-green-400 hover:bg-green-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 hover:border-green-500 dark:border-slate-400/20 px-2 py-2 text-xs text-left text-white dark:text-green-400 font-bold">
             <i class="fa-solid fa-circle-plus fa-lg"></i>
             Добавить запись
+        </button>
+        <button wire:click="print()" class="bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-2 text-xs text-left text-white dark:text-blue-400 font-bold">
+            <i class="fa-solid fa-print fa-lg"></i>
+            Печать списка трудов
         </button>
     </div>
 

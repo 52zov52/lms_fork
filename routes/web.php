@@ -6,6 +6,7 @@ use App\Http\Controllers\PrintConfirmedDocumentRequestsController;
 use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\Reports\PrintPublicationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleReportController;
 use App\Http\Controllers\StudyPlanController;
@@ -66,6 +67,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/my-publications', function() {
             return view('pages.my-publications');
         })->name('my.publications');
+
+        Route::get('/print-my-publications', [PrintPublicationController::class, 'printMyPublications'])->name('print.my.publications');
 
         Route::get('/my-groups', function() {
             return view('pages.my-groups');
