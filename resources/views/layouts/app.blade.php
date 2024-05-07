@@ -42,13 +42,12 @@
 <body>
     <div x-data="setting()" id="app" class="h-screen relative flex bg-white dark:bg-slate-800 text-gray-600 dark:text-white font-sans font-light antialiased overflow-hidden">
         <!-- Desktop sideber -->
-        <aside :class="{ 'absolute z-20 w-72': isExpandSideBar, 'w-16': !isExpandSideBar }" class="hidden h-full lg:flex lg:flex-shrink-0 lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5 transition-all duration-500 ease-in-out">
-            <div class="inline-flex items-center px-2" :class="{ 'justify-center': !isExpandSideBar }">
-                <img id="logo-pc-id" x-bind:src="logo" alt="" class="w-12">
-                <span x-show="isExpandSideBar" class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
+        <aside class="hidden z-30 w-16 lg:flex lg:flex-shrink-0 lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5">
+            <div class="inline-flex items-center justify-center px-2">
+                <img id="logo-pc-id" x-bind:src="logo" alt="" class="w-12 h-8">
             </div>
             <div class="relative">
-                <button @click="isExpandSideBar = !isExpandSideBar" class="absolute -top-7 -right-3 bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded-full border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2">
+                <button @click="isExpandSideBar = !isExpandSideBar" class="absolute -top-7 -right-3 bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded-full border-slate-200 hover:border-blue-400 dark:border-slate-400/20 px-2 hover:text-white dark:text-white">
                     <template x-if="!isExpandSideBar">
                         <i class="fa-solid fa-chevron-right fa-xs"></i>
                     </template>
@@ -57,9 +56,23 @@
                     </template>
                 </button>
             </div>
-            <!-- Navigation menu -->
-            @include('layouts.navigation-menu')
+            @include('layouts.desktop-icon-navigation-menu')
         </aside>
+        <!-- Menu -->
+        <div x-show="isExpandSideBar" class="hidden z-20 absolute left-16 w-72 h-screen lg:flex lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5"
+            x-transition:enter="transition-transform ease-out duration-200"
+            x-transition:enter-start="transform -translate-x-full" 
+            x-transition:enter-end="transform translate-x-0"
+            x-transition:leave="transition-transform ease-in duration-200"
+            x-transition:leave-start="transform translate-x-0" 
+            x-transition:leave-end="transform -translate-x-full">
+            <div class="h-8 inline-flex px-2">
+                <span class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
+            </div>
+            <div class="relative"></div>
+            @include('layouts.desktop-text-navigation-menu')
+        </div>
+
         <!-- Mobile sidebar -->
         <aside class="lg:hidden fixed z-20 w-80 h-full flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 transition-all duration-500 ease-in-out" :class="{ '-translate-x-full opacity-0': !isSideBarOpen, 'translate-x-0 opacity-100': isSideBarOpen }">
             <div class="flex justify-between p-4">
@@ -72,7 +85,7 @@
                 </button>
             </div>
             <!-- Navigation menu -->
-            @include('layouts.navigation-menu')
+            @include('layouts.mobile-navigation-menu')
         </aside>
 
         <div class="w-full flex flex-col">
@@ -83,7 +96,7 @@
                         <i class="fa-solid fa-bars fa-lg"></i>
                     </button>
                     <div class="flex items-center space-x-6">
-                        <button @click="toggleDarkMode()" class="hover:text-blue-500">
+                        <button @click="toggleDarkMode()" class="hover:text-blue-400">
                             <template x-if="!isDarkMode">
                                 <i class="fa-solid fa-sun fa-lg"></i>
                             </template>
@@ -92,7 +105,7 @@
                             </template>
                         </button>
                         <div class="flex">
-                            <span class="bg-slate-200 dark:bg-slate-700 rounded-full border-slate-200 dark:border-slate-400/20 px-3.5 py-3 font-semibold">
+                            <span class="bg-slate-200 dark:bg-slate-700 rounded-full border-slate-200 dark:border-slate-400/20 px-3 py-3 font-semibold">
                                 {{ mb_substr(auth()->user()->userData->last_name, 0, 1) }}{{ mb_substr(auth()->user()->userData->first_name, 0, 1) }}
                             </span>
                             <div class="ml-2">

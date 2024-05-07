@@ -67,15 +67,28 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($data as $key => $value)
+            @foreach($data as $key => $items)
             <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $value->title }}</td>
-                <td>Печатная</td>
-                <td>{{ $value->output_data }}</td>
-                <td>{{ $value->volume_full_in_printed_sheets }}/{{ $value->volume_full_on_pages }}</td>
-                <td>{{ $value->name_co_authors }}</td>
+                <td colspan="6" class="text-center">
+                    @if($key == 1)
+                    а) учебно-методические работы
+                    @elseif($key == 2)
+                    б) научные работы
+                    @else
+                    в) авторские свидетельства, дипломы, патенты, лицензии
+                    @endif
+                </td>
             </tr>
+            @foreach($items as $item)
+            <tr>
+                <td class="text-center">{{ $loop->iteration }}</td>
+                <td>{{ $item[0] }}</td>
+                <td class="text-center">Печатная</td>
+                <td>{{ $item[1] }}</td>
+                <td class="text-center">{{ $item[2] }}/{{ $item[3] }}</td>
+                <td>{{ $item[4] }}</td>
+            </tr>
+            @endforeach
             @endforeach
         </tbody>
     </table>
