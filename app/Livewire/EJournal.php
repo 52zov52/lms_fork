@@ -17,7 +17,9 @@ class EJournal extends Component
     public $listfOfLessonType = [
         1 => 'Лекции',
         2 => 'Лабораторные',
-        3 => 'Практические'
+        3 => 'Практические',
+        4 => 'Контрольная точка',
+        5 => 'Контрольная точка (тест)',
     ];
 
     public $listOfLessonTime = [
@@ -73,7 +75,7 @@ class EJournal extends Component
             $this->status[$value->id] = $value->status;
         }
 
-        $dates = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)
+        $lessonInfo = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)
             ->select('lesson_date', 'lesson_time', 'lesson_type', 'is_signature')
             ->distinct()
             ->orderBy('lesson_date', 'asc')
@@ -83,7 +85,7 @@ class EJournal extends Component
             'contingent' => $contingent,
             'journal' => $journal,
             'infoAboutGroupAndCourse' => $infoAboutGroupAndCourse,
-            'dates' => $dates,
+            'lessonInfo' => $lessonInfo,
             'currentData' => $currentData,
             'currentTime' => $currentTime,
             'listfOfLessonType' => $this->listfOfLessonType,

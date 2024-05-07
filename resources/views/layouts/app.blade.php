@@ -59,7 +59,7 @@
             @include('layouts.desktop-icon-navigation-menu')
         </aside>
         <!-- Menu -->
-        <div x-show="isExpandSideBar" class="hidden z-20 absolute left-16 w-72 h-screen lg:flex lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5"
+        <div x-cloak x-show="isExpandSideBar" class="hidden z-20 absolute left-16 w-72 h-screen lg:flex lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5"
             x-transition:enter="transition-transform ease-out duration-200"
             x-transition:enter-start="transform -translate-x-full" 
             x-transition:enter-end="transform translate-x-0"
@@ -74,7 +74,7 @@
         </div>
 
         <!-- Mobile sidebar -->
-        <aside class="lg:hidden fixed z-20 w-80 h-full flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 transition-all duration-500 ease-in-out" :class="{ '-translate-x-full opacity-0': !isSideBarOpen, 'translate-x-0 opacity-100': isSideBarOpen }">
+        <aside x-cloak class="lg:hidden fixed z-20 w-80 h-full flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 transition-all duration-500 ease-in-out" :class="{ '-translate-x-full opacity-0': !isSideBarOpen, 'translate-x-0 opacity-100': isSideBarOpen }">
             <div class="flex justify-between p-4">
                 <div class="inline-flex items-center" :class="{ 'justify-center': !isSideBarOpen }">
                     <img id="logo-mobile-id" x-bind:src="logo" alt="" class="w-12">

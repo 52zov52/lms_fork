@@ -11,20 +11,39 @@
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold uppercase">№ пп</th>
                     <th scope="col" class="sticky left-0 w-auto bg-slate-200 dark:bg-slate-700 px-2 py-2 font-semibold uppercase">ФИО</th>
                     <th scope="col" class="w-20 px-2 py-2 text-center font-semibold uppercase">№ зачетки</th>
-                    @foreach($dates as $dateAndTime)
+                    @foreach($lessonInfo as $element)
                     <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">
-                        {{ \Carbon\Carbon::parse($dateAndTime->lesson_date)->format('d.m.Y') }}
-                        {{ $dateAndTime->lesson_time }}
-                        @if(!$dateAndTime->is_signature)
-                        <div class="flex space-x-1">
-                            <button onclick="showToast('setSignature', { lesson_date: '{{ $dateAndTime->lesson_date }}', lesson_time: '{{ $dateAndTime->lesson_time }}', lesson_type: '{{ $dateAndTime->lesson_type }}' })" class="w-8 bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-blue-400 font-bold" title="" data-tippy-content="Подписать">
-                                <i class="fa-solid fa-signature"></i>
+                        <div class="flex flex-col space-y-1">
+                            <span>{{ \Carbon\Carbon::parse($element->lesson_date)->format('d.m.Y') }}</span>
+                            <span>{{ $element->lesson_time }}</span>
+                            <div class="w-full border rounded">
+                                @if($element->lesson_type == 1)
+                                <span">лек.</span>
+                                @elseif($element->lesson_type == 2)
+                                <span>лаб.</span>
+                                @elseif($element->lesson_type == 3)
+                                <span>практ.</span>
+                                @elseif($element->lesson_type == 4)
+                                <span>к.т.</span>
+                                @else
+                                <span>к.т. (тест)</span>
+                                @endif
+                            </div>
+                            @if(!$element->is_signature)
+                            <div class="flex space-x-1">
+                                <button onclick="showToast('setSignature', { lesson_date: '{{ $element->lesson_date }}', lesson_time: '{{ $element->lesson_time }}', lesson_type: '{{ $element->lesson_type }}' })" class="w-8 bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-blue-400 font-bold" title="" data-tippy-content="Подписать">
+                                    <i class="fa-solid fa-signature"></i>
+                                </button>
+                                <button onclick="showToast('destroy', { lesson_date: '{{ $element->lesson_date }}', lesson_time: '{{ $element->lesson_time }}', lesson_type: '{{ $element->lesson_type }}' })" class="w-8 bg-red-400 hover:bg-red-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-400 hover:border-red-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-red-400 font-bold" title="" data-tippy-content="Удалить">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                            @else
+                            <button class="w-full bg-sky-400 hover:bg-sky-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 hover:border-sky-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-sky-400 font-bold" title="" data-tippy-content="Информация">
+                                <i class="fa-solid fa-circle-info"></i>
                             </button>
-                            <button onclick="showToast('destroy', { lesson_date: '{{ $dateAndTime->lesson_date }}', lesson_time: '{{ $dateAndTime->lesson_time }}', lesson_type: '{{ $dateAndTime->lesson_type }}' })" class="w-8 bg-red-400 hover:bg-red-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-400 hover:border-red-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-red-400 font-bold" title="" data-tippy-content="Удалить">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                            @endif
                         </div>
-                        @endif
                     </th>
                     @endforeach
                     <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">
