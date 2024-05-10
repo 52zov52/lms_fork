@@ -32,9 +32,11 @@ class MyPublications extends Component
         $user_id;
 
     public $file, $filename, $rand = 1;
-
     public $isEntryModalVisible = false, $isEdit = false;
 
+    /**
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory
+     */
     public function render()
     {
         $publications = MyPublication::where('user_id', '=', Auth::user()->id)->paginate(50);
@@ -42,12 +44,12 @@ class MyPublications extends Component
         return view('livewire.my-publications', ['publications' => $publications]);
     }
 
-    public function callMethod($methodName, $param = null)
+    public function callMethod($methodName, $param = null): void
     {
         $this->{$methodName}($param);
     }
 
-    public function setEntryModalVisible($isEdit, $id = null)
+    public function setEntryModalVisible($isEdit, $id = null): void
     {
         $this->resetFields();
         $this->isEdit = $isEdit;
@@ -59,7 +61,7 @@ class MyPublications extends Component
         $this->isEntryModalVisible = !$this->isEntryModalVisible;
     }
 
-    public function store()
+    public function store(): void
     {
         if (!is_null($this->file)) {
             $this->validate([
@@ -108,7 +110,7 @@ class MyPublications extends Component
         session()->flash('message', 'Запись успешно добавлена!');
     }
 
-    public function edit($id)
+    public function edit($id): void
     {
         $this->id = $id;
 
@@ -135,7 +137,7 @@ class MyPublications extends Component
         $this->is_university_affiliation = ($publications->is_university_affiliation) ? true : false;
     }
 
-    public function update()
+    public function update(): void
     {
         if (!is_null($this->file)) {
             $this->validate([
@@ -192,7 +194,7 @@ class MyPublications extends Component
         session()->flash('message', 'Запись успешно обновлена!');
     }
 
-    public function destroy($id)
+    public function destroy($id): void
     {
         $publications = MyPublication::findOrFail($id);
 
@@ -211,12 +213,12 @@ class MyPublications extends Component
         return redirect()->route('print.my.publications');
     }
 
-    public function calk_printed_sheets($pages)
+    private function calk_printed_sheets($pages): float
     {
         return round($pages / (0.93 * 16), 2);
     }
 
-    public function resetFields(): void
+    private function resetFields(): void
     {
         $this->id = 0;
         $this->category = 0;

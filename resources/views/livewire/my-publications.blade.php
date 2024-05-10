@@ -156,9 +156,9 @@
                             <label for="category" class="font-semibold">Категория<span class="ml-1 text-red-400">*</span></label>
                             <select wire:model="category" name="category" id="category" class="w-full border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                 <option value="0">Выберите категорию</option>
-                                <option value="1">Учебное издание</option>
-                                <option value="2">Научная работа</option>
-                                <option value="3">Патент на изобретение или свидетельство об интеллектуальной собственности</option>
+                                <option value="1">Научная работа</option>
+                                <option value="2">Учебно-методическая работа</option>
+                                <option value="3">Авторское свидетельство, диплом, патент, лицензия</option>
                             </select>
                             @error('category') <span class="text-red-400 font-semibold">{{ $message }}</span> @enderror
                         </div>

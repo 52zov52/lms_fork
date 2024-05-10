@@ -9,17 +9,19 @@ use Illuminate\Support\Facades\Auth;
 
 class PrintPublicationController extends Controller
 {
+    private $index = ['а)', 'б)', 'в)'];
+
     public function printMyPublications()
     {
         $data = $this->dataTransform(MyPublication::where('user_id', '=', Auth::user()->id)->orderBy('category')->get());
 
         $filename = time() . '.pdf';
-        $pdf = PDF::loadView('reports.pdf.my-publications', ['data' => $data]);
+        $pdf = PDF::loadView('reports.pdf.my-publications', ['index' => $this->index, 'data' => $data]);
 
         return $pdf->download($filename);
     }
 
-    public function dataTransform($data)
+    private function dataTransform($data)
     {
         $transformedData = collect($data)->groupBy('category')->map(function ($items) {
             return $items->map(function ($item) {

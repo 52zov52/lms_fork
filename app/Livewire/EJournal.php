@@ -20,6 +20,8 @@ class EJournal extends Component
         3 => 'Практические',
         4 => 'Контрольная точка',
         5 => 'Контрольная точка (тест)',
+        6 => 'Зачет',
+        7 => 'Экзамен',
     ];
 
     public $listOfLessonTime = [
@@ -40,7 +42,9 @@ class EJournal extends Component
         4 => '2',
         5 => '3',
         6 => '4',
-        7 => '5'
+        7 => '5',
+        8 => 'Зач.',
+        9 => 'Незач.',
     ];
 
     public $lesson_date = '', $lesson_time = '', $lesson_type = 1, $lesson_theme = 'Тема';
@@ -175,7 +179,7 @@ class EJournal extends Component
         session()->flash('message', 'Журнал успешно подписан!');
     }
 
-    public function setTypelesson()
+    public function setTypelesson(): void
     {
         $this->lesson_type = $this->lesson_type;
         $this->lesson_theme = 'Тема ' . ($this->getCountLessons($this->lesson_type) + 1);
@@ -190,13 +194,14 @@ class EJournal extends Component
             ->get()->count();
     }
 
-    public function getStudents($groupId)
+    public function getStudents($groupId): object
     {
         $contingent = new ContingentController();
+
         return $contingent->getContingent($groupId);
     }
 
-    public function getLessonTime($currentTime)
+    public function getLessonTime($currentTime): string
     {
         $lessonTime = "";
 
@@ -221,5 +226,15 @@ class EJournal extends Component
         }
 
         return $lessonTime;
+    }
+
+    public function printCurrentAssessment()
+    {
+        return redirect()->route('print.current.assessment', ['courseTeacherId' => $this->courseTeacherId]);
+    }
+
+    public function printInterimAssessment()
+    {
+        return redirect()->route('print.interim.assessment', ['courseTeacherId' => $this->courseTeacherId]);
     }
 }

@@ -4,6 +4,17 @@
 
     <h4 class="text-base lg:text-base font-semibold">{{ $infoAboutGroupAndCourse->group_name }} - {{ $infoAboutGroupAndCourse->discipline_name }}</h4>
 
+    <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-end">
+        <button wire:click="printCurrentAssessment()" class="bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-2 text-xs text-left text-white dark:text-blue-400 font-bold">
+            <i class="fa-solid fa-print fa-lg"></i>
+            Печать ведомости ТК
+        </button>
+        <button wire:click="printInterimAssessment()" class="bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-2 text-xs text-left text-white dark:text-blue-400 font-bold">
+            <i class="fa-solid fa-print fa-lg"></i>
+            Печать ведомости ПА
+        </button>
+    </div>
+
     <div class="w-e-journal h-e-journal overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
         <table class="border border-slate-400/20 text-xs lg:text-sm">
             <thead class="bg-slate-200 dark:bg-slate-700">
@@ -19,22 +30,26 @@
                             <div class="w-full border rounded">
                                 @if($element->lesson_type == 1)
                                 <span">лек.</span>
-                                @elseif($element->lesson_type == 2)
-                                <span>лаб.</span>
-                                @elseif($element->lesson_type == 3)
-                                <span>практ.</span>
-                                @elseif($element->lesson_type == 4)
-                                <span>к.т.</span>
-                                @else
-                                <span>к.т. (тест)</span>
-                                @endif
+                                    @elseif($element->lesson_type == 2)
+                                    <span>лаб.</span>
+                                    @elseif($element->lesson_type == 3)
+                                    <span>практ.</span>
+                                    @elseif($element->lesson_type == 4)
+                                    <span>к.т.</span>
+                                    @elseif($element->lesson_type == 5)
+                                    <span>к.т. (тест)</span>
+                                    @elseif($element->lesson_type == 6)
+                                    <span>зач.</span>
+                                    @else
+                                    <span>экз.</span>
+                                    @endif
                             </div>
                             @if(!$element->is_signature)
-                            <div class="flex space-x-1">
-                                <button onclick="showToast('setSignature', { lesson_date: '{{ $element->lesson_date }}', lesson_time: '{{ $element->lesson_time }}', lesson_type: '{{ $element->lesson_type }}' })" class="w-8 bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-blue-400 font-bold" title="" data-tippy-content="Подписать">
+                            <div class="grid gap-1 grid-cols-2">
+                                <button onclick="showToast('setSignature', { lesson_date: '{{ $element->lesson_date }}', lesson_time: '{{ $element->lesson_time }}', lesson_type: '{{ $element->lesson_type }}' })" class="w-auto bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-blue-400 font-bold" title="" data-tippy-content="Подписать">
                                     <i class="fa-solid fa-signature"></i>
                                 </button>
-                                <button onclick="showToast('destroy', { lesson_date: '{{ $element->lesson_date }}', lesson_time: '{{ $element->lesson_time }}', lesson_type: '{{ $element->lesson_type }}' })" class="w-8 bg-red-400 hover:bg-red-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-400 hover:border-red-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-red-400 font-bold" title="" data-tippy-content="Удалить">
+                                <button onclick="showToast('destroy', { lesson_date: '{{ $element->lesson_date }}', lesson_time: '{{ $element->lesson_time }}', lesson_type: '{{ $element->lesson_type }}' })" class="w-auto bg-red-400 hover:bg-red-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-400 hover:border-red-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-red-400 font-bold" title="" data-tippy-content="Удалить">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </div>
@@ -70,31 +85,37 @@
                             @endforeach
                         </select>
                         @else
-                        @switch($status[$item->id])
-                        @case(1)
-                        <div class="w-full h-6 font-bold" data-tippy-content="Присутствовал">.</div>
-                        @break
-                        @case(2)
-                        <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал">Н</div>
-                        @break
-                        @case(3)
-                        <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал по уважительной причине">НУ</div>
-                        @break
-                        @case(4)
-                        <div class="w-full h-6 font-bold" data-tippy-content="Неудовлетворительно">2</div>
-                        @break
-                        @case(5)
-                        <div class="w-full h-6 font-bold" data-tippy-content="Удовлетворительно">3</div>
-                        @break
-                        @case(6)
-                        <div class="w-full h-6 font-bold" data-tippy-content="Хорошо">4</div>
-                        @break
-                        @case(7)
-                        <div class="w-full h-6 font-bold" data-tippy-content="Отлично">5</div>
-                        @break
-                        @default
-                        -
-                        @endswitch
+                            @switch($status[$item->id])
+                                @case(1)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Присутствовал">.</div>
+                                @break
+                                @case(2)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал">Н</div>
+                                @break
+                                @case(3)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал по уважительной причине">НУ</div>
+                                @break
+                                @case(4)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Неудовлетворительно">2</div>
+                                @break
+                                @case(5)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Удовлетворительно">3</div>
+                                @break
+                                @case(6)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Хорошо">4</div>
+                                @break
+                                @case(7)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Отлично">5</div>
+                                @break
+                                @case(8)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Зачёт">Зач.</div>
+                                @break
+                                @case(9)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Незачёт">Незач.</div>
+                                @break
+                                @default
+                                    -
+                            @endswitch
                         @endif
                     </td>
                     @endif

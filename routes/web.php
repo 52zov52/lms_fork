@@ -7,6 +7,8 @@ use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\Reports\PrintPublicationController;
+use App\Http\Controllers\Reports\PrintCurrentAssessmentController;
+use App\Http\Controllers\Reports\PrintInterimAssessmentController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleReportController;
 use App\Http\Controllers\StudyPlanController;
@@ -81,6 +83,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/e-journal/{courseTeacherId}', function($courseTeacherId) {
             return view('pages.e-journal', compact('courseTeacherId'));
         })->name('e.journal');
+
+        Route::get('/print-current-assessment/{courseTeacherId}', [PrintCurrentAssessmentController::class, 'printCurrentAssessment'])->name('print.current.assessment');
+        Route::get('/print-interim-assessment/{courseTeacherId}', [PrintInterimAssessmentController::class, 'printInterimAssessment'])->name('print.interim.assessment');
     });
 
     Route::get('/document-order-requests', function () {

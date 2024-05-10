@@ -20,7 +20,7 @@
         }
 
         .h-e-journal {
-            height: calc(100vh - 280px);
+            height: calc(100vh - 300px);
         }
     </style>
 
