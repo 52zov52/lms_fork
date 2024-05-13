@@ -7,7 +7,7 @@
     <title>{{ config('app.name', 'Ведомость текущего контроля успеваемости') }}</title>
     <style>
         body {
-            font-family: DejaVu Sans, sans-serif;
+            font-family: 'xo_thames';
         }
 
         .font-9 {

@@ -34,9 +34,6 @@ class MyPublications extends Component
     public $file, $filename, $rand = 1;
     public $isEntryModalVisible = false, $isEdit = false;
 
-    /**
-     * @return \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory
-     */
     public function render()
     {
         $publications = MyPublication::where('user_id', '=', Auth::user()->id)->paginate(50);
@@ -97,7 +94,7 @@ class MyPublications extends Component
             'volume_author_in_printed_sheets' => $printed_sheets,
             'volume_author_on_pages' => $this->volume_full_on_pages,
             'name_co_authors' => $this->name_co_authors,
-            'bibliographic_description' => '-',
+            'bibliographic_description' => $this->generateBibliographicDescription($this->status),
             'file_path' => (!is_null($this->file)) ? $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public') : null,
             'link_elibrary' => (is_null($this->link_elibrary)) ? null : $this->link_elibrary,
             'is_university_affiliation' => (is_null($this->is_university_affiliation)) ? false : $this->is_university_affiliation,
@@ -173,7 +170,7 @@ class MyPublications extends Component
         $publications->volume_author_in_printed_sheets = $printed_sheets;
         $publications->volume_author_on_pages = $this->volume_full_on_pages;
         $publications->name_co_authors = $this->name_co_authors;
-        $publications->bibliographic_description = '-';
+        $publications->bibliographic_description = $this->generateBibliographicDescription($this->status);
 
         if (!is_null($this->file)) {
             if (!is_null($publications->file_path)) {
@@ -216,6 +213,18 @@ class MyPublications extends Component
     private function calk_printed_sheets($pages): float
     {
         return round($pages / (0.93 * 16), 2);
+    }
+
+    private function generateBibliographicDescription($status)
+    {
+        $author = Auth::user()->userData->last_name . ' ' . mb_substr(Auth::user()->userData->first_name, 0, 1) . '.' . mb_substr(Auth::user()->userData->middle_name, 0, 1) . '. ';
+
+        if($status == 1 || $status == 2 || $status == 3 || $status == 4 || $status == 5)
+        {
+            return $author . $this->title . ' / ' . trim($author) . (!empty($this->name_co_authors) ? ', ' . $this->name_co_authors : '') . $this->name_co_authors . ' // ' . $this->output_data;
+        }else {
+            return '-';
+        }
     }
 
     private function resetFields(): void

@@ -7,7 +7,7 @@
     <title>{{ config('app.name', 'Ведомость промежуточной аттестации') }}</title>
     <style>
         body {
-            font-family: DejaVu Sans, sans-serif;
+            font-family: 'xo_thames';
 
         }
 

@@ -7,23 +7,7 @@
     <title>{{ config('app.name', 'Список трудов') }}</title>
     <style>
         body {
-            font-family: DejaVu Sans, sans-serif;
-        }
-
-        .font-9 {
-            font-size: 9px;
-        }
-
-        .font-10 {
-            font-size: 10px;
-        }
-
-        .font-11 {
-            font-size: 11px;
-        }
-
-        .font-12 {
-            font-size: 12px;
+            font-family: 'xo_thames';
         }
 
         .font-14 {
@@ -34,10 +18,6 @@
             font-weight: bold;
         }
 
-        .font-italic {
-            font-style: italic;
-        }
-
         .text-center {
             text-align: center;
         }
@@ -46,27 +26,33 @@
             text-align: justify;
         }
 
+        .table-border-b {
+            border-bottom: 1pt solid black;
+        }
+
         .page-break {
             page-break-after: always;
         }
     </style>
 </head>
 
-<body class="font-10">
-    <h2 class="text-center">СПИСОК<br>опубликованных учебных изданий и научных трудов<br>{{ auth()->user()->userData->last_name }} {{ auth()->user()->userData->first_name }} {{ auth()->user()->userData->middle_name }}</h2>
+<body class="font-14">
+    <h2 class="text-center">
+        СПИСОК<br>
+        опубликованных учебных изданий и научных трудов<br>
+        {{ auth()->user()->userData->last_name }} {{ auth()->user()->userData->first_name }} {{ auth()->user()->userData->middle_name }}
+    </h2>
 
     <table border="1" cellspacing="0" cellpadding="0">
-        <thead>
-            <tr>
-                <th>№ п/п</th>
-                <th>Наименование учебных изданий, научных трудов и патентов на изобретения и иные объекты интеллектуальной собственности</th>
-                <th>Форма учебных изданий и научных трудов</th>
-                <th>Выходные данные</th>
-                <th>Объем (п.л.)</th>
-                <th>Соавторы</th>
-            </tr>
-        </thead>
         <tbody>
+            <tr class="text-center font-bold">
+                <td>№ п/п</td>
+                <td>Наименование учебных изданий, научных трудов и патентов на изобретения и иные объекты интеллектуальной собственности</td>
+                <td>Форма учебных изданий и научных трудов</td>
+                <td>Выходные данные</td>
+                <td>Объем (п.л.)</td>
+                <td>Соавторы</td>
+            </tr>
             @foreach($data as $key => $items)
             <tr>
                 <td colspan="6" class="text-center">
@@ -93,6 +79,20 @@
             @endforeach
         </tbody>
     </table>
+    <br>
+    <table width="100%">
+        <tr>
+            <td width="33%">Соискатель</td>
+            <td width="33%"  class="table-border-b"></td>
+            <td width="33%">{{ auth()->user()->userData->last_name }} {{ mb_substr(auth()->user()->userData->first_name, 0, 1) }}.{{ mb_substr(auth()->user()->userData->middle_name, 0, 1) }}.</td>
+        </tr>
+        <tr>
+            <td width="33%"></td>
+            <td width="33%"  class="text-center">(подпись)</td>
+            <td width="33%"></td>
+        </tr>
+    </table>
+    <p>Дата печати: {{ \Carbon\Carbon::now()->format('d.m.Y H:m:i') }}</p>
 </body>
 
 </html>

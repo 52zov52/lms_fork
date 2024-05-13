@@ -183,7 +183,7 @@
                     </div>
                     <div class="flex flex-col">
                         <label for="output_data" class="font-semibold">Выходные данные<span class="ml-1 text-red-400">*</span></label>
-                        <textarea wire:model="output_data" name="output_data" id="output_data" cols="5" rows="2" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+                        <textarea wire:model="output_data" name="output_data" id="output_data" cols="5" rows="2" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Название журнала или сборника. – Год издания. – Том номер (если есть). – Номер страницы (если есть)."></textarea>
                         @error('output_data') <span class="text-red-400 font-semibold">{{ $message }}</span> @enderror
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -210,7 +210,7 @@
                     </div>
                     <div class="inline-flex py-2">
                         <label for="is-university-affiliation">
-                            <input wire:model="is_university_affiliation" type="checkbox" name="is_university_affiliation" id="is-university-affiliation" class="mr-1">Принадлежность публикации вузу
+                            <input wire:model="is_university_affiliation" type="checkbox" name="is_university_affiliation" id="is-university-affiliation" class="mr-1">Принадлежность научной работы вузу
                         </label>
                     </div>
                     <div class="flex flex-col">
