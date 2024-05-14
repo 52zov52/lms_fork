@@ -70,6 +70,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.my-publications');
         })->name('my.publications');
 
+        Route::get('/academic-workload', function() {
+            return view('pages.academic-workload');
+        })->name('academic.workload');
+
         Route::get('/print-my-publications', [PrintPublicationController::class, 'printMyPublications'])->name('print.my.publications');
 
         Route::get('/my-groups', function() {
