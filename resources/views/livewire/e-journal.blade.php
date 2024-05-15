@@ -2,7 +2,9 @@
 
     <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
-    <h4 class="text-base lg:text-base font-semibold">{{ $infoAboutGroupAndCourse->group_name }} - {{ $infoAboutGroupAndCourse->discipline_name }}</h4>
+    <h4 class="text-base lg:text-base font-semibold">
+        {{ $infoAboutGroupAndCourse->group_name }} - {{ $infoAboutGroupAndCourse->discipline_name }}
+    </h4>
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-end">
         <button wire:click="printCurrentAssessment()" class="bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-2 text-xs text-left text-white dark:text-blue-400 font-bold">

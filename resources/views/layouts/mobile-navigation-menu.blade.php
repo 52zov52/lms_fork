@@ -45,10 +45,10 @@
         </li>
         @endcan
         @role('Teacher')
-        <li class="{{ (request()->routeIs('my.publications')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
-            <a href="{{ route('my.publications') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
-                <i class="fa-regular fa-rectangle-list fa-lg"></i>
-                <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Список трудов</span>
+        <li class="{{ (request()->routeIs('digital.teacher.profile')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('digital.teacher.profile') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
+                <i class="fa-solid fa-chalkboard-user fa-lg"></i>
+                <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Цифровой профиль преподавателя</span>
             </a>
         </li>
         <li class="{{ (request()->routeIs('my.groups')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">

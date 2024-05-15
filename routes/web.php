@@ -66,13 +66,17 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     });
 
     Route::group(['middleware' => ['role:Teacher']], function () {
-        Route::get('/my-publications', function() {
-            return view('pages.my-publications');
-        })->name('my.publications');
+        Route::get('/digital-teacher-profile', function() {
+            return view('pages.digital-teacher-profile');
+        })->name('digital.teacher.profile');
 
         Route::get('/academic-workload', function() {
             return view('pages.academic-workload');
         })->name('academic.workload');
+
+        Route::get('/my-publications', function() {
+            return view('pages.my-publications');
+        })->name('my.publications');
 
         Route::get('/print-my-publications', [PrintPublicationController::class, 'printMyPublications'])->name('print.my.publications');
 
