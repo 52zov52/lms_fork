@@ -3,11 +3,11 @@
     <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-end">
-        <button wire:click="setEntryModalVisible(false)" class="bg-green-400 hover:bg-green-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 hover:border-green-500 dark:border-slate-400/20 px-2 py-2 text-xs text-left text-white dark:text-green-400 font-bold">
+        <button wire:click="setEntryModalVisible(false)" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-left text-green-400 hover:text-white font-bold">
             <i class="fa-solid fa-circle-plus fa-lg"></i>
             Добавить запись
         </button>
-        <button wire:click="print()" class="bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-2 text-xs text-left text-white dark:text-blue-400 font-bold">
+        <button wire:click="print()" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-left text-blue-400 hover:text-white font-bold">
             <i class="fa-solid fa-print fa-lg"></i>
             Печать списка трудов
         </button>
@@ -20,20 +20,21 @@
             <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr class="border-b border-slate-400/20">
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
-                    <th scope="col" class="w-60 px-2 py-2 font-semibold">Наименование</th>
-                    <th scope="col" class="w-auto px-2 py-2 font-semibold">Выходные данные</th>
+                    <th scope="col" class="w-56 px-2 py-2 text-left font-semibold">Наименование</th>
+                    <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">Выходные данные</th>
                     <th scope="col" class="w-16 px-2 py-2 font-semibold">Год издания</th>
                     <th scope="col" class="w-16 px-2 py-2 font-semibold">Объём в стр.</th>
                     <th scope="col" class="w-16 px-2 py-2 font-semibold">Статус</th>
-                    <th scope="col" class="w-48 px-2 py-2 font-semibold">Ссылка в elibrary</th>
-                    <th scope="col" class="w-16 px-2 py-2 font-semibold">Действия</th>
+                    <th scope="col" class="w-44 px-2 py-2 text-left font-semibold">Ссылка в elibrary</th>
+                    <th scope="col" class="w-16 px-2 py-2 font-semibold">Файл</th>
+                    <th scope="col" class="w-32 px-2 py-2 font-semibold">Действия</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($publications as $value)
                 <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                    <td class="w-60 px-2 py-2">{{ $value->title }}</td>
+                    <td class="w-56 px-2 py-2">{{ $value->title }}</td>
                     <td class="w-auto px-2 py-2">{{ $value->output_data }}</td>
                     <td class="w-16 px-2 py-2 text-center">{{ $value->year_publishing }}</td>
                     <td class="w-16 px-2 py-2 text-center">{{ $value->volume_full_on_pages }}</td>
@@ -52,20 +53,29 @@
                         <span class="font-bold cursor-pointer">-</span>
                         @endif
                     </td>
-                    <td class="w-48 px-2 py-2">
-                        <a href="{{ $value->link_elibrary }}" target="_blank">{{ $value->link_elibrary }}</a>
+                    <td class="w-44 px-2 py-2">
+                        @if(!is_null($value->link_elibrary))
+                        <a href="{{ $value->link_elibrary }}" class="text-blue-400 hover:underline" target="_blank">{{ $value->link_elibrary }}</a>
+                        @else
+                        <span>-</span>
+                        @endif
                     </td>
                     <td class="w-16 px-2 py-2 text-center">
-                        <div class="grid gap-1 grid-cols-2">
-                            @if(!is_null($value->file_path))
-                            <a href="storage/{{ $value->file_path }}" target="_blank" class="bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-blue-400 font-bold" title="" data-tippy-content="Скачать">
-                                <i class="fa-solid fa-paperclip"></i>
-                            </a>
-                            @endif
-                            <button wire:click="setEntryModalVisible(true, {{ $value->id }})" class="bg-orange-400 hover:bg-orange-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-400 hover:border-orange-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-orange-400 font-bold" title="" data-tippy-content="Редактировать">
+                        @if(!is_null($value->file_path))
+                        <a href="storage/{{ $value->file_path }}" class="text-blue-400 hover:underline" target="_blank">Смотреть</a>
+                        @else
+                        <span>-</span>
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        <div class="grid gap-1 grid-cols-3">
+                            <button wire:click="downloadBibliographicDescription({{ $value->id }})" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Библиографическое описание">
+                                <i class="fa-solid fa-download"></i>
+                            </button>
+                            <button wire:click="setEntryModalVisible(true, {{ $value->id }})" class="bg-white hover:bg-orange-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-400 px-2 py-1 text-xs text-center text-orange-400 hover:text-white" title="" data-tippy-content="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button onclick="confirmDestroy('{{ $value->id }}')" class="bg-red-400 hover:bg-red-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-400 hover:border-red-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-red-400 font-bold" title="" data-tippy-content="Удалить">
+                            <button onclick="confirmDestroy('{{ $value->id }}')" class="bg-white hover:bg-red-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-400 px-2 py-1 text-xs text-center text-red-400 hover:text-white" title="" data-tippy-content="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -113,20 +123,30 @@
             </div>
             <div class="flex flex-col">
                 <span class="font-semibold">Ссылка в elibrary:</span>
-                <span>{{ $value->link_elibrary }}</span>
+                @if(!is_null($value->link_elibrary))
+                <a href="{{ $value->link_elibrary }}" class="text-blue-400 hover:underline" target="_blank">{{ $value->link_elibrary }}</a>
+                @else
+                <span>-</span>
+                @endif
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Файл:</span>
+                @if(!is_null($value->file_path))
+                <a href="storage/{{ $value->file_path }}" class="text-blue-400 hover:underline" target="_blank">Смотреть</a>
+                @else
+                <span>-</span>
+                @endif
             </div>
             <div class="flex flex-col">
                 <span class="font-semibold">Действия:</span>
                 <div class="flex flex-row space-x-2">
-                    @if(!is_null($value->file_path))
-                    <a href="storage/{{ $value->file_path }}" target="_blank" class="w-auto grow bg-blue-400 hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 hover:border-blue-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-blue-400 font-bold" title="" data-tippy-content="Скачать">
-                        <i class="fa-solid fa-paperclip"></i>
-                    </a>
-                    @endif
-                    <button wire:click="setEntryModalVisible(true, {{ $value->id }})" class="w-auto grow bg-orange-400 hover:bg-orange-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-400 hover:border-orange-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-orange-400 font-bold" title="" data-tippy-content="Редактировать">
+                    <button wire:click="downloadBibliographicDescription({{ $value->id }})" class="w-auto grow bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white font-bold" title="" data-tippy-content="Библиографическое описание">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                    <button wire:click="setEntryModalVisible(true, {{ $value->id }})" class="w-auto grow bg-white hover:bg-orange-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-400 px-2 py-1 text-xs text-center text-orange-400 hover:text-white font-bold" title="" data-tippy-content="Редактировать">
                         <i class="fa-solid fa-pen"></i>
                     </button>
-                    <button onclick="confirmDestroy('{{ $value->id }}')" class="w-auto grow bg-red-400 hover:bg-red-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-400 hover:border-red-500 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-white dark:text-red-400 font-bold" title="" data-tippy-content="Удалить">
+                    <button onclick="confirmDestroy('{{ $value->id }}')" class="w-auto grow bg-white hover:bg-red-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-400 px-2 py-1 text-xs text-center text-red-400 hover:text-white font-bold" title="" data-tippy-content="Удалить">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
@@ -237,10 +257,10 @@
             </x-slot>
 
             <x-slot name="footer">
-                <button wire:click="$toggle('isEntryModalVisible')" type="button" class="w-full sm:w-auto bg-gray-400 hover:bg-gray-500 rounded px-2 py-1 text-white">
+                <button wire:click="$toggle('isEntryModalVisible')" type="button" class="w-full sm:w-auto bg-white hover:bg-gray-400 border rounded border-gray-400 px-2 py-2 text-xs text-gray-400 hover:text-white font-bold">
                     {{ __('Отменить') }}
                 </button>
-                <button id="btn-action" type="button" class="ml-2 w-full sm:w-auto bg-blue-400 hover:bg-blue-500 rounded px-2 py-1 text-white">
+                <button id="btn-action" type="button" class="ml-2 w-full sm:w-auto bg-white hover:bg-blue-400 border rounded border-blue-400 px-2 py-2 text-xs text-blue-400 hover:text-white font-bold">
                     {{ (!$isEdit) ? __('Добавить') : __('Обновить') }}
                 </button>
             </x-slot>

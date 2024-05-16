@@ -219,12 +219,21 @@ class MyPublications extends Component
     {
         $author = Auth::user()->userData->last_name . ' ' . mb_substr(Auth::user()->userData->first_name, 0, 1) . '.' . mb_substr(Auth::user()->userData->middle_name, 0, 1) . '. ';
 
-        if($status == 1 || $status == 2 || $status == 3 || $status == 4 || $status == 5)
-        {
-            return $author . $this->title . ' / ' . trim($author) . (!empty($this->name_co_authors) ? ', ' . $this->name_co_authors : '') . $this->name_co_authors . ' // ' . $this->output_data;
-        }else {
+        if ($status == 1 || $status == 2 || $status == 3 || $status == 4 || $status == 5) {
+            return $author . $this->title . ' / ' . trim($author) . (!empty($this->name_co_authors) ? ', ' . $this->name_co_authors : '') . ' // ' . $this->output_data;
+        } else {
             return '-';
         }
+    }
+
+    public function downloadBibliographicDescription($id)
+    {
+        $txtFileName = time() . '.txt';
+        $myPublication = MyPublication::select('bibliographic_description')->where('id', '=', $id)->first();
+
+        return response()->streamDownload(function () use ($myPublication) {
+            echo $myPublication->bibliographic_description;
+        }, $txtFileName);
     }
 
     private function resetFields(): void

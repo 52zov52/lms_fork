@@ -35,8 +35,7 @@ class PrintInterimAssessmentController extends Controller
             ->first();
             
         $data = EJournal::join('users_data', 'e_journals.student_id', '=', 'users_data.user_id')
-            ->where('e_journals.lesson_type', '=', 6)
-            ->orWhere('e_journals.lesson_type', '=', 7)
+            ->whereIn('e_journals.lesson_type', [6, 7])
             ->where('e_journals.course_teacher_id', '=', $courseTeacherId)
             ->select(
                 'e_journals.id',

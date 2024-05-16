@@ -12,8 +12,8 @@
             </select>
         </div>
         <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-            <button onclick="showToast('generateListOfStudentsInGroupReport')" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-green-400 font-bold">
-                <i class="fa-solid fa-file-excel"></i>
+            <button onclick="showToast('generateListOfStudentsInGroupReport')" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-left text-green-400 hover:text-white font-bold">
+                <i class="fa-solid fa-download"></i>
                 Скачать список студентов
             </button>
         </div>
@@ -25,7 +25,7 @@
             <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr class="border-b border-slate-400/20">
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
-                    <th scope="col" class="w-auto px-2 py-2 font-semibold">ФИО</th>
+                    <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">ФИО</th>
                     <th scope="col" class="w-64 px-2 py-2 font-semibold">№ зачетки</th>
                     <th scope="col" class="w-64 px-2 py-2 font-semibold">Статус</th>
                 </tr>
@@ -34,7 +34,7 @@
                 @foreach($contingent as $item)
                 <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                    <td class="w-auto px-2 py-2 ">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
+                    <td class="w-auto px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
                     <td class="w-64 px-2 py-2 text-center">{{ $item->ticket_number }}</td>
                     <td class="w-64 px-2 py-2 text-center">{{ $item->state_name }}</td>
                 </tr>
