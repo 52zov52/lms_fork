@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Список трудов') }}
+        {{ __('Мой список трудов') }}
     </x-slot>
 
     @livewire('my-publications')
