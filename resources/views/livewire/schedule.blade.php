@@ -21,7 +21,7 @@
         </div>
         <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
             @can('update-schedule')
-            <button type="button" onclick="showToast('uploadSchedule')" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-blue-400 font-bold">
+            <button type="button" onclick="showToast('uploadSchedule')" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-left text-blue-400 hover:text-white font-bold">
                 <i class="fa-solid fa-rotate"></i>
                 Обновить расписание
             </button>

@@ -12,7 +12,7 @@
             </select>
         </div>
         <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-            <button onclick="showToast('generateListOfStudentsInGroupReport')" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-left text-green-400 hover:text-white font-bold">
+            <button onclick="showToast('generateListOfStudentsInGroupReport')" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-2 text-xs text-left text-sky-400 hover:text-white font-bold">
                 <i class="fa-solid fa-download"></i>
                 Скачать список студентов
             </button>
