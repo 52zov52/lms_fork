@@ -80,6 +80,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
         Route::get('/print-my-publications', [PrintPublicationController::class, 'printMyPublications'])->name('print.my.publications');
 
+        Route::get('/list-publications', function() {
+            return view('pages.list-publications');
+        })->name('list.publications');
+
         Route::get('/my-groups', function() {
             return view('pages.my-groups');
         })->name('my.groups');
