@@ -45,7 +45,7 @@ class MyGroups extends Component
                 $availableCourses = $this->getAvailableCourses($this->listUserId, $group);
                 foreach ($availableCourses as $course) {
                     CourseTeacher::create([
-                        'course_id' => $course->work_study_plan_courses_in_semester_id,
+                        'course_id' => $course->external_id,
                         'group_id' => $course->group_id,
                         'teacher_id' => Auth::user()->id,
                         'academic_year' => $academicYear
@@ -101,9 +101,11 @@ class MyGroups extends Component
 
     public function getAvailableCourses($listUserId, $groupId)
     {
-        return StudyThreadGroup::whereIn('user_id', $listUserId)
-            ->where('group_id', '=', $groupId)
-            ->select('group_id', 'work_study_plan_courses_in_semester_id')
+        //Временно связь между эл. журналом и рабочим учебным планом организована через внешний ИД КИС из-за обновления таблицы с смещения индексов
+        return StudyThreadGroup::join('work_study_plan_courses_in_semesters', 'study_thread_groups.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->whereIn('study_thread_groups.user_id', $listUserId)
+            ->where('study_thread_groups.group_id', '=', $groupId)
+            ->select('study_thread_groups.group_id', 'study_thread_groups.work_study_plan_courses_in_semester_id', 'work_study_plan_courses_in_semesters.external_id')
             ->distinct()->get();
     }
 

@@ -17,7 +17,7 @@ class TeacherCourses extends Component
 
     public function render()
     {
-        $teacherCourses = CourseTeacher::join('work_study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'work_study_plan_courses_in_semesters.id')
+        $teacherCourses = CourseTeacher::join('work_study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'work_study_plan_courses_in_semesters.external_id')
             ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
             ->join('work_study_plan_course_control_types_in_semesters', 'work_study_plan_courses_in_semesters.id', '=', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id')
             ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
