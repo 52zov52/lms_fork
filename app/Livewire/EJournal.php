@@ -21,7 +21,8 @@ class EJournal extends Component
         4 => 'Контрольная точка',
         5 => 'Контрольная точка (тест)',
         6 => 'Зачет',
-        7 => 'Экзамен',
+        7 => 'Диф. зачет',
+        8 => 'Экзамен',
     ];
 
     public $listOfLessonTime = [
@@ -39,12 +40,14 @@ class EJournal extends Component
         1 => '.',
         2 => 'Н',
         3 => 'НУ',
-        4 => '2',
-        5 => '3',
-        6 => '4',
-        7 => '5',
-        8 => 'Зач.',
-        9 => 'Незач.',
+        4 => '0',
+        5 => '1',
+        6 => '2',
+        7 => '3',
+        8 => '4',
+        9 => '5',
+        10 => 'Зач.',
+        11 => 'Незач.',
     ];
 
     public $lesson_date = '', $lesson_time = '', $lesson_type = 1, $lesson_theme = 'Тема';
@@ -69,7 +72,7 @@ class EJournal extends Component
         $journal = ModelsEJournal::where('course_teacher_id', $this->courseTeacherId)->orderBy('lesson_date', 'asc')->get();
         $infoAboutGroupAndCourse = CourseTeacher::where('course_teacher.id', '=', $this->courseTeacherId)
             ->join('groups', 'course_teacher.group_id', '=', 'groups.id')
-            ->join('work_study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->join('work_study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'work_study_plan_courses_in_semesters.external_id')
             ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
             ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
             ->select('groups.group_name', 'disciplines.name as discipline_name')

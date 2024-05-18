@@ -13,7 +13,7 @@ class PrintCurrentAssessmentController extends Controller
     public function printCurrentAssessment($courseTeacherId)
     {
         $infoAboutGroupAndCourse = CourseTeacher::where('course_teacher.id', '=', $courseTeacherId)
-            ->join('work_study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->join('work_study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'work_study_plan_courses_in_semesters.external_id')
             ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
             ->join('work_study_plans', 'work_study_plan_courses.work_study_plan_id', '=', 'work_study_plans.id')
             ->join('teaching_forms', 'work_study_plans.teaching_form_id', '=', 'teaching_forms.id')
@@ -78,18 +78,26 @@ class PrintCurrentAssessmentController extends Controller
                     $lessonTypeTK[] = $value['status'];
 
                     if($value['status'] == 4) {
-                        $sum += 2;
+                        $sum += 0;
                     }
 
                     if($value['status'] == 5) {
-                        $sum += 3;
+                        $sum += 1;
                     }
 
                     if($value['status'] == 6) {
-                        $sum += 4;
+                        $sum += 2;
                     }
 
                     if($value['status'] == 7) {
+                        $sum += 3;
+                    }
+
+                    if($value['status'] == 8) {
+                        $sum += 4;
+                    }
+
+                    if($value['status'] == 9) {
                         $sum += 5;
                     }
                 }
@@ -98,23 +106,31 @@ class PrintCurrentAssessmentController extends Controller
                     $lessonTypeTest = $value['status'];
 
                     if($value['status'] == 4) {
-                        $sum += 2;
+                        $sum += 0;
                     }
 
                     if($value['status'] == 5) {
-                        $sum += 3;
+                        $sum += 1;
                     }
 
                     if($value['status'] == 6) {
-                        $sum += 4;
+                        $sum += 2;
                     }
 
                     if($value['status'] == 7) {
+                        $sum += 3;
+                    }
+
+                    if($value['status'] == 8) {
+                        $sum += 4;
+                    }
+
+                    if($value['status'] == 9) {
                         $sum += 5;
                     }
                 }
 
-                if($value['lesson_type'] == 6 || $value['lesson_type'] == 7) {
+                if($value['lesson_type'] == 6 || $value['lesson_type'] == 7 || $value['lesson_type'] == 8) {
                     $lessonTypeExam = $value['status'];
                 }
             }

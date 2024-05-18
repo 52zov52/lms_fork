@@ -13,7 +13,7 @@ class PrintInterimAssessmentController extends Controller
     public function printInterimAssessment($courseTeacherId)
     {
         $infoAboutGroupAndCourse = CourseTeacher::where('course_teacher.id', '=', $courseTeacherId)
-            ->join('work_study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->join('work_study_plan_courses_in_semesters', 'course_teacher.course_id', '=', 'work_study_plan_courses_in_semesters.external_id')
             ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
             ->join('work_study_plans', 'work_study_plan_courses.work_study_plan_id', '=', 'work_study_plans.id')
             ->join('teaching_forms', 'work_study_plans.teaching_form_id', '=', 'teaching_forms.id')

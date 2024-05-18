@@ -31,7 +31,7 @@
                             <span>{{ $element->lesson_time }}</span>
                             <div class="w-full border rounded">
                                 @if($element->lesson_type == 1)
-                                <span">лек.</span>
+                                    <span">лек.</span>
                                     @elseif($element->lesson_type == 2)
                                     <span>лаб.</span>
                                     @elseif($element->lesson_type == 3)
@@ -42,6 +42,8 @@
                                     <span>к.т. (тест)</span>
                                     @elseif($element->lesson_type == 6)
                                     <span>зач.</span>
+                                    @elseif($element->lesson_type == 7)
+                                    <span>диф. зач.</span>
                                     @else
                                     <span>экз.</span>
                                     @endif
@@ -98,21 +100,27 @@
                                     <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал по уважительной причине">НУ</div>
                                 @break
                                 @case(4)
-                                    <div class="w-full h-6 font-bold" data-tippy-content="Неудовлетворительно">2</div>
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Неудовлетворительно">0</div>
                                 @break
                                 @case(5)
-                                    <div class="w-full h-6 font-bold" data-tippy-content="Удовлетворительно">3</div>
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Неудовлетворительно">1</div>
                                 @break
                                 @case(6)
-                                    <div class="w-full h-6 font-bold" data-tippy-content="Хорошо">4</div>
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Неудовлетворительно">2</div>
                                 @break
                                 @case(7)
-                                    <div class="w-full h-6 font-bold" data-tippy-content="Отлично">5</div>
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Удовлетворительно">3</div>
                                 @break
                                 @case(8)
-                                    <div class="w-full h-6 font-bold" data-tippy-content="Зачёт">Зач.</div>
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Хорошо">4</div>
                                 @break
                                 @case(9)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Отлично">5</div>
+                                @break
+                                @case(10)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Зачёт">Зач.</div>
+                                @break
+                                @case(11)
                                     <div class="w-full h-6 font-bold" data-tippy-content="Незачёт">Незач.</div>
                                 @break
                                 @default
