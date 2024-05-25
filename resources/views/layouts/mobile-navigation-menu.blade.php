@@ -24,6 +24,12 @@
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Расписание</span>
             </a>
         </li>
+        <li class="{{ (request()->routeIs('admission.campaign')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('admission.campaign') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
+                <i class="fa-solid fa-school fa-lg"></i>
+                <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Приемная кампания</span>
+            </a>
+        </li>
         @can('show-operating-activity-and-decisions-rectorate-and-council')
         <li class="{{ (request()->routeIs('operating.activity')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('operating.activity') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
@@ -99,4 +105,3 @@
         </li>
     </ul>
 </nav>
-

@@ -49,6 +49,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.schedule');
     })->name('schedule');
 
+    Route::get('/admission-campaign', function () {
+        return view('pages.admission-campaign');
+    })->name('admission.campaign');
+
     Route::group(['middleware' => ['permission:show-operating-activity-and-decisions-rectorate-and-council']], function () {
         Route::get('/operating-activity', function () {
             return view('pages.operating-activity');
