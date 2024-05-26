@@ -57,7 +57,7 @@
                 <th scope="col" rowspan="2" class="w-32 px-2 py-2 text-left font-semibold">Тип финансирования</th>
                 <th scope="col" colspan="3" class="w-auto px-2 py-2 text-center font-semibold">Заявления</th>
                 <th scope="col" colspan="3" class="w-auto px-2 py-2 text-center font-semibold">Договора</th>
-                <th scope="col" rowspan="2" class="w-auto px-2 py-2 text-center font-semibold">Оплачено</th>
+                <th scope="col" rowspan="2" class="w-24 px-2 py-2 text-center font-semibold">Оплачено</th>
             </tr>
             <tr class="border-b border-slate-400/20">
                 <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">На базе аттестата</th>

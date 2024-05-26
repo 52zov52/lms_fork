@@ -6,6 +6,7 @@ use App\Models\AdmissionCampaign as ModelsAdmissionCampaign;
 use App\Models\AdmissionCampaignDirection;
 use App\Models\AdmissionCampaignStats;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class AdmissionCampaign extends Component
@@ -45,6 +46,7 @@ class AdmissionCampaign extends Component
             ->where('admission_campaign_stats.admission_campaign_id', '=', $admissionCampaign->id)
             ->where('admission_campaign_directions.level_education_id', '=', $this->levelEducation)
             ->where('admission_campaign_directions.teaching_form_id', '=', $this->teachingForm)
+            ->where('admission_campaign_stats.created_at', 'like', Carbon::now()->format('Y-m-d') . '%')
             ->select(
                 'admission_campaign_stats.id',
                 'admission_campaign_directions.speciality_code',
@@ -138,5 +140,66 @@ class AdmissionCampaign extends Component
 
         session()->flash('type', 'success');
         session()->flash('message', 'Данные успешно сохранены!');
+    }
+
+    private function dataTransform()
+    {
+        $today = Carbon::now()->format('Y-m-d');
+
+        $data = AdmissionCampaignStats::join('admission_campaign_directions', 'admission_campaign_stats.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
+            ->where('admission_campaign_stats.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_directions.level_education_id', '=', $this->levelEducation)
+            ->where('admission_campaign_directions.funding_type', '=', 1)
+            ->select(
+                DB::raw("CONCAT(admission_campaign_directions.speciality_code, ' ',
+                admission_campaign_directions.speciality_name, ' ',admission_campaign_directions.speciality_profile) as direction"),
+                'admission_campaign_directions.funding_type',
+                'admission_campaign_directions.level_education_id',
+                'admission_campaign_directions.teaching_form_id',
+                DB::raw('SUM(CASE WHEN admission_campaign_stats.created_at LIKE "' . $today . '%" THEN admission_campaign_stats.applications_certificate_count ELSE 0 END) as today_applications_certificate_count'),
+                DB::raw('SUM(CASE WHEN admission_campaign_stats.created_at LIKE "' . $today . '%" THEN admission_campaign_stats.applications_diploma_bachelor_count ELSE 0 END) as today_applications_diploma_bachelor_count'),
+                DB::raw('SUM(CASE WHEN admission_campaign_stats.created_at LIKE "' . $today . '%" THEN admission_campaign_stats.applications_diploma_college_count ELSE 0 END) as today_applications_diploma_college_count'),
+                DB::raw('SUM(admission_campaign_stats.applications_certificate_count) as total_applications_certificate_count'),
+                DB::raw('SUM(admission_campaign_stats.applications_diploma_bachelor_count) as total_applications_diploma_bachelor_count'),
+                DB::raw('SUM(admission_campaign_stats.applications_diploma_college_count) as total_applications_diploma_college_count'),
+                DB::raw('SUM(CASE WHEN admission_campaign_stats.created_at LIKE "' . $today . '%" THEN admission_campaign_stats.contracts_certificate_count ELSE 0 END) as today_contracts_certificate_count'),
+                DB::raw('SUM(CASE WHEN admission_campaign_stats.created_at LIKE "' . $today . '%" THEN admission_campaign_stats.contracts_diploma_bachelor_count ELSE 0 END) as today_contracts_diploma_bachelor_count'),
+                DB::raw('SUM(CASE WHEN admission_campaign_stats.created_at LIKE "' . $today . '%" THEN admission_campaign_stats.contracts_diploma_college_count ELSE 0 END) as today_contracts_diploma_college_count'),
+                DB::raw('SUM(admission_campaign_stats.contracts_certificate_count) as total_contracts_certificate_count'),
+                DB::raw('SUM(admission_campaign_stats.contracts_diploma_bachelor_count) as total_contracts_diploma_bachelor_count'),
+                DB::raw('SUM(admission_campaign_stats.contracts_diploma_college_count) as total_contracts_diploma_college_count'),
+                DB::raw('SUM(admission_campaign_stats.paid_contracts_count) as total_paid_contracts_count'),
+            )
+            ->groupBy(
+                'admission_campaign_directions.speciality_code',
+                'admission_campaign_directions.speciality_name',
+                'admission_campaign_directions.speciality_profile',
+                'admission_campaign_directions.funding_type',
+                'admission_campaign_directions.level_education_id',
+                'admission_campaign_directions.teaching_form_id'
+            )
+            ->get()->toArray();
+
+        $res = collect($data)->groupBy('direction')->map(function ($items) {
+            return collect($items)->map(function ($item) {
+                return [
+                    $item['teaching_form_id'] => [
+                        'today_applications_certificate_count' => $item['today_applications_certificate_count'],
+                        'today_applications_diploma_bachelor_count' => $item['today_applications_diploma_bachelor_count'],
+                        'today_applications_diploma_college_count' => $item['today_applications_diploma_college_count'],
+                        'total_applications_certificate_count' => $item['total_applications_certificate_count'],
+                        'total_applications_diploma_bachelor_count' => $item['total_applications_diploma_bachelor_count'],
+                        'total_applications_diploma_college_count' => $item['total_applications_diploma_college_count'],
+                        'today_contracts_certificate_count' => $item['today_contracts_certificate_count'],
+                        'today_contracts_diploma_bachelor_count' => $item['today_contracts_diploma_bachelor_count'],
+                        'today_contracts_diploma_college_count' => $item['today_contracts_diploma_college_count'],
+                        'total_contracts_certificate_count' => $item['total_contracts_certificate_count'],
+                        'total_contracts_diploma_bachelor_count' => $item['total_contracts_diploma_bachelor_count'],
+                        'total_contracts_diploma_college_count' => $item['total_contracts_diploma_college_count'],
+                        'total_paid_contracts_count' => $item['total_paid_contracts_count']
+                    ]
+                ];
+            })->all();
+        })->toArray();
     }
 }

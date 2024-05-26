@@ -20,11 +20,13 @@
                 <i class="fa-solid fa-calendar-days fa-lg"></i>
             </a>
         </li>
+        @can('access-to-admission-campaign')
         <li class="{{ (request()->routeIs('admission.campaign')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('admission.campaign') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
                 <i class="fa-solid fa-school fa-lg"></i>
             </a>
         </li>
+        @endcan
         @can('show-operating-activity-and-decisions-rectorate-and-council')
         <li class="{{ (request()->routeIs('operating.activity')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('operating.activity') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
