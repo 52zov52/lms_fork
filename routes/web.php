@@ -6,6 +6,7 @@ use App\Http\Controllers\PrintConfirmedDocumentRequestsController;
 use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\Reports\PrintAdmissionCampaignController;
 use App\Http\Controllers\Reports\PrintPublicationController;
 use App\Http\Controllers\Reports\PrintCurrentAssessmentController;
 use App\Http\Controllers\Reports\PrintInterimAssessmentController;
@@ -52,6 +53,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/admission-campaign', function () {
         return view('pages.admission-campaign');
     })->name('admission.campaign');
+
+    Route::get('/print-admission-campaign', [PrintAdmissionCampaignController::class, 'print'])->name('print.admission.campaign.report');
 
     Route::group(['middleware' => ['permission:show-operating-activity-and-decisions-rectorate-and-council']], function () {
         Route::get('/operating-activity', function () {
