@@ -48,7 +48,7 @@
             <i class="fa-solid fa-floppy-disk fa-lg"></i>
             Сохранить
         </button>
-        <button wire:click="printReport()" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-green-400 font-bold">
+        <button wire:click="printFullReport()" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-left text-green-400 font-bold">
             <i class="fa-solid fa-file-excel"></i>
             Скачать отчет
         </button>
@@ -105,6 +105,8 @@
             @endforeach
         </tbody>
     </table>
+    @elseif(count($college) == 0 && $levelEducation == 2)
+    <x-alert type="info" title="Информация" message="Для выбранной формы обучения приемная кампания не проводится" />
     @endif
 
     @if(count($bachelor) != 0)
@@ -166,6 +168,8 @@
             @endforeach
         </tbody>
     </table>
+    @elseif(count($bachelor) == 0 && $levelEducation == 6)
+    <x-alert type="info" title="Информация" message="Для выбранной формы обучения приемная кампания не проводится" />
     @endif
 
     @if(count($mastersDegree) != 0)
@@ -207,6 +211,8 @@
             @endforeach
         </tbody>
     </table>
+    @elseif(count($mastersDegree) == 0 && $levelEducation == 7)
+    <x-alert type="info" title="Информация" message="Для выбранной формы обучения приемная кампания не проводится" />
     @endif
 
     @if(count($phd) != 0)
@@ -248,6 +254,8 @@
             @endforeach
         </tbody>
     </table>
+    @elseif(count($phd) == 0 && $levelEducation == 4)
+    <x-alert type="info" title="Информация" message="Для выбранной формы обучения приемная кампания не проводится" />
     @endif
 </div>
 

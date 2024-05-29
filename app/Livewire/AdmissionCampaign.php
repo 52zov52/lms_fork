@@ -374,8 +374,8 @@ class AdmissionCampaign extends Component
         session()->flash('message', 'Данные успешно сохранены!');
     }
 
-    public function printReport()
+    public function printFullReport()
     {
-        return redirect()->route('print.admission.campaign.report');
+        return redirect()->route('print.admission.campaign.full.report');
     }
 }
