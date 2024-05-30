@@ -11,6 +11,7 @@ class AdmissionCampaign extends Model
 
     protected $fillable = [
         'name',
+        'application_period_start_date',
         'is_active',
     ];
 }

@@ -83,7 +83,7 @@
                     @if($student->user_id == $item->student_id)
                     <td class="w-20 px-2 py-2 text-center {{ ($item->is_signature) ? 'bg-green-200 dark:bg-slate-700' : '' }}">
                         @if(!$item->is_signature)
-                        <select wire:model="status.{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $student->user_id }})" name="status" id="" class="bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($item->is_signature) disabled @endif>
+                        <select wire:model="status.{{ $item->id }}" wire:key="{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $student->user_id }})" name="status" id="" class="bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($item->is_signature) disabled @endif>
                             @foreach($listOfStatuses as $key => $value)
                             <option value="{{ $key }}">{{ $value }}</option>
                             @endforeach

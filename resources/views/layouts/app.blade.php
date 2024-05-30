@@ -14,9 +14,17 @@
 
     <style>
         @media screen and (min-width: 1024px) {
+            .w-admission-campaign {
+                width: calc(100vw - 105px);
+            }
+
             .w-e-journal {
                 width: calc(100vw - 105px);
             }
+        }
+
+        .h-admission-campaign {
+            height: calc(100vh - 450px);
         }
 
         .h-e-journal {
@@ -59,13 +67,7 @@
             @include('layouts.desktop-icon-navigation-menu')
         </aside>
         <!-- Menu -->
-        <div x-cloak x-show="isExpandSideBar" class="hidden z-20 absolute left-16 w-72 h-screen lg:flex lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5"
-            x-transition:enter="transition-transform ease-out duration-200"
-            x-transition:enter-start="transform -translate-x-full" 
-            x-transition:enter-end="transform translate-x-0"
-            x-transition:leave="transition-transform ease-in duration-200"
-            x-transition:leave-start="transform translate-x-0" 
-            x-transition:leave-end="transform -translate-x-full">
+        <div x-cloak x-show="isExpandSideBar" class="hidden z-20 absolute left-16 w-72 h-screen lg:flex lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5" x-transition:enter="transition-transform ease-out duration-200" x-transition:enter-start="transform -translate-x-full" x-transition:enter-end="transform translate-x-0" x-transition:leave="transition-transform ease-in duration-200" x-transition:leave-start="transform translate-x-0" x-transition:leave-end="transform -translate-x-full">
             <div class="h-8 inline-flex px-2">
                 <span class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
             </div>

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('admission_campaigns', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->date('application_period_start_date');
             $table->boolean('is_active')->default(false);
             $table->timestamps();
         });

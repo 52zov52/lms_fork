@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdmissionCampaign;
 use App\Models\AdmissionCampaignStatsBachelor;
 use App\Models\AdmissionCampaignStatsCollege;
 use App\Models\AdmissionCampaignStatsMastersDegree;
@@ -16,7 +17,9 @@ class PrintAdmissionCampaignController extends Controller
 {
     public function printFullReport()
     {
-        $dateToStartAdmissionCampaign = '10.06.2024';
+        $applicationPeriodStartDate = Carbon::parse(AdmissionCampaign::where('is_active', '=', true)
+            ->select('application_period_start_date')
+            ->first()->application_period_start_date)->format('d.m.Y');
 
         $collegeCommerce = $this->dataTransformToCollege(1);
         $bachelorCommerce = $this->dataTransformToBachelor(1);
@@ -27,6 +30,8 @@ class PrintAdmissionCampaignController extends Controller
         $bachelorBudget = $this->dataTransformToBachelor(0);
         $mastersDegreeBudget = $this->dataTransformToMastersDegree(0);
         $phdBudget = $this->dataTransformToPhD(0);
+
+        $sumByLevelEducation = $this->getSum();
 
         $filename = time() . '.xlsx';
 
@@ -41,8 +46,87 @@ class PrintAdmissionCampaignController extends Controller
         $offsetContentFirst = 1;
         $offsetContentLast = 1;
 
+        $sheet->setCellValue('A' . $offset, 'ИТОГО НА ' . now()->format('d.m.Y'));
+        $sheet->setCellValue('B' . $offset, 'СПО');
+        $sheet->setCellValue('C' . $offset, 'Бакалавриат');
+        $sheet->setCellValue('D' . $offset, 'Магистратура');
+        $sheet->setCellValue('E' . $offset, 'Аспирантура');
+        $sheet->setCellValue('F' . $offset, 'Итого');
+
+        $sheet->getStyle('A' . $offset . ':F' . $offset)->getFont()->setBold(true);
+
+        $offset++;
+
+        $sheet->setCellValue('A' . $offset, 'Подано заявлений');
+        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_applications_count']);
+        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_applications_count']);
+        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_applications_count']);
+        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_applications_count']);
+        $sheet->setCellValue('F' . $offset, $sumByLevelEducation['college'][0]['total_applications_count'] +
+            $sumByLevelEducation['bachelor'][0]['total_applications_count'] + $sumByLevelEducation['mastersDegree'][0]['total_applications_count'] +
+            $sumByLevelEducation['phd'][0]['total_applications_count']);
+
+        $offset++;
+
+        $sheet->setCellValue('A' . $offset, 'Заключено договоров');
+        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_contracts_count']);
+        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_contracts_count']);
+        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_contracts_count']);
+        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_contracts_count']);
+        $sheet->setCellValue('F' . $offset, $sumByLevelEducation['college'][0]['total_contracts_count'] +
+            $sumByLevelEducation['bachelor'][0]['total_contracts_count'] + $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] +
+            $sumByLevelEducation['phd'][0]['total_contracts_count']);
+
+        $offset++;
+
+        $sheet->setCellValue('A' . $offset, 'Оплачено');
+        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_paid_contracts_count']);
+        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count']);
+        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count']);
+        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_paid_contracts_count']);
+        $sheet->setCellValue('F' . $offset, $sumByLevelEducation['college'][0]['total_paid_contracts_count'] +
+            $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count'] + $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count'] +
+            $sumByLevelEducation['phd'][0]['total_paid_contracts_count']);
+
+        $offset++;
+
+        $sheet->setCellValue('A' . $offset, 'Не оплачено');
+        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_contracts_count'] - $sumByLevelEducation['college'][0]['total_paid_contracts_count']);
+        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_contracts_count'] - $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count']);
+        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] - $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count']);
+        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_contracts_count'] - $sumByLevelEducation['phd'][0]['total_paid_contracts_count']);
+        $sheet->setCellValue('F' . $offset, ($sumByLevelEducation['college'][0]['total_contracts_count'] + $sumByLevelEducation['bachelor'][0]['total_contracts_count'] +
+            $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] + $sumByLevelEducation['phd'][0]['total_contracts_count']) -
+            ($sumByLevelEducation['college'][0]['total_paid_contracts_count'] + $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count'] +
+                $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count'] + $sumByLevelEducation['phd'][0]['total_paid_contracts_count']));
+
+        $offsetContentLast = $offset;
+
+        $sheet->getStyle('A' . $offsetBoldFirst . ':A' . $offset)->getFont()->setBold(true);
+        $sheet->getStyle('F' . $offsetBoldFirst . ':F' . $offset)->getFont()->setBold(true);
+
+        $sheet->getStyle('B' . $offsetContentFirst . ':F' . $offsetContentLast)
+            ->applyFromArray(array('alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+            ]));
+
+        //Стиль для рамки
+        $sheet->getStyle('A' . $offsetBorderFirst . ':F' . $offset)
+            ->getBorders()
+            ->getAllBorders()
+            ->applyFromArray(array(
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => array('rgb' => '808080')
+            ));
+
+        $offset += 2;
+
+        $offsetBoldFirst = $offset;
+        $offsetBorderFirst = $offset;
+
         //Колледж
-        if (count($collegeCommerce) != 0) {
+        if (count($collegeCommerce) != 0 || count($collegeBudget) != 0) {
             $finalCollegeSum = array(
                 'final_applications_after_nine_grades_count_ofo' => 0,
                 'final_applications_after_eleventh_grades_count_ofo' => 0,
@@ -68,10 +152,10 @@ class PrintAdmissionCampaignController extends Controller
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 ]));
 
-            $sheet->setCellValue('B' . $offset, 'Всего заявлений с ' . $dateToStartAdmissionCampaign);
+            $sheet->setCellValue('B' . $offset, 'Всего заявлений с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('B' . $offset . ':D' . $offset);
 
-            $sheet->setCellValue('E' . $offset, 'Всего договоров с ' . $dateToStartAdmissionCampaign);
+            $sheet->setCellValue('E' . $offset, 'Всего договоров с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('E' . $offset . ':G' . $offset);
 
             $sheet->setCellValue('H' . $offset, now()->format('d.m.Y'));
@@ -124,62 +208,138 @@ class PrintAdmissionCampaignController extends Controller
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
                 ]));
 
-            $offset++;
-
-            $sheet->setCellValue('A' . $offset, 'По договорам с оплатой стоимости обучения');
-            $sheet->mergeCells('A' . $offset . ':I' . $offset);
-
             $sheet->getStyle('A' . $offsetBoldFirst . ':I' . $offset)->getFont()->setBold(true);
 
             $offset++;
-            $offsetContentFirst = $offset;
 
-            foreach ($collegeCommerce as $key => $value) {
-                $totalPaidContractsCount = 0;
-                $totalContractsCount = 0;
+            if (count($collegeCommerce) != 0) {
+                $sheet->setCellValue('A' . $offset, 'По договорам с оплатой стоимости обучения');
+                $sheet->mergeCells('A' . $offset . ':I' . $offset);
 
-                $sheet->setCellValue('A' . $offset, $key);
-
-                foreach ($value as $item) {
-                    //ОФО
-                    if (isset($item[1])) {
-                        $sheet->setCellValue('B' . $offset, $item[1]['total_applications_after_nine_grades_count']);
-                        $sheet->setCellValue('C' . $offset, $item[1]['total_applications_after_eleventh_grades_count']);
-
-                        $sheet->setCellValue('E' . $offset, $item[1]['total_contracts_after_nine_grades_count']);
-                        $sheet->setCellValue('F' . $offset, $item[1]['total_contracts_after_eleventh_grades_count']);
-
-                        $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
-                        $totalContractsCount += $item[1]['total_contracts_after_nine_grades_count'] + $item[1]['total_contracts_after_eleventh_grades_count'];
-
-                        $finalCollegeSum['final_applications_after_nine_grades_count_ofo'] += $item[1]['total_applications_after_nine_grades_count'];
-                        $finalCollegeSum['final_applications_after_eleventh_grades_count_ofo'] += $item[1]['total_applications_after_eleventh_grades_count'];
-                        $finalCollegeSum['final_contracts_after_nine_grades_count_ofo'] += $item[1]['total_contracts_after_nine_grades_count'];
-                        $finalCollegeSum['final_contracts_after_eleventh_grades_count_ofo'] += $item[1]['total_contracts_after_eleventh_grades_count'];
-                        $finalCollegeSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
-                        $finalCollegeSum['final_contracts_count'] += $item[1]['total_contracts_after_nine_grades_count'] + $item[1]['total_contracts_after_eleventh_grades_count'];
-                    }
-
-                    //ЗФО
-                    if (isset($item[2])) {
-                        $sheet->setCellValue('D' . $offset, $item[2]['total_applications_after_eleventh_grades_count']);
-
-                        $sheet->setCellValue('G' . $offset, $item[2]['total_contracts_after_eleventh_grades_count']);
-
-                        $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
-                        $totalContractsCount += $item[2]['total_contracts_after_eleventh_grades_count'];
-
-                        $finalCollegeSum['final_applications_after_eleventh_grades_count_zfo'] += $item[2]['total_applications_after_eleventh_grades_count'];
-                        $finalCollegeSum['final_contracts_after_eleventh_grades_count_zfo'] += $item[2]['total_contracts_after_eleventh_grades_count'];
-                        $finalCollegeSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
-                        $finalCollegeSum['final_contracts_count'] += $item[2]['total_contracts_after_eleventh_grades_count'];
-                    }
-                }
-
-                $sheet->setCellValue('H' . $offset, $totalPaidContractsCount);
-                $sheet->setCellValue('I' . $offset, $totalContractsCount - $totalPaidContractsCount);
+                $sheet->getStyle('A' . $offset . ':I' . $offset)->getFont()->setBold(true);
 
                 $offset++;
+                $offsetContentFirst = $offset;
+
+                foreach ($collegeCommerce as $key => $value) {
+                    $totalPaidContractsCount = 0;
+                    $totalContractsCount = 0;
+
+                    $sheet->setCellValue('A' . $offset, $key);
+
+                    foreach ($value as $item) {
+                        //ОФО
+                        if (isset($item[1])) {
+                            $sheet->setCellValue('B' . $offset, $item[1]['total_applications_after_nine_grades_count']);
+                            $sheet->setCellValue('C' . $offset, $item[1]['total_applications_after_eleventh_grades_count']);
+
+                            $sheet->setCellValue('E' . $offset, $item[1]['total_contracts_after_nine_grades_count']);
+                            $sheet->setCellValue('F' . $offset, $item[1]['total_contracts_after_eleventh_grades_count']);
+
+                            $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[1]['total_contracts_after_nine_grades_count'] + $item[1]['total_contracts_after_eleventh_grades_count'];
+
+                            $finalCollegeSum['final_applications_after_nine_grades_count_ofo'] += $item[1]['total_applications_after_nine_grades_count'];
+                            $finalCollegeSum['final_applications_after_eleventh_grades_count_ofo'] += $item[1]['total_applications_after_eleventh_grades_count'];
+                            $finalCollegeSum['final_contracts_after_nine_grades_count_ofo'] += $item[1]['total_contracts_after_nine_grades_count'];
+                            $finalCollegeSum['final_contracts_after_eleventh_grades_count_ofo'] += $item[1]['total_contracts_after_eleventh_grades_count'];
+                            $finalCollegeSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
+                            $finalCollegeSum['final_contracts_count'] += $item[1]['total_contracts_after_nine_grades_count'] + $item[1]['total_contracts_after_eleventh_grades_count'];
+                        }
+
+                        //ЗФО
+                        if (isset($item[2])) {
+                            $sheet->setCellValue('D' . $offset, $item[2]['total_applications_after_eleventh_grades_count']);
+
+                            $sheet->setCellValue('G' . $offset, $item[2]['total_contracts_after_eleventh_grades_count']);
+
+                            $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[2]['total_contracts_after_eleventh_grades_count'];
+
+                            $finalCollegeSum['final_applications_after_eleventh_grades_count_zfo'] += $item[2]['total_applications_after_eleventh_grades_count'];
+                            $finalCollegeSum['final_contracts_after_eleventh_grades_count_zfo'] += $item[2]['total_contracts_after_eleventh_grades_count'];
+                            $finalCollegeSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
+                            $finalCollegeSum['final_contracts_count'] += $item[2]['total_contracts_after_eleventh_grades_count'];
+                        }
+                    }
+
+                    $sheet->setCellValue('H' . $offset, $totalPaidContractsCount);
+                    $sheet->setCellValue('I' . $offset, $totalContractsCount - $totalPaidContractsCount);
+
+                    $offset++;
+                    $offsetContentLast = $offset;
+
+                    $sheet->getStyle('B' . $offsetContentFirst . ':I' . $offsetContentLast)
+                        ->applyFromArray(array('alignment' => [
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                        ]));
+                }
+            }
+
+            if (count($collegeBudget) != 0) {
+                $sheet->setCellValue('A' . $offset, 'Бюджетные места');
+                $sheet->mergeCells('A' . $offset . ':I' . $offset);
+
+                $sheet->getStyle('A' . $offset . ':I' . $offset)->getFont()->setBold(true);
+
+                $offset++;
+                $offsetContentFirst = $offset;
+
+                foreach ($collegeBudget as $key => $value) {
+                    $totalPaidContractsCount = 0;
+                    $totalContractsCount = 0;
+
+                    $sheet->setCellValue('A' . $offset, $key);
+
+                    foreach ($value as $item) {
+                        //ОФО
+                        if (isset($item[1])) {
+                            $sheet->setCellValue('B' . $offset, $item[1]['total_applications_after_nine_grades_count']);
+                            $sheet->setCellValue('C' . $offset, $item[1]['total_applications_after_eleventh_grades_count']);
+
+                            $sheet->setCellValue('E' . $offset, $item[1]['total_contracts_after_nine_grades_count']);
+                            $sheet->setCellValue('F' . $offset, $item[1]['total_contracts_after_eleventh_grades_count']);
+
+                            $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[1]['total_contracts_after_nine_grades_count'] + $item[1]['total_contracts_after_eleventh_grades_count'];
+
+                            $finalCollegeSum['final_applications_after_nine_grades_count_ofo'] += $item[1]['total_applications_after_nine_grades_count'];
+                            $finalCollegeSum['final_applications_after_eleventh_grades_count_ofo'] += $item[1]['total_applications_after_eleventh_grades_count'];
+                            $finalCollegeSum['final_contracts_after_nine_grades_count_ofo'] += $item[1]['total_contracts_after_nine_grades_count'];
+                            $finalCollegeSum['final_contracts_after_eleventh_grades_count_ofo'] += $item[1]['total_contracts_after_eleventh_grades_count'];
+                            $finalCollegeSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
+                            $finalCollegeSum['final_contracts_count'] += $item[1]['total_contracts_after_nine_grades_count'] + $item[1]['total_contracts_after_eleventh_grades_count'];
+                        }
+
+                        //ЗФО
+                        if (isset($item[2])) {
+                            $sheet->setCellValue('D' . $offset, $item[2]['total_applications_after_eleventh_grades_count']);
+
+                            $sheet->setCellValue('G' . $offset, $item[2]['total_contracts_after_eleventh_grades_count']);
+
+                            $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[2]['total_contracts_after_eleventh_grades_count'];
+
+                            $finalCollegeSum['final_applications_after_eleventh_grades_count_zfo'] += $item[2]['total_applications_after_eleventh_grades_count'];
+                            $finalCollegeSum['final_contracts_after_eleventh_grades_count_zfo'] += $item[2]['total_contracts_after_eleventh_grades_count'];
+                            $finalCollegeSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
+                            $finalCollegeSum['final_contracts_count'] += $item[2]['total_contracts_after_eleventh_grades_count'];
+                        }
+                    }
+
+                    $sheet->setCellValue('H' . $offset, $totalPaidContractsCount);
+                    $sheet->setCellValue('I' . $offset, $totalContractsCount - $totalPaidContractsCount);
+
+                    $offset++;
+                    $offsetContentLast = $offset;
+
+                    $sheet->getStyle('B' . $offsetContentFirst . ':I' . $offsetContentLast)
+                        ->applyFromArray(array('alignment' => [
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                        ]));
+                }
             }
 
             $sheet->setCellValue('A' . $offset, 'Итого');
@@ -192,16 +352,31 @@ class PrintAdmissionCampaignController extends Controller
             $sheet->setCellValue('H' . $offset, $finalCollegeSum['final_paid_contracts_count']);
             $sheet->setCellValue('I' . $offset, $finalCollegeSum['final_contracts_count'] - $finalCollegeSum['final_paid_contracts_count']);
 
-            $sheet->getStyle('A' . $offset . ':I' . $offset)->getFont()->setBold(true);
+            $offset++;
+
+            $sheet->setCellValue('A' . $offset, 'Итого заявлений');
+            $sheet->setCellValue('B' . $offset, $finalCollegeSum['final_applications_after_nine_grades_count_ofo'] +
+                $finalCollegeSum['final_applications_after_eleventh_grades_count_ofo'] +
+                $finalCollegeSum['final_applications_after_eleventh_grades_count_zfo']);
+            $sheet->mergeCells('B' . $offset . ':I' . $offset);
 
             $offset++;
-            $offsetContentLast = $offset;
 
-            $sheet->getStyle('B' . $offsetContentFirst . ':I' . $offsetContentLast)
+            $sheet->setCellValue('A' . $offset, 'Итого договоров');
+            $sheet->setCellValue('B' . $offset, $finalCollegeSum['final_contracts_after_nine_grades_count_ofo'] +
+                $finalCollegeSum['final_contracts_after_eleventh_grades_count_ofo'] +
+                $finalCollegeSum['final_contracts_after_eleventh_grades_count_zfo']);
+            $sheet->mergeCells('B' . $offset . ':I' . $offset);
+
+            $sheet->getStyle('A' . $offset - 2 . ':I' . $offset)->getFont()->setBold(true);
+
+            $sheet->getStyle('B' . $offset - 2 . ':I' . $offset)
                 ->applyFromArray(array('alignment' => [
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
                 ]));
+
+            $offset++;
 
             //Стиль для рамки
             $sheet->getStyle('A' . $offsetBorderFirst . ':I' . ($offset - 1))
@@ -216,7 +391,7 @@ class PrintAdmissionCampaignController extends Controller
         $offset += 1;
 
         //Бакалавриат
-        if (count($bachelorCommerce) != 0) {
+        if (count($bachelorCommerce) != 0 || count($bachelorBudget) != 0) {
             $offsetBoldFirst = $offset;
             $offsetBorderFirst = $offset;
 
@@ -257,10 +432,10 @@ class PrintAdmissionCampaignController extends Controller
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 ]));
 
-            $sheet->setCellValue('B' . $offset, 'Всего заявлений с ' . $dateToStartAdmissionCampaign);
+            $sheet->setCellValue('B' . $offset, 'Всего заявлений с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('B' . $offset . ':J' . $offset);
 
-            $sheet->setCellValue('K' . $offset, 'Всего договоров с ' . $dateToStartAdmissionCampaign);
+            $sheet->setCellValue('K' . $offset, 'Всего договоров с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('K' . $offset . ':S' . $offset);
 
             $sheet->setCellValue('T' . $offset, now()->format('d.m.Y'));
@@ -338,103 +513,220 @@ class PrintAdmissionCampaignController extends Controller
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
                 ]));
 
-            $offset++;
-
-            $sheet->setCellValue('A' . $offset, 'По договорам с оплатой стоимости обучения');
-            $sheet->mergeCells('A' . $offset . ':U' . $offset);
-
             $sheet->getStyle('A' . $offsetBoldFirst . ':U' . $offset)->getFont()->setBold(true);
 
             $offset++;
-            $offsetContentFirst = $offset;
 
-            foreach ($bachelorCommerce as $key => $value) {
-                $totalPaidContractsCount = 0;
-                $totalContractsCount = 0;
+            if (count($bachelorCommerce) != 0) {
+                $sheet->setCellValue('A' . $offset, 'По договорам с оплатой стоимости обучения');
+                $sheet->mergeCells('A' . $offset . ':U' . $offset);
 
-                $sheet->setCellValue('A' . $offset, $key);
-
-                foreach ($value as $item) {
-                    //ОФО
-                    if (isset($item[1])) {
-                        $sheet->setCellValue('B' . $offset, $item[1]['total_applications_certificate_count']);
-                        $sheet->setCellValue('C' . $offset, $item[1]['total_applications_diploma_bachelor_count']);
-                        $sheet->setCellValue('D' . $offset, $item[1]['total_applications_diploma_college_count']);
-
-                        $sheet->setCellValue('K' . $offset, $item[1]['total_contracts_certificate_count']);
-                        $sheet->setCellValue('L' . $offset, $item[1]['total_contracts_diploma_bachelor_count']);
-                        $sheet->setCellValue('M' . $offset, $item[1]['total_contracts_diploma_college_count']);
-
-                        $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
-                        $totalContractsCount += $item[1]['total_contracts_certificate_count'] + $item[1]['total_contracts_diploma_bachelor_count'] + $item[1]['total_contracts_diploma_college_count'];
-
-                        $finalBachelorSum['final_applications_certificate_count_ofo'] += $item[1]['total_applications_certificate_count'];
-                        $finalBachelorSum['final_applications_diploma_bachelor_count_ofo'] += $item[1]['total_applications_diploma_bachelor_count'];
-                        $finalBachelorSum['final_applications_diploma_college_count_ofo'] += $item[1]['total_applications_diploma_college_count'];
-
-                        $finalBachelorSum['final_contracts_certificate_count_ofo'] += $item[1]['total_contracts_certificate_count'];
-                        $finalBachelorSum['final_contracts_diploma_bachelor_count_ofo'] += $item[1]['total_contracts_diploma_bachelor_count'];
-                        $finalBachelorSum['final_contracts_diploma_college_count_ofo'] += $item[1]['total_contracts_diploma_college_count'];
-
-                        $finalBachelorSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
-                        $finalBachelorSum['final_contracts_count'] += $item[1]['total_contracts_certificate_count'] + $item[1]['total_contracts_diploma_bachelor_count'] + $item[1]['total_contracts_diploma_college_count'];
-                    }
-
-                    //ЗФО
-                    if (isset($item[2])) {
-                        $sheet->setCellValue('E' . $offset, $item[2]['total_applications_certificate_count']);
-                        $sheet->setCellValue('F' . $offset, $item[2]['total_applications_diploma_bachelor_count']);
-                        $sheet->setCellValue('G' . $offset, $item[2]['total_applications_diploma_college_count']);
-
-                        $sheet->setCellValue('N' . $offset, $item[2]['total_contracts_certificate_count']);
-                        $sheet->setCellValue('O' . $offset, $item[2]['total_contracts_diploma_bachelor_count']);
-                        $sheet->setCellValue('P' . $offset, $item[2]['total_contracts_diploma_college_count']);
-
-                        $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
-                        $totalContractsCount += $item[2]['total_contracts_certificate_count'] + $item[2]['total_contracts_diploma_bachelor_count'] + $item[2]['total_contracts_diploma_college_count'];
-
-                        $finalBachelorSum['final_applications_certificate_count_zfo'] += $item[2]['total_applications_certificate_count'];
-                        $finalBachelorSum['final_applications_diploma_bachelor_count_zfo'] += $item[2]['total_applications_diploma_bachelor_count'];
-                        $finalBachelorSum['final_applications_diploma_college_count_zfo'] += $item[2]['total_applications_diploma_college_count'];
-
-                        $finalBachelorSum['final_contracts_certificate_count_zfo'] += $item[2]['total_contracts_certificate_count'];
-                        $finalBachelorSum['final_contracts_diploma_bachelor_count_zfo'] += $item[2]['total_contracts_diploma_bachelor_count'];
-                        $finalBachelorSum['final_contracts_diploma_college_count_zfo'] += $item[2]['total_contracts_diploma_college_count'];
-
-                        $finalBachelorSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
-                        $finalBachelorSum['final_contracts_count'] += $item[2]['total_contracts_certificate_count'] + $item[2]['total_contracts_diploma_bachelor_count'] + $item[2]['total_contracts_diploma_college_count'];
-                    }
-
-                    //ОЗФО
-                    if (isset($item[6])) {
-                        $sheet->setCellValue('H' . $offset, $item[6]['total_applications_certificate_count']);
-                        $sheet->setCellValue('I' . $offset, $item[6]['total_applications_diploma_bachelor_count']);
-                        $sheet->setCellValue('J' . $offset, $item[6]['total_applications_diploma_college_count']);
-
-                        $sheet->setCellValue('Q' . $offset, $item[6]['total_contracts_certificate_count']);
-                        $sheet->setCellValue('R' . $offset, $item[6]['total_contracts_diploma_bachelor_count']);
-                        $sheet->setCellValue('S' . $offset, $item[6]['total_contracts_diploma_college_count']);
-
-                        $totalPaidContractsCount += $item[6]['total_paid_contracts_count'];
-                        $totalContractsCount += $item[6]['total_contracts_certificate_count'] + $item[6]['total_contracts_diploma_bachelor_count'] + $item[6]['total_contracts_diploma_college_count'];
-
-                        $finalBachelorSum['final_applications_certificate_count_ozfo'] += $item[6]['total_applications_certificate_count'];
-                        $finalBachelorSum['final_applications_diploma_bachelor_count_ozfo'] += $item[6]['total_applications_diploma_bachelor_count'];
-                        $finalBachelorSum['final_applications_diploma_college_count_ozfo'] += $item[6]['total_applications_diploma_college_count'];
-
-                        $finalBachelorSum['final_contracts_certificate_count_ozfo'] += $item[6]['total_contracts_certificate_count'];
-                        $finalBachelorSum['final_contracts_diploma_bachelor_count_ozfo'] += $item[6]['total_contracts_diploma_bachelor_count'];
-                        $finalBachelorSum['final_contracts_diploma_college_count_ozfo'] += $item[6]['total_contracts_diploma_college_count'];
-
-                        $finalBachelorSum['final_paid_contracts_count'] += $item[6]['total_paid_contracts_count'];
-                        $finalBachelorSum['final_contracts_count'] += $item[6]['total_contracts_certificate_count'] + $item[6]['total_contracts_diploma_bachelor_count'] + $item[6]['total_contracts_diploma_college_count'];
-                    }
-                }
-
-                $sheet->setCellValue('T' . $offset, $totalPaidContractsCount);
-                $sheet->setCellValue('U' . $offset, $totalContractsCount - $totalPaidContractsCount);
+                $sheet->getStyle('A' . $offset . ':U' . $offset)->getFont()->setBold(true);
 
                 $offset++;
+                $offsetContentFirst = $offset;
+
+                foreach ($bachelorCommerce as $key => $value) {
+                    $totalPaidContractsCount = 0;
+                    $totalContractsCount = 0;
+
+                    $sheet->setCellValue('A' . $offset, $key);
+
+                    foreach ($value as $item) {
+                        //ОФО
+                        if (isset($item[1])) {
+                            $sheet->setCellValue('B' . $offset, $item[1]['total_applications_certificate_count']);
+                            $sheet->setCellValue('C' . $offset, $item[1]['total_applications_diploma_bachelor_count']);
+                            $sheet->setCellValue('D' . $offset, $item[1]['total_applications_diploma_college_count']);
+
+                            $sheet->setCellValue('K' . $offset, $item[1]['total_contracts_certificate_count']);
+                            $sheet->setCellValue('L' . $offset, $item[1]['total_contracts_diploma_bachelor_count']);
+                            $sheet->setCellValue('M' . $offset, $item[1]['total_contracts_diploma_college_count']);
+
+                            $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[1]['total_contracts_certificate_count'] + $item[1]['total_contracts_diploma_bachelor_count'] + $item[1]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_applications_certificate_count_ofo'] += $item[1]['total_applications_certificate_count'];
+                            $finalBachelorSum['final_applications_diploma_bachelor_count_ofo'] += $item[1]['total_applications_diploma_bachelor_count'];
+                            $finalBachelorSum['final_applications_diploma_college_count_ofo'] += $item[1]['total_applications_diploma_college_count'];
+
+                            $finalBachelorSum['final_contracts_certificate_count_ofo'] += $item[1]['total_contracts_certificate_count'];
+                            $finalBachelorSum['final_contracts_diploma_bachelor_count_ofo'] += $item[1]['total_contracts_diploma_bachelor_count'];
+                            $finalBachelorSum['final_contracts_diploma_college_count_ofo'] += $item[1]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
+                            $finalBachelorSum['final_contracts_count'] += $item[1]['total_contracts_certificate_count'] + $item[1]['total_contracts_diploma_bachelor_count'] + $item[1]['total_contracts_diploma_college_count'];
+                        }
+
+                        //ЗФО
+                        if (isset($item[2])) {
+                            $sheet->setCellValue('E' . $offset, $item[2]['total_applications_certificate_count']);
+                            $sheet->setCellValue('F' . $offset, $item[2]['total_applications_diploma_bachelor_count']);
+                            $sheet->setCellValue('G' . $offset, $item[2]['total_applications_diploma_college_count']);
+
+                            $sheet->setCellValue('N' . $offset, $item[2]['total_contracts_certificate_count']);
+                            $sheet->setCellValue('O' . $offset, $item[2]['total_contracts_diploma_bachelor_count']);
+                            $sheet->setCellValue('P' . $offset, $item[2]['total_contracts_diploma_college_count']);
+
+                            $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[2]['total_contracts_certificate_count'] + $item[2]['total_contracts_diploma_bachelor_count'] + $item[2]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_applications_certificate_count_zfo'] += $item[2]['total_applications_certificate_count'];
+                            $finalBachelorSum['final_applications_diploma_bachelor_count_zfo'] += $item[2]['total_applications_diploma_bachelor_count'];
+                            $finalBachelorSum['final_applications_diploma_college_count_zfo'] += $item[2]['total_applications_diploma_college_count'];
+
+                            $finalBachelorSum['final_contracts_certificate_count_zfo'] += $item[2]['total_contracts_certificate_count'];
+                            $finalBachelorSum['final_contracts_diploma_bachelor_count_zfo'] += $item[2]['total_contracts_diploma_bachelor_count'];
+                            $finalBachelorSum['final_contracts_diploma_college_count_zfo'] += $item[2]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
+                            $finalBachelorSum['final_contracts_count'] += $item[2]['total_contracts_certificate_count'] + $item[2]['total_contracts_diploma_bachelor_count'] + $item[2]['total_contracts_diploma_college_count'];
+                        }
+
+                        //ОЗФО
+                        if (isset($item[6])) {
+                            $sheet->setCellValue('H' . $offset, $item[6]['total_applications_certificate_count']);
+                            $sheet->setCellValue('I' . $offset, $item[6]['total_applications_diploma_bachelor_count']);
+                            $sheet->setCellValue('J' . $offset, $item[6]['total_applications_diploma_college_count']);
+
+                            $sheet->setCellValue('Q' . $offset, $item[6]['total_contracts_certificate_count']);
+                            $sheet->setCellValue('R' . $offset, $item[6]['total_contracts_diploma_bachelor_count']);
+                            $sheet->setCellValue('S' . $offset, $item[6]['total_contracts_diploma_college_count']);
+
+                            $totalPaidContractsCount += $item[6]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[6]['total_contracts_certificate_count'] + $item[6]['total_contracts_diploma_bachelor_count'] + $item[6]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_applications_certificate_count_ozfo'] += $item[6]['total_applications_certificate_count'];
+                            $finalBachelorSum['final_applications_diploma_bachelor_count_ozfo'] += $item[6]['total_applications_diploma_bachelor_count'];
+                            $finalBachelorSum['final_applications_diploma_college_count_ozfo'] += $item[6]['total_applications_diploma_college_count'];
+
+                            $finalBachelorSum['final_contracts_certificate_count_ozfo'] += $item[6]['total_contracts_certificate_count'];
+                            $finalBachelorSum['final_contracts_diploma_bachelor_count_ozfo'] += $item[6]['total_contracts_diploma_bachelor_count'];
+                            $finalBachelorSum['final_contracts_diploma_college_count_ozfo'] += $item[6]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_paid_contracts_count'] += $item[6]['total_paid_contracts_count'];
+                            $finalBachelorSum['final_contracts_count'] += $item[6]['total_contracts_certificate_count'] + $item[6]['total_contracts_diploma_bachelor_count'] + $item[6]['total_contracts_diploma_college_count'];
+                        }
+                    }
+
+                    $sheet->setCellValue('T' . $offset, $totalPaidContractsCount);
+                    $sheet->setCellValue('U' . $offset, $totalContractsCount - $totalPaidContractsCount);
+
+                    $offset++;
+                    $offsetContentLast = $offset;
+
+                    $sheet->getStyle('B' . $offsetContentFirst . ':U' . $offsetContentLast)
+                        ->applyFromArray(array('alignment' => [
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                        ]));
+                }
+            }
+
+            if (count($bachelorBudget) != 0) {
+                $sheet->setCellValue('A' . $offset, 'Бюджетные места');
+                $sheet->mergeCells('A' . $offset . ':U' . $offset);
+
+                $sheet->getStyle('A' . $offset . ':U' . $offset)->getFont()->setBold(true);
+
+                $offset++;
+                $offsetContentFirst = $offset;
+
+                foreach ($bachelorBudget as $key => $value) {
+                    $totalPaidContractsCount = 0;
+                    $totalContractsCount = 0;
+
+                    $sheet->setCellValue('A' . $offset, $key);
+
+                    foreach ($value as $item) {
+                        //ОФО
+                        if (isset($item[1])) {
+                            $sheet->setCellValue('B' . $offset, $item[1]['total_applications_certificate_count']);
+                            $sheet->setCellValue('C' . $offset, $item[1]['total_applications_diploma_bachelor_count']);
+                            $sheet->setCellValue('D' . $offset, $item[1]['total_applications_diploma_college_count']);
+
+                            $sheet->setCellValue('K' . $offset, $item[1]['total_contracts_certificate_count']);
+                            $sheet->setCellValue('L' . $offset, $item[1]['total_contracts_diploma_bachelor_count']);
+                            $sheet->setCellValue('M' . $offset, $item[1]['total_contracts_diploma_college_count']);
+
+                            $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[1]['total_contracts_certificate_count'] + $item[1]['total_contracts_diploma_bachelor_count'] + $item[1]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_applications_certificate_count_ofo'] += $item[1]['total_applications_certificate_count'];
+                            $finalBachelorSum['final_applications_diploma_bachelor_count_ofo'] += $item[1]['total_applications_diploma_bachelor_count'];
+                            $finalBachelorSum['final_applications_diploma_college_count_ofo'] += $item[1]['total_applications_diploma_college_count'];
+
+                            $finalBachelorSum['final_contracts_certificate_count_ofo'] += $item[1]['total_contracts_certificate_count'];
+                            $finalBachelorSum['final_contracts_diploma_bachelor_count_ofo'] += $item[1]['total_contracts_diploma_bachelor_count'];
+                            $finalBachelorSum['final_contracts_diploma_college_count_ofo'] += $item[1]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
+                            $finalBachelorSum['final_contracts_count'] += $item[1]['total_contracts_certificate_count'] + $item[1]['total_contracts_diploma_bachelor_count'] + $item[1]['total_contracts_diploma_college_count'];
+                        }
+
+                        //ЗФО
+                        if (isset($item[2])) {
+                            $sheet->setCellValue('E' . $offset, $item[2]['total_applications_certificate_count']);
+                            $sheet->setCellValue('F' . $offset, $item[2]['total_applications_diploma_bachelor_count']);
+                            $sheet->setCellValue('G' . $offset, $item[2]['total_applications_diploma_college_count']);
+
+                            $sheet->setCellValue('N' . $offset, $item[2]['total_contracts_certificate_count']);
+                            $sheet->setCellValue('O' . $offset, $item[2]['total_contracts_diploma_bachelor_count']);
+                            $sheet->setCellValue('P' . $offset, $item[2]['total_contracts_diploma_college_count']);
+
+                            $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[2]['total_contracts_certificate_count'] + $item[2]['total_contracts_diploma_bachelor_count'] + $item[2]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_applications_certificate_count_zfo'] += $item[2]['total_applications_certificate_count'];
+                            $finalBachelorSum['final_applications_diploma_bachelor_count_zfo'] += $item[2]['total_applications_diploma_bachelor_count'];
+                            $finalBachelorSum['final_applications_diploma_college_count_zfo'] += $item[2]['total_applications_diploma_college_count'];
+
+                            $finalBachelorSum['final_contracts_certificate_count_zfo'] += $item[2]['total_contracts_certificate_count'];
+                            $finalBachelorSum['final_contracts_diploma_bachelor_count_zfo'] += $item[2]['total_contracts_diploma_bachelor_count'];
+                            $finalBachelorSum['final_contracts_diploma_college_count_zfo'] += $item[2]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
+                            $finalBachelorSum['final_contracts_count'] += $item[2]['total_contracts_certificate_count'] + $item[2]['total_contracts_diploma_bachelor_count'] + $item[2]['total_contracts_diploma_college_count'];
+                        }
+
+                        //ОЗФО
+                        if (isset($item[6])) {
+                            $sheet->setCellValue('H' . $offset, $item[6]['total_applications_certificate_count']);
+                            $sheet->setCellValue('I' . $offset, $item[6]['total_applications_diploma_bachelor_count']);
+                            $sheet->setCellValue('J' . $offset, $item[6]['total_applications_diploma_college_count']);
+
+                            $sheet->setCellValue('Q' . $offset, $item[6]['total_contracts_certificate_count']);
+                            $sheet->setCellValue('R' . $offset, $item[6]['total_contracts_diploma_bachelor_count']);
+                            $sheet->setCellValue('S' . $offset, $item[6]['total_contracts_diploma_college_count']);
+
+                            $totalPaidContractsCount += $item[6]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[6]['total_contracts_certificate_count'] + $item[6]['total_contracts_diploma_bachelor_count'] + $item[6]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_applications_certificate_count_ozfo'] += $item[6]['total_applications_certificate_count'];
+                            $finalBachelorSum['final_applications_diploma_bachelor_count_ozfo'] += $item[6]['total_applications_diploma_bachelor_count'];
+                            $finalBachelorSum['final_applications_diploma_college_count_ozfo'] += $item[6]['total_applications_diploma_college_count'];
+
+                            $finalBachelorSum['final_contracts_certificate_count_ozfo'] += $item[6]['total_contracts_certificate_count'];
+                            $finalBachelorSum['final_contracts_diploma_bachelor_count_ozfo'] += $item[6]['total_contracts_diploma_bachelor_count'];
+                            $finalBachelorSum['final_contracts_diploma_college_count_ozfo'] += $item[6]['total_contracts_diploma_college_count'];
+
+                            $finalBachelorSum['final_paid_contracts_count'] += $item[6]['total_paid_contracts_count'];
+                            $finalBachelorSum['final_contracts_count'] += $item[6]['total_contracts_certificate_count'] + $item[6]['total_contracts_diploma_bachelor_count'] + $item[6]['total_contracts_diploma_college_count'];
+                        }
+                    }
+
+                    $sheet->setCellValue('T' . $offset, $totalPaidContractsCount);
+                    $sheet->setCellValue('U' . $offset, $totalContractsCount - $totalPaidContractsCount);
+
+                    $offset++;
+                    $offsetContentLast = $offset;
+
+                    $sheet->getStyle('B' . $offsetContentFirst . ':U' . $offsetContentLast)
+                        ->applyFromArray(array('alignment' => [
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                        ]));
+                }
             }
 
             $sheet->setCellValue('A' . $offset, 'Итого');
@@ -459,16 +751,43 @@ class PrintAdmissionCampaignController extends Controller
             $sheet->setCellValue('T' . $offset, $finalBachelorSum['final_paid_contracts_count']);
             $sheet->setCellValue('U' . $offset, $finalBachelorSum['final_contracts_count'] - $finalBachelorSum['final_paid_contracts_count']);
 
-            $sheet->getStyle('A' . $offset . ':U' . $offset)->getFont()->setBold(true);
+            $offset++;
+
+            $sheet->setCellValue('A' . $offset, 'Итого заявлений');
+            $sheet->setCellValue('B' . $offset, $finalBachelorSum['final_applications_certificate_count_ofo'] +
+                $finalBachelorSum['final_applications_diploma_bachelor_count_ofo'] +
+                $finalBachelorSum['final_applications_diploma_college_count_ofo'] +
+                $finalBachelorSum['final_applications_certificate_count_zfo'] +
+                $finalBachelorSum['final_applications_diploma_bachelor_count_zfo'] +
+                $finalBachelorSum['final_applications_diploma_college_count_zfo'] +
+                $finalBachelorSum['final_applications_certificate_count_ozfo'] +
+                $finalBachelorSum['final_applications_diploma_bachelor_count_ozfo'] +
+                $finalBachelorSum['final_applications_diploma_college_count_ozfo']);
+            $sheet->mergeCells('B' . $offset . ':U' . $offset);
 
             $offset++;
-            $offsetContentLast = $offset;
 
-            $sheet->getStyle('B' . $offsetContentFirst . ':U' . $offsetContentLast)
+            $sheet->setCellValue('A' . $offset, 'Итого договоров');
+            $sheet->setCellValue('B' . $offset, $finalBachelorSum['final_contracts_certificate_count_ofo'] +
+                $finalBachelorSum['final_contracts_diploma_bachelor_count_ofo'] +
+                $finalBachelorSum['final_contracts_diploma_college_count_ofo'] +
+                $finalBachelorSum['final_contracts_certificate_count_zfo'] +
+                $finalBachelorSum['final_contracts_diploma_bachelor_count_zfo'] +
+                $finalBachelorSum['final_contracts_diploma_college_count_zfo'] +
+                $finalBachelorSum['final_contracts_certificate_count_ozfo'] +
+                $finalBachelorSum['final_contracts_diploma_bachelor_count_ozfo'] +
+                $finalBachelorSum['final_contracts_diploma_college_count_ozfo']);
+            $sheet->mergeCells('B' . $offset . ':U' . $offset);
+
+            $sheet->getStyle('A' . $offset - 2 . ':U' . $offset)->getFont()->setBold(true);
+
+            $sheet->getStyle('B' . $offset - 2 . ':U' . $offset)
                 ->applyFromArray(array('alignment' => [
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
                 ]));
+
+            $offset++;
 
             //Стиль для рамки
             $sheet->getStyle('A' . $offsetBorderFirst . ':U' . ($offset - 1))
@@ -483,7 +802,7 @@ class PrintAdmissionCampaignController extends Controller
         $offset += 1;
 
         //Магистратура
-        if (count($mastersDegreeCommerce) != 0) {
+        if (count($mastersDegreeCommerce) != 0 || count($mastersDegreeBudget) != 0) {
             $offsetBoldFirst = $offset;
             $offsetBorderFirst = $offset;
 
@@ -512,10 +831,10 @@ class PrintAdmissionCampaignController extends Controller
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 ]));
 
-            $sheet->setCellValue('B' . $offset, 'Всего заявлений с ' . $dateToStartAdmissionCampaign);
+            $sheet->setCellValue('B' . $offset, 'Всего заявлений с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('B' . $offset . ':D' . $offset);
 
-            $sheet->setCellValue('E' . $offset, 'Всего договоров с ' . $dateToStartAdmissionCampaign);
+            $sheet->setCellValue('E' . $offset, 'Всего договоров с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('E' . $offset . ':G' . $offset);
 
             $sheet->setCellValue('H' . $offset, now()->format('d.m.Y'));
@@ -550,73 +869,160 @@ class PrintAdmissionCampaignController extends Controller
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
                 ]));
 
-            $offset++;
-
-            $sheet->setCellValue('A' . $offset, 'По договорам с оплатой стоимости обучения');
-            $sheet->mergeCells('A' . $offset . ':I' . $offset);
-
             $sheet->getStyle('A' . $offsetBoldFirst . ':I' . $offset)->getFont()->setBold(true);
 
             $offset++;
-            $offsetContentFirst = $offset;
 
-            foreach ($mastersDegreeCommerce as $key => $value) {
-                $totalPaidContractsCount = 0;
-                $totalContractsCount = 0;
+            if (count($mastersDegreeCommerce) != 0) {
+                $sheet->setCellValue('A' . $offset, 'По договорам с оплатой стоимости обучения');
+                $sheet->mergeCells('A' . $offset . ':I' . $offset);
 
-                $sheet->setCellValue('A' . $offset, $key);
-
-                foreach ($value as $item) {
-                    //ОФО
-                    if (isset($item[1])) {
-                        $sheet->setCellValue('B' . $offset, $item[1]['total_applications_count']);
-                        $sheet->setCellValue('E' . $offset, $item[1]['total_contracts_count']);
-
-                        $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
-                        $totalContractsCount += $item[1]['total_contracts_count'];
-
-                        $finalMastersDegreeSum['final_applications_count_ofo'] += $item[1]['total_applications_count'];
-                        $finalMastersDegreeSum['final_contracts_count_ofo'] += $item[1]['total_contracts_count'];
-
-                        $finalMastersDegreeSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
-                        $finalMastersDegreeSum['final_contracts_count'] += $item[1]['total_contracts_count'];
-                    }
-
-                    //ЗФО
-                    if (isset($item[2])) {
-                        $sheet->setCellValue('C' . $offset, $item[2]['total_applications_count']);
-                        $sheet->setCellValue('F' . $offset, $item[2]['total_contracts_count']);
-
-                        $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
-                        $totalContractsCount += $item[2]['total_contracts_count'];
-
-                        $finalMastersDegreeSum['final_applications_count_zfo'] += $item[2]['total_applications_count'];
-                        $finalMastersDegreeSum['final_contracts_count_zfo'] += $item[2]['total_contracts_count'];
-
-                        $finalMastersDegreeSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
-                        $finalMastersDegreeSum['final_contracts_count'] += $item[2]['total_contracts_count'];
-                    }
-
-                    //ОЗФО
-                    if (isset($item[6])) {
-                        $sheet->setCellValue('D' . $offset, $item[6]['total_applications_count']);
-                        $sheet->setCellValue('G' . $offset, $item[6]['total_contracts_count']);
-
-                        $totalPaidContractsCount += $item[6]['total_paid_contracts_count'];
-                        $totalContractsCount += $item[6]['total_contracts_count'];
-
-                        $finalMastersDegreeSum['final_applications_count_ozfo'] += $item[6]['total_applications_count'];
-                        $finalMastersDegreeSum['final_contracts_count_ozfo'] += $item[6]['total_contracts_count'];
-
-                        $finalMastersDegreeSum['final_paid_contracts_count'] += $item[6]['total_paid_contracts_count'];
-                        $finalMastersDegreeSum['final_contracts_count'] += $item[6]['total_contracts_count'];
-                    }
-                }
-
-                $sheet->setCellValue('H' . $offset, $totalPaidContractsCount);
-                $sheet->setCellValue('I' . $offset, $totalContractsCount - $totalPaidContractsCount);
+                $sheet->getStyle('A' . $offset . ':I' . $offset)->getFont()->setBold(true);
 
                 $offset++;
+                $offsetContentFirst = $offset;
+
+                foreach ($mastersDegreeCommerce as $key => $value) {
+                    $totalPaidContractsCount = 0;
+                    $totalContractsCount = 0;
+
+                    $sheet->setCellValue('A' . $offset, $key);
+
+                    foreach ($value as $item) {
+                        //ОФО
+                        if (isset($item[1])) {
+                            $sheet->setCellValue('B' . $offset, $item[1]['total_applications_count']);
+                            $sheet->setCellValue('E' . $offset, $item[1]['total_contracts_count']);
+
+                            $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[1]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_applications_count_ofo'] += $item[1]['total_applications_count'];
+                            $finalMastersDegreeSum['final_contracts_count_ofo'] += $item[1]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
+                            $finalMastersDegreeSum['final_contracts_count'] += $item[1]['total_contracts_count'];
+                        }
+
+                        //ЗФО
+                        if (isset($item[2])) {
+                            $sheet->setCellValue('C' . $offset, $item[2]['total_applications_count']);
+                            $sheet->setCellValue('F' . $offset, $item[2]['total_contracts_count']);
+
+                            $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[2]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_applications_count_zfo'] += $item[2]['total_applications_count'];
+                            $finalMastersDegreeSum['final_contracts_count_zfo'] += $item[2]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
+                            $finalMastersDegreeSum['final_contracts_count'] += $item[2]['total_contracts_count'];
+                        }
+
+                        //ОЗФО
+                        if (isset($item[6])) {
+                            $sheet->setCellValue('D' . $offset, $item[6]['total_applications_count']);
+                            $sheet->setCellValue('G' . $offset, $item[6]['total_contracts_count']);
+
+                            $totalPaidContractsCount += $item[6]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[6]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_applications_count_ozfo'] += $item[6]['total_applications_count'];
+                            $finalMastersDegreeSum['final_contracts_count_ozfo'] += $item[6]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_paid_contracts_count'] += $item[6]['total_paid_contracts_count'];
+                            $finalMastersDegreeSum['final_contracts_count'] += $item[6]['total_contracts_count'];
+                        }
+                    }
+
+                    $sheet->setCellValue('H' . $offset, $totalPaidContractsCount);
+                    $sheet->setCellValue('I' . $offset, $totalContractsCount - $totalPaidContractsCount);
+
+                    $offset++;
+                    $offsetContentLast = $offset;
+
+                    $sheet->getStyle('B' . $offsetContentFirst . ':I' . $offsetContentLast)
+                        ->applyFromArray(array('alignment' => [
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                        ]));
+                }
+            }
+
+            if (count($mastersDegreeBudget) != 0) {
+                $sheet->setCellValue('A' . $offset, 'Бюджетные места');
+                $sheet->mergeCells('A' . $offset . ':I' . $offset);
+
+                $sheet->getStyle('A' . $offset . ':I' . $offset)->getFont()->setBold(true);
+
+                $offset++;
+                $offsetContentFirst = $offset;
+
+                foreach ($mastersDegreeBudget as $key => $value) {
+                    $totalPaidContractsCount = 0;
+                    $totalContractsCount = 0;
+
+                    $sheet->setCellValue('A' . $offset, $key);
+
+                    foreach ($value as $item) {
+                        //ОФО
+                        if (isset($item[1])) {
+                            $sheet->setCellValue('B' . $offset, $item[1]['total_applications_count']);
+                            $sheet->setCellValue('E' . $offset, $item[1]['total_contracts_count']);
+
+                            $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[1]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_applications_count_ofo'] += $item[1]['total_applications_count'];
+                            $finalMastersDegreeSum['final_contracts_count_ofo'] += $item[1]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
+                            $finalMastersDegreeSum['final_contracts_count'] += $item[1]['total_contracts_count'];
+                        }
+
+                        //ЗФО
+                        if (isset($item[2])) {
+                            $sheet->setCellValue('C' . $offset, $item[2]['total_applications_count']);
+                            $sheet->setCellValue('F' . $offset, $item[2]['total_contracts_count']);
+
+                            $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[2]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_applications_count_zfo'] += $item[2]['total_applications_count'];
+                            $finalMastersDegreeSum['final_contracts_count_zfo'] += $item[2]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
+                            $finalMastersDegreeSum['final_contracts_count'] += $item[2]['total_contracts_count'];
+                        }
+
+                        //ОЗФО
+                        if (isset($item[6])) {
+                            $sheet->setCellValue('D' . $offset, $item[6]['total_applications_count']);
+                            $sheet->setCellValue('G' . $offset, $item[6]['total_contracts_count']);
+
+                            $totalPaidContractsCount += $item[6]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[6]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_applications_count_ozfo'] += $item[6]['total_applications_count'];
+                            $finalMastersDegreeSum['final_contracts_count_ozfo'] += $item[6]['total_contracts_count'];
+
+                            $finalMastersDegreeSum['final_paid_contracts_count'] += $item[6]['total_paid_contracts_count'];
+                            $finalMastersDegreeSum['final_contracts_count'] += $item[6]['total_contracts_count'];
+                        }
+                    }
+
+                    $sheet->setCellValue('H' . $offset, $totalPaidContractsCount);
+                    $sheet->setCellValue('I' . $offset, $totalContractsCount - $totalPaidContractsCount);
+
+                    $offset++;
+                    $offsetContentLast = $offset;
+
+                    $sheet->getStyle('B' . $offsetContentFirst . ':I' . $offsetContentLast)
+                        ->applyFromArray(array('alignment' => [
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                        ]));
+                }
             }
 
             $sheet->setCellValue('A' . $offset, 'Итого');
@@ -629,16 +1035,31 @@ class PrintAdmissionCampaignController extends Controller
             $sheet->setCellValue('H' . $offset, $finalMastersDegreeSum['final_paid_contracts_count']);
             $sheet->setCellValue('I' . $offset, $finalMastersDegreeSum['final_contracts_count'] - $finalMastersDegreeSum['final_paid_contracts_count']);
 
-            $sheet->getStyle('A' . $offset . ':I' . $offset)->getFont()->setBold(true);
+            $offset++;
+
+            $sheet->setCellValue('A' . $offset, 'Итого заявлений');
+            $sheet->setCellValue('B' . $offset, $finalMastersDegreeSum['final_applications_count_ofo'] +
+                $finalMastersDegreeSum['final_applications_count_zfo'] +
+                $finalMastersDegreeSum['final_applications_count_ozfo']);
+            $sheet->mergeCells('B' . $offset . ':I' . $offset);
 
             $offset++;
-            $offsetContentLast = $offset;
 
-            $sheet->getStyle('B' . $offsetContentFirst . ':I' . $offsetContentLast)
+            $sheet->setCellValue('A' . $offset, 'Итого договоров');
+            $sheet->setCellValue('B' . $offset, $finalMastersDegreeSum['final_contracts_count_ofo'] +
+                $finalMastersDegreeSum['final_contracts_count_zfo'] +
+                $finalMastersDegreeSum['final_contracts_count_ozfo']);
+            $sheet->mergeCells('B' . $offset . ':I' . $offset);
+
+            $sheet->getStyle('A' . $offset - 2 . ':I' . $offset)->getFont()->setBold(true);
+
+            $sheet->getStyle('B' . $offset - 2 . ':I' . $offset)
                 ->applyFromArray(array('alignment' => [
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
                 ]));
+
+            $offset++;
 
             //Стиль для рамки
             $sheet->getStyle('A' . $offsetBorderFirst . ':I' . ($offset - 1))
@@ -653,7 +1074,7 @@ class PrintAdmissionCampaignController extends Controller
         $offset += 1;
 
         //Аспирантура
-        if (count($phdCommerce) != 0) {
+        if (count($phdCommerce) != 0 || count($phdBudget) != 0) {
             $offsetBoldFirst = $offset;
             $offsetBorderFirst = $offset;
 
@@ -680,16 +1101,18 @@ class PrintAdmissionCampaignController extends Controller
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 ]));
 
-            $sheet->setCellValue('B' . $offset, 'Всего заявлений с ' . $dateToStartAdmissionCampaign);
+            $sheet->setCellValue('B' . $offset, 'Всего заявлений с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('B' . $offset . ':C' . $offset);
 
-            $sheet->setCellValue('D' . $offset, 'Всего договоров с ' . $dateToStartAdmissionCampaign);
+            $sheet->setCellValue('D' . $offset, 'Всего договоров с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('D' . $offset . ':E' . $offset);
 
             $sheet->getStyle('B' . $offset . ':D' . $offset)->getAlignment()->setWrapText(true);
 
             $sheet->setCellValue('F' . $offset, now()->format('d.m.Y'));
             $sheet->mergeCells('F' . $offset . ':G' . $offset);
+
+            $sheet->getRowDimension($offset)->setRowHeight(25);
 
             $offset++;
 
@@ -718,58 +1141,130 @@ class PrintAdmissionCampaignController extends Controller
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
                 ]));
 
-            $offset++;
-
-            $sheet->setCellValue('A' . $offset, 'По договорам с оплатой стоимости обучения');
-            $sheet->mergeCells('A' . $offset . ':G' . $offset);
-
             $sheet->getStyle('A' . $offsetBoldFirst . ':G' . $offset)->getFont()->setBold(true);
 
             $offset++;
-            $offsetContentFirst = $offset;
 
-            foreach ($phdCommerce as $key => $value) {
-                $totalPaidContractsCount = 0;
-                $totalContractsCount = 0;
+            if (count($phdCommerce) != 0) {
+                $sheet->setCellValue('A' . $offset, 'По договорам с оплатой стоимости обучения');
+                $sheet->mergeCells('A' . $offset . ':G' . $offset);
 
-                $sheet->setCellValue('A' . $offset, $key);
-
-                foreach ($value as $item) {
-                    //ОФО
-                    if (isset($item[1])) {
-                        $sheet->setCellValue('B' . $offset, $item[1]['total_applications_count']);
-                        $sheet->setCellValue('D' . $offset, $item[1]['total_contracts_count']);
-
-                        $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
-                        $totalContractsCount += $item[1]['total_contracts_count'];
-
-                        $finalPhDSum['final_applications_count_ofo'] += $item[1]['total_applications_count'];
-                        $finalPhDSum['final_contracts_count_ofo'] += $item[1]['total_contracts_count'];
-
-                        $finalPhDSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
-                        $finalPhDSum['final_contracts_count'] += $item[1]['total_contracts_count'];
-                    }
-
-                    //ЗФО
-                    if (isset($item[2])) {
-                        $sheet->setCellValue('C' . $offset, $item[2]['total_applications_count']);
-                        $sheet->setCellValue('E' . $offset, $item[2]['total_contracts_count']);
-
-                        $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
-                        $totalContractsCount += $item[2]['total_contracts_count'];
-
-                        $finalPhDSum['final_applications_count_zfo'] += $item[2]['total_applications_count'];
-                        $finalPhDSum['final_contracts_count_zfo'] += $item[2]['total_contracts_count'];
-
-                        $finalPhDSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
-                        $finalPhDSum['final_contracts_count'] += $item[2]['total_contracts_count'];
-                    }
-                }
-
-                $sheet->setCellValue('F' . $offset, $totalPaidContractsCount);
-                $sheet->setCellValue('G' . $offset, $totalContractsCount - $totalPaidContractsCount);
+                $sheet->getStyle('A' . $offset . ':G' . $offset)->getFont()->setBold(true);
 
                 $offset++;
+                $offsetContentFirst = $offset;
+
+                foreach ($phdCommerce as $key => $value) {
+                    $totalPaidContractsCount = 0;
+                    $totalContractsCount = 0;
+
+                    $sheet->setCellValue('A' . $offset, $key);
+
+                    foreach ($value as $item) {
+                        //ОФО
+                        if (isset($item[1])) {
+                            $sheet->setCellValue('B' . $offset, $item[1]['total_applications_count']);
+                            $sheet->setCellValue('D' . $offset, $item[1]['total_contracts_count']);
+
+                            $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[1]['total_contracts_count'];
+
+                            $finalPhDSum['final_applications_count_ofo'] += $item[1]['total_applications_count'];
+                            $finalPhDSum['final_contracts_count_ofo'] += $item[1]['total_contracts_count'];
+
+                            $finalPhDSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
+                            $finalPhDSum['final_contracts_count'] += $item[1]['total_contracts_count'];
+                        }
+
+                        //ЗФО
+                        if (isset($item[2])) {
+                            $sheet->setCellValue('C' . $offset, $item[2]['total_applications_count']);
+                            $sheet->setCellValue('E' . $offset, $item[2]['total_contracts_count']);
+
+                            $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[2]['total_contracts_count'];
+
+                            $finalPhDSum['final_applications_count_zfo'] += $item[2]['total_applications_count'];
+                            $finalPhDSum['final_contracts_count_zfo'] += $item[2]['total_contracts_count'];
+
+                            $finalPhDSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
+                            $finalPhDSum['final_contracts_count'] += $item[2]['total_contracts_count'];
+                        }
+                    }
+
+                    $sheet->setCellValue('F' . $offset, $totalPaidContractsCount);
+                    $sheet->setCellValue('G' . $offset, $totalContractsCount - $totalPaidContractsCount);
+
+                    $offset++;
+                    $offsetContentLast = $offset;
+
+                    $sheet->getStyle('B' . $offsetContentFirst . ':G' . $offsetContentLast)
+                        ->applyFromArray(array('alignment' => [
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                        ]));
+                }
+            }
+
+            if (count($phdBudget) != 0) {
+                $sheet->setCellValue('A' . $offset, 'Бюджетные места');
+                $sheet->mergeCells('A' . $offset . ':G' . $offset);
+
+                $sheet->getStyle('A' . $offset . ':G' . $offset)->getFont()->setBold(true);
+
+                $offset++;
+                $offsetContentFirst = $offset;
+
+                foreach ($phdBudget as $key => $value) {
+                    $totalPaidContractsCount = 0;
+                    $totalContractsCount = 0;
+
+                    $sheet->setCellValue('A' . $offset, $key);
+
+                    foreach ($value as $item) {
+                        //ОФО
+                        if (isset($item[1])) {
+                            $sheet->setCellValue('B' . $offset, $item[1]['total_applications_count']);
+                            $sheet->setCellValue('D' . $offset, $item[1]['total_contracts_count']);
+
+                            $totalPaidContractsCount += $item[1]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[1]['total_contracts_count'];
+
+                            $finalPhDSum['final_applications_count_ofo'] += $item[1]['total_applications_count'];
+                            $finalPhDSum['final_contracts_count_ofo'] += $item[1]['total_contracts_count'];
+
+                            $finalPhDSum['final_paid_contracts_count'] += $item[1]['total_paid_contracts_count'];
+                            $finalPhDSum['final_contracts_count'] += $item[1]['total_contracts_count'];
+                        }
+
+                        //ЗФО
+                        if (isset($item[2])) {
+                            $sheet->setCellValue('C' . $offset, $item[2]['total_applications_count']);
+                            $sheet->setCellValue('E' . $offset, $item[2]['total_contracts_count']);
+
+                            $totalPaidContractsCount += $item[2]['total_paid_contracts_count'];
+                            $totalContractsCount += $item[2]['total_contracts_count'];
+
+                            $finalPhDSum['final_applications_count_zfo'] += $item[2]['total_applications_count'];
+                            $finalPhDSum['final_contracts_count_zfo'] += $item[2]['total_contracts_count'];
+
+                            $finalPhDSum['final_paid_contracts_count'] += $item[2]['total_paid_contracts_count'];
+                            $finalPhDSum['final_contracts_count'] += $item[2]['total_contracts_count'];
+                        }
+                    }
+
+                    $sheet->setCellValue('F' . $offset, $totalPaidContractsCount);
+                    $sheet->setCellValue('G' . $offset, $totalContractsCount - $totalPaidContractsCount);
+
+                    $offset++;
+                    $offsetContentLast = $offset;
+
+                    $sheet->getStyle('B' . $offsetContentFirst . ':G' . $offsetContentLast)
+                        ->applyFromArray(array('alignment' => [
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                        ]));
+                }
             }
 
             $sheet->setCellValue('A' . $offset, 'Итого');
@@ -780,16 +1275,27 @@ class PrintAdmissionCampaignController extends Controller
             $sheet->setCellValue('F' . $offset, $finalPhDSum['final_paid_contracts_count']);
             $sheet->setCellValue('G' . $offset, $finalPhDSum['final_contracts_count'] - $finalPhDSum['final_paid_contracts_count']);
 
-            $sheet->getStyle('A' . $offset . ':G' . $offset)->getFont()->setBold(true);
+            $offset++;
+
+            $sheet->setCellValue('A' . $offset, 'Итого заявлений');
+            $sheet->setCellValue('B' . $offset, $finalPhDSum['final_applications_count_ofo'] + $finalPhDSum['final_applications_count_zfo']);
+            $sheet->mergeCells('B' . $offset . ':G' . $offset);
 
             $offset++;
-            $offsetContentLast = $offset;
 
-            $sheet->getStyle('B' . $offsetContentFirst . ':G' . $offsetContentLast)
+            $sheet->setCellValue('A' . $offset, 'Итого договоров');
+            $sheet->setCellValue('B' . $offset, $finalPhDSum['final_contracts_count_ofo'] + $finalPhDSum['final_contracts_count_zfo']);
+            $sheet->mergeCells('B' . $offset . ':G' . $offset);
+
+            $sheet->getStyle('A' . $offset - 2 . ':G' . $offset)->getFont()->setBold(true);
+
+            $sheet->getStyle('B' . $offset - 2 . ':G' . $offset)
                 ->applyFromArray(array('alignment' => [
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
                 ]));
+
+            $offset++;
 
             //Стиль для рамки
             $sheet->getStyle('A' . $offsetBorderFirst . ':G' . ($offset - 1))
@@ -812,9 +1318,9 @@ class PrintAdmissionCampaignController extends Controller
         //Устанавливаем ширину полей
         $sheet->getColumnDimension('A')->setWidth(45);
         $sheet->getColumnDimension('B')->setWidth(7);
-        $sheet->getColumnDimension('C')->setWidth(7);
-        $sheet->getColumnDimension('D')->setWidth(10);
-        $sheet->getColumnDimension('E')->setWidth(7);
+        $sheet->getColumnDimension('C')->setWidth(12);
+        $sheet->getColumnDimension('D')->setWidth(12);
+        $sheet->getColumnDimension('E')->setWidth(12);
         $sheet->getColumnDimension('F')->setWidth(7);
         $sheet->getColumnDimension('G')->setWidth(10);
         $sheet->getColumnDimension('H')->setWidth(6);
@@ -1057,5 +1563,74 @@ class PrintAdmissionCampaignController extends Controller
         })->toArray();
 
         return $result;
+    }
+
+    private function getSum()
+    {
+        $college = AdmissionCampaignStatsCollege::join('admission_campaign_directions', 'admission_campaign_stats_colleges.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
+            ->where('admission_campaign_stats_colleges.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_directions.level_education_id', '=', 2)
+            ->select(
+                DB::raw('SUM(admission_campaign_stats_colleges.applications_after_nine_grades_count) + 
+                    SUM(admission_campaign_stats_colleges.applications_after_eleventh_grades_count) as total_applications_count'),
+                DB::raw('SUM(admission_campaign_stats_colleges.contracts_after_nine_grades_count) + 
+                    SUM(admission_campaign_stats_colleges.contracts_after_eleventh_grades_count) as total_contracts_count'),
+                DB::raw('SUM(admission_campaign_stats_colleges.paid_contracts_count) as total_paid_contracts_count'),
+            )
+            ->groupBy(
+                'admission_campaign_directions.level_education_id'
+            )
+            ->get()->toArray();
+
+        $bachelor = AdmissionCampaignStatsBachelor::join('admission_campaign_directions', 'admission_campaign_stats_bachelors.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
+            ->where('admission_campaign_stats_bachelors.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_directions.level_education_id', '=', 6)
+            ->select(
+                DB::raw('SUM(admission_campaign_stats_bachelors.applications_certificate_count) + 
+                    SUM(admission_campaign_stats_bachelors.applications_diploma_bachelor_count) +
+                    SUM(admission_campaign_stats_bachelors.applications_diploma_college_count) as total_applications_count'),
+                DB::raw('SUM(admission_campaign_stats_bachelors.contracts_certificate_count) + 
+                    SUM(admission_campaign_stats_bachelors.contracts_diploma_bachelor_count) +
+                    SUM(admission_campaign_stats_bachelors.contracts_diploma_college_count) as total_contracts_count'),
+                DB::raw('SUM(admission_campaign_stats_bachelors.paid_contracts_count) as total_paid_contracts_count'),
+            )
+            ->groupBy(
+                'admission_campaign_directions.level_education_id'
+            )
+            ->get()->toArray();
+
+
+        $mastersDegree = AdmissionCampaignStatsMastersDegree::join('admission_campaign_directions', 'admission_campaign_stats_masters_degrees.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
+            ->where('admission_campaign_stats_masters_degrees.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_directions.level_education_id', '=', 7)
+            ->select(
+                DB::raw('SUM(admission_campaign_stats_masters_degrees.applications_count) as total_applications_count'),
+                DB::raw('SUM(admission_campaign_stats_masters_degrees.contracts_count) total_contracts_count'),
+                DB::raw('SUM(admission_campaign_stats_masters_degrees.paid_contracts_count) as total_paid_contracts_count'),
+            )
+            ->groupBy(
+                'admission_campaign_directions.level_education_id'
+            )
+            ->get()->toArray();
+
+        $phd = AdmissionCampaignStatsPhD::join('admission_campaign_directions', 'admission_campaign_stats_phd.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
+            ->where('admission_campaign_stats_phd.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_directions.level_education_id', '=', 4)
+            ->select(
+                DB::raw('SUM(admission_campaign_stats_phd.applications_count) as total_applications_count'),
+                DB::raw('SUM(admission_campaign_stats_phd.contracts_count) total_contracts_count'),
+                DB::raw('SUM(admission_campaign_stats_phd.paid_contracts_count) as total_paid_contracts_count'),
+            )
+            ->groupBy(
+                'admission_campaign_directions.level_education_id'
+            )
+            ->get()->toArray();
+
+        return [
+            'college' => $college,
+            'bachelor' => $bachelor,
+            'mastersDegree' => $mastersDegree,
+            'phd' => $phd
+        ];
     }
 }
