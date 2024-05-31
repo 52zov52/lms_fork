@@ -35,12 +35,20 @@
                         <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                             <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                             <td class="w-auto px-2 py-2">{{ $firstHalfYear['discipline_name'] }}</td>
-                            <td class="w-32 px-2 py-2">{{ $firstHalfYear['group_names'] }}</td>
+                            <td class="w-32 px-2 py-2">{{ $firstHalfYear['group_name'] }}</td>
                             <td class="w-40 px-2 py-2">{{ $firstHalfYear['control_name'] }}</td>
                             <td class="w-32 px-2 py-2 text-center">{{ $firstHalfYear['lecture_hours'] }}</td>
-                            <td class="w-32 px-2 py-2 text-center">{{ $firstHalfYear['practical_hours'] }}</td>
+                            <td class="w-32 px-2 py-2 text-center">
+                                @if($firstHalfYear['practical_hours'] != 0)
+                                    {{ $firstHalfYear['practical_hours'] }}
+                                @elseif($firstHalfYear['group_consultation_hours'] != 0)
+                                    {{ $firstHalfYear['group_consultation_hours'] }}
+                                @else
+                                    0
+                                @endif
+                            </td>
                             <td class="w-32 px-2 py-2 text-center">{{ $firstHalfYear['laboratory_hours'] }}</td>
-                            <td class="w-20 px-2 py-2 text-center">{{ $firstHalfYear['semester_numbers'] }}</td>
+                            <td class="w-20 px-2 py-2 text-center">{{ $firstHalfYear['semester_number'] }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -56,7 +64,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Группа:</span>
-                        <span>{{ $firstHalfYear['group_names'] }}</span>
+                        <span>{{ $firstHalfYear['group_name'] }}</span>
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Форма контроля:</span>
@@ -68,7 +76,15 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Кол-во часов практик:</span>
-                        <span>{{ $firstHalfYear['practical_hours'] }}</span>
+                        <span>
+                            @if($firstHalfYear['practical_hours'] != 0)
+                                {{ $firstHalfYear['practical_hours'] }}
+                            @elseif($firstHalfYear['group_consultation_hours'] != 0)
+                                {{ $firstHalfYear['group_consultation_hours'] }}
+                            @else
+                                0
+                            @endif
+                        </span>
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Кол-во часов лабораторных:</span>
@@ -76,7 +92,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Семестр:</span>
-                        <span>{{ $firstHalfYear['semester_numbers'] }}</span>
+                        <span>{{ $firstHalfYear['semester_number'] }}</span>
                     </div>
                 </div>
                 @endforeach
@@ -103,12 +119,20 @@
                         <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                             <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                             <td class="w-auto px-2 py-2">{{ $secondHalfYear['discipline_name'] }}</td>
-                            <td class="w-32 px-2 py-2">{{ $secondHalfYear['group_names'] }}</td>
+                            <td class="w-32 px-2 py-2">{{ $secondHalfYear['group_name'] }}</td>
                             <td class="w-40 px-2 py-2">{{ $secondHalfYear['control_name'] }}</td>
                             <td class="w-32 px-2 py-2 text-center">{{ $secondHalfYear['lecture_hours'] }}</td>
-                            <td class="w-32 px-2 py-2 text-center">{{ $secondHalfYear['practical_hours'] }}</td>
+                            <td class="w-32 px-2 py-2 text-center">
+                                @if($secondHalfYear['practical_hours'] != 0)
+                                    {{ $secondHalfYear['practical_hours'] }}
+                                @elseif($secondHalfYear['group_consultation_hours'] != 0)
+                                    {{ $secondHalfYear['group_consultation_hours'] }}
+                                @else
+                                    0
+                                @endif
+                            </td>
                             <td class="w-32 px-2 py-2 text-center">{{ $secondHalfYear['laboratory_hours'] }}</td>
-                            <td class="w-20 px-2 py-2 text-center">{{ $secondHalfYear['semester_numbers'] }}</td>
+                            <td class="w-20 px-2 py-2 text-center">{{ $secondHalfYear['semester_number'] }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -124,7 +148,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Группа:</span>
-                        <span>{{ $secondHalfYear['group_names'] }}</span>
+                        <span>{{ $secondHalfYear['group_name'] }}</span>
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Форма контроля:</span>
@@ -136,7 +160,15 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Кол-во часов практик:</span>
-                        <span>{{ $secondHalfYear['practical_hours'] }}</span>
+                        <span>
+                            @if($secondHalfYear['practical_hours'] != 0)
+                                {{ $secondHalfYear['practical_hours'] }}
+                            @elseif($secondHalfYear['group_consultation_hours'] != 0)
+                                {{ $secondHalfYear['group_consultation_hours'] }}
+                            @else
+                                0
+                            @endif
+                        </span>
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Кол-во часов лабораторных:</span>
@@ -144,7 +176,7 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Семестр:</span>
-                        <span>{{ $secondHalfYear['semester_numbers'] }}</span>
+                        <span>{{ $secondHalfYear['semester_number'] }}</span>
                     </div>
                 </div>
                 @endforeach
