@@ -1,4 +1,5 @@
 <div x-data="{ hovered: null }" class="flex flex-row flex-wrap">
+    @can('access-to-enter-admission-campaign')
     <a x-bind:class="{ 'hovered': hovered === 'admission_campaign_stats' }" @mouseover="hovered = 'admission_campaign_stats'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('admission.campaign-stats') }}">
         <div class="w-full md:w-[23rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Ввод статистики приемной кампании</div>
@@ -8,6 +9,7 @@
             </div>
         </div>
     </a>
+    @endcan
     <a x-bind:class="{ 'hovered': hovered === 'admission_campaign_stats_report' }" @mouseover="hovered = 'admission_campaign_stats_report'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('print.admission.campaign.full.report') }}">
         <div class="w-full md:w-[23rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Оперативный отчет о ходе приемной кампании</div>
