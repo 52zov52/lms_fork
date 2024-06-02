@@ -21,6 +21,7 @@ return new class extends Migration
 
             $table->string('order_number');
             $table->date('order_date');
+            $table->string('description', 1500)->nullable();
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.DocumentParams
             $table->timestamps();
             $table->softDeletes();

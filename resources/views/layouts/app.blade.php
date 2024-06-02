@@ -23,10 +23,6 @@
             }
         }
 
-        .h-admission-campaign {
-            height: calc(100vh - 450px);
-        }
-
         .h-e-journal {
             height: calc(100vh - 300px);
         }

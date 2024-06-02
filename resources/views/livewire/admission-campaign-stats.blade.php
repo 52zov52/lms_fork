@@ -55,7 +55,7 @@
     </div>
 
     @if(count($college) != 0)
-    <div class="w-admission-campaign h-admission-campaign overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+    <div class="w-admission-campaign overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
         <table class="w-full text-xs lg:text-sm">
             <thead class="z-10 sticky top-0 bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr class="border-b border-slate-400/20">
@@ -112,7 +112,7 @@
     @endif
 
     @if(count($bachelor) != 0)
-    <div class="w-admission-campaign h-admission-campaign overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+    <div class="w-admission-campaign overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
         <table class="w-full text-xs lg:text-sm">
             <thead class="z-10 sticky top-0 bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr class="border-b border-slate-400/20">
@@ -177,7 +177,7 @@
     @endif
 
     @if(count($mastersDegree) != 0)
-    <div class="w-admission-campaign h-admission-campaign overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+    <div class="w-admission-campaign overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
         <table class="w-full text-xs lg:text-sm">
             <thead class="z-10 sticky top-0 bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr class="border-b border-slate-400/20">
@@ -222,7 +222,7 @@
     @endif
 
     @if(count($phd) != 0)
-    <div class="w-admission-campaign h-admission-campaign overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+    <div class="w-admission-campaign overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
         <table class="w-full text-xs lg:text-sm">
             <thead class="z-10 sticky top-0 bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr class="border-b border-slate-400/20">
