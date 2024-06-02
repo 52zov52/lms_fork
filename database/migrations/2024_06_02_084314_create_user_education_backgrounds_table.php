@@ -27,17 +27,17 @@ return new class extends Migration
                 ->on('education_organizations')
                 ->onDelete('cascade');
 
-            $table->date('end_year')->nullable();
+            $table->integer('end_year')->nullable();
 
             $table->foreignIdFor(Document::class)
+                ->nullable()
                 ->constrained()
-                ->cascadeOnDelete()
-                ->nullable();
+                ->cascadeOnDelete();
 
             $table->foreignIdFor(LevelEducation::class)
+                ->nullable()
                 ->constrained()
-                ->cascadeOnDelete()
-                ->nullable();
+                ->cascadeOnDelete();
 
             $table->string('document_series')->nullable();
             $table->string('document_number')->nullable();
