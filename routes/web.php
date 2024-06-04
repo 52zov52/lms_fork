@@ -7,6 +7,7 @@ use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\Reports\PrintAdmissionCampaignController;
+use App\Http\Controllers\Reports\PrintDefenseMinistryForm10Controller;
 use App\Http\Controllers\Reports\PrintPublicationController;
 use App\Http\Controllers\Reports\PrintCurrentAssessmentController;
 use App\Http\Controllers\Reports\PrintInterimAssessmentController;
@@ -131,6 +132,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/contingent', function () {
         return view('pages.contingent');
     })->name('contingent');
+
+    Route::get('/print-defense-ministry-form-10/{userId}', [PrintDefenseMinistryForm10Controller::class, 'print'])->name('print.defense.ministry.form.10');
 
     Route::group(['middleware' => 'permission:access-to-data-on-students-academic-leaves'], function() {
         Route::get('/academic-leave-calendar', function() {

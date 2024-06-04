@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GroupStudent;
+use App\Models\StudentTicketNumber;
 use Illuminate\Support\Facades\DB;
 
 class ContingentController extends Controller
@@ -31,6 +32,22 @@ class ContingentController extends Controller
             )
             ->where('group_student.group_id', '=', $groupId)
             ->orderBy('users_data.last_name', 'asc')
+            ->get();
+    }
+
+    public function searchContingentByTicketNumbers($ticketNumbers): object
+    {
+        return StudentTicketNumber::join('users_data', 'student_ticket_numbers.user_id', '=', 'users_data.user_id')
+            ->join('group_student', 'student_ticket_numbers.user_id', '=', 'group_student.user_id')
+            ->select(
+                'student_ticket_numbers.user_id',
+                'users_data.last_name',
+                'users_data.first_name',
+                'users_data.middle_name',
+                'student_ticket_numbers.ticket_number',
+                DB::raw("(SELECT states.name FROM student_state INNER JOIN states ON states.id = student_state.state_id WHERE student_state.user_id = group_student.user_id ORDER BY student_state.id DESC LIMIT 1) as state_name")
+            )
+            ->where('student_ticket_numbers.ticket_number', '=', $ticketNumbers)
             ->get();
     }
 }
