@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Document;
-use App\Models\LevelEducation;
+use App\Models\TypeEducation;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -34,7 +34,7 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->foreignIdFor(LevelEducation::class)
+            $table->foreignIdFor(TypeEducation::class)
                 ->nullable()
                 ->constrained()
                 ->cascadeOnDelete();

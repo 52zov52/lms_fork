@@ -35,7 +35,7 @@ class ContingentController extends Controller
             ->get();
     }
 
-    public function searchContingentByTicketNumbers($ticketNumbers): object
+    public function searchContingentByTicketNumbers($ticketNumber): object
     {
         return StudentTicketNumber::join('users_data', 'student_ticket_numbers.user_id', '=', 'users_data.user_id')
             ->join('group_student', 'student_ticket_numbers.user_id', '=', 'group_student.user_id')
@@ -47,7 +47,7 @@ class ContingentController extends Controller
                 'student_ticket_numbers.ticket_number',
                 DB::raw("(SELECT states.name FROM student_state INNER JOIN states ON states.id = student_state.state_id WHERE student_state.user_id = group_student.user_id ORDER BY student_state.id DESC LIMIT 1) as state_name")
             )
-            ->where('student_ticket_numbers.ticket_number', '=', $ticketNumbers)
+            ->where('student_ticket_numbers.ticket_number', '=', $ticketNumber)
             ->get();
     }
 }

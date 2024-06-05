@@ -19,6 +19,13 @@
         </div>
     </div>
 
+    <div class="flex flex-row space-x-2">
+        <input wire:model="ticketNumber" type="text" name="ticket_number" id="ticket-number-id" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Для поиска введите № зачетной книжки">
+        <button onclick="showToast('searchContingentByTicketNumbers')" class="w-12 bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-1 text-xs text-center text-blue-400 hover:text-white" title="">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </div>
+
     @if(!is_null($contingent) && count($contingent) != 0)
     <div class="border rounded border-slate-400/20">
         <table class="w-full text-xs lg:text-sm">
@@ -28,6 +35,9 @@
                     <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">ФИО</th>
                     <th scope="col" class="w-64 px-2 py-2 font-semibold">№ зачетки</th>
                     <th scope="col" class="w-64 px-2 py-2 font-semibold">Статус</th>
+                    @can('access-to-print-defense-ministry-form-10')
+                    <th scope="col" class="w-32 px-2 py-2 font-semibold">Действия</th>
+                    @endcan
                 </tr>
             </thead>
             <tbody>
@@ -37,6 +47,13 @@
                     <td class="w-auto px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
                     <td class="w-64 px-2 py-2 text-center">{{ $item->ticket_number }}</td>
                     <td class="w-64 px-2 py-2 text-center">{{ $item->state_name }}</td>
+                    @can('access-to-print-defense-ministry-form-10')
+                    <td class="w-32 px-2 py-2 text-center">
+                        <button wire:click="printDefenseMinistryForm10({{ $item->user_id }})" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Скачать форму № 10">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                    </td>
+                    @endcan
                 </tr>
                 @endforeach
             </tbody>

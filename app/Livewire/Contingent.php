@@ -10,6 +10,7 @@ class Contingent extends Component
 {
     public int $groupId = 0;
     public $contingent = null;
+    public $ticketNumber = "";
 
     public function render()
     {
@@ -35,10 +36,16 @@ class Contingent extends Component
         $this->contingent = $contingents->getContingent($this->groupId);
     }
 
-    public function searchContingentByTicketNumbers($ticketNumbers)
+    public function searchContingentByTicketNumbers()
     {
-        $contingents = new ContingentController();
-        $this->contingent = $contingents->searchContingentByTicketNumbers($ticketNumbers);
+        if($this->ticketNumber != "") {
+            $contingents = new ContingentController();
+            $this->contingent = $contingents->searchContingentByTicketNumbers($this->ticketNumber);
+        }
+        else {
+            session()->flash('type', 'error');
+            session()->flash('message', 'Для поиска необходимо ввести № зачетной книжки!');
+        }
     }
 
     public function generateListOfStudentsInGroupReport()
