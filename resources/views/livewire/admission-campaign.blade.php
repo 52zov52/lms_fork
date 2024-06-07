@@ -1,7 +1,7 @@
 <div x-data="{ hovered: null }" class="flex flex-row flex-wrap">
     @can('access-to-enter-admission-campaign')
-    <a x-bind:class="{ 'hovered': hovered === 'admission_campaign_stats' }" @mouseover="hovered = 'admission_campaign_stats'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('admission.campaign-stats') }}">
-        <div class="w-full md:w-[23rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
+    <a x-bind:class="{ 'hovered': hovered === 'admission_campaign_stats' }" @mouseover="hovered = 'admission_campaign_stats'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('admission.campaign.stats') }}">
+        <div class="w-full md:w-[22rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Ввод статистики приемной кампании</div>
             <div class="grow px-4 py-2 text-sm text-justify">В данном разделе осуществляется ввод и систематизация статистических данных, связанных с процессом приема абитуриентов в Университет</div>
             <div class="h-8 px-4 py-2">
@@ -9,9 +9,18 @@
             </div>
         </div>
     </a>
+    <a x-bind:class="{ 'hovered': hovered === 'applicant_average_score' }" @mouseover="hovered = 'applicant_average_score'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('applicant.average.score') }}">
+        <div class="w-full md:w-[22rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
+            <div class="h-14 px-4 py-2 font-bold">Средний балл аттестата абитуриентов</div>
+            <div class="grow px-4 py-2 text-sm text-justify">В данном разделе осуществляется сбор и анализа статистических данных о средних баллах аттестатов абитуриентов, претендующих на поступление в Университет</div>
+            <div class="h-8 px-4 py-2">
+                <div x-bind:class="{ 'w-full': hovered === 'applicant_average_score', 'w-6': hovered != 'applicant_average_score' }" class="bg-gray-600 dark:bg-white border border-slate-400/20 rounded p-0.5 transition-all duration-500"></div>
+            </div>
+        </div>
+    </a>
     @endcan
     <a x-bind:class="{ 'hovered': hovered === 'admission_campaign_stats_to_day_report' }" @mouseover="hovered = 'admission_campaign_stats_to_day_report'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('print.admission.campaign.to.day.report') }}">
-        <div class="w-full md:w-[23rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
+        <div class="w-full md:w-[22rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Оперативный отчет о ходе приемной кампании за {{ now()->format('d.m.Y') }}</div>
             <div class="grow px-4 py-2 text-sm text-justify">В этом разделе предоставляется оперативный отчет, отражающий динамику и результаты проводимой приемной кампании Университета за текущий день</div>
             <div class="h-8 px-4 py-2">
@@ -20,7 +29,7 @@
         </div>
     </a>
     <a x-bind:class="{ 'hovered': hovered === 'admission_campaign_stats_full_report' }" @mouseover="hovered = 'admission_campaign_stats_full_report'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('print.admission.campaign.full.report') }}">
-        <div class="w-full md:w-[23rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
+        <div class="w-full md:w-[22rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Оперативный отчет о ходе приемной кампании (накопительный)</div>
             <div class="grow px-4 py-2 text-sm text-justify">В этом разделе предоставляется оперативный отчет, отражающий динамику и результаты проводимой приемной кампании Университета</div>
             <div class="h-8 px-4 py-2">

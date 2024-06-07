@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
 
             $table->unsignedBigInteger('admission_campaign_direction_id')->nullable();
-            $table->foreign('admission_campaign_direction_id', 'bac_admission_campaign_direction_id_foreign')
+            $table->foreign('admission_campaign_direction_id', 'col_admission_campaign_direction_id_foreign')
                 ->references('id')
                 ->on('admission_campaign_directions')
                 ->onDelete('cascade');
 
             $table->unsignedBigInteger('admission_campaign_id')->nullable();
-            $table->foreign('admission_campaign_id', 'bac_admission_campaign_id_foreign')
+            $table->foreign('admission_campaign_id', 'col_admission_campaign_id_foreign')
                 ->references('id')
                 ->on('admission_campaigns')
                 ->onDelete('cascade');

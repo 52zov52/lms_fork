@@ -57,7 +57,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::get('/admission-campaign-stats', function () {
         return view('pages.admission-campaign-stats');
-    })->name('admission.campaign-stats');
+    })->name('admission.campaign.stats');
+
+    Route::get('/applicant-average-score', function () {
+        return view('pages.applicant-average-score');
+    })->name('applicant.average.score');
 
     Route::get('/print-admission-campaign-to-day-report', [PrintAdmissionCampaignController::class, 'printToDayReport'])->name('print.admission.campaign.to.day.report');
     Route::get('/print-admission-campaign-full-report', [PrintAdmissionCampaignController::class, 'printFullReport'])->name('print.admission.campaign.full.report');

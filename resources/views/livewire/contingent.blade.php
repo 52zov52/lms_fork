@@ -20,7 +20,7 @@
     </div>
 
     <div class="flex flex-row space-x-2">
-        <input wire:model="ticketNumber" type="text" name="ticket_number" id="ticket-number-id" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Для поиска введите № зачетной книжки">
+        <input wire:model="ticketNumber" type="text" name="ticket_number" id="ticket-number-id" class="w-full border border-gray-300 rounded px-2 text-xs text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Для поиска введите № зачетной книжки">
         <button onclick="showToast('searchContingentByTicketNumbers')" class="w-12 bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-1 text-xs text-center text-blue-400 hover:text-white" title="">
             <i class="fa-solid fa-magnifying-glass"></i>
         </button>
