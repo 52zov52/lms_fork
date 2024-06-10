@@ -42,6 +42,9 @@
                 <tr class="border-b border-slate-400/20">
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
                     <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">ФИО</th>
+                    <th scope="col" class="w-40 px-2 py-2 text-left font-semibold">Тел.</th>
+                    <th scope="col" class="w-48 px-2 py-2 text-left font-semibold">Email</th>
+                    <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">Класс</th>
                     <th scope="col" class="w-20 px-2 py-2 font-semibold">Кол-во 3</th>
                     <th scope="col" class="w-20 px-2 py-2 font-semibold">Кол-во 4</th>
                     <th scope="col" class="w-20 px-2 py-2 font-semibold">Кол-во 5</th>
@@ -54,6 +57,9 @@
                 <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="w-auto px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
+                    <td class="w-40 px-2 py-2 text-left">{{ $item->phone }}</td>
+                    <td class="w-48 px-2 py-2 text-left">{{ $item->email }}</td>
+                    <td class="w-20 px-2 py-2 text-center">{{ $item->completed_classes_count }}</td>
                     <td class="w-20 px-2 py-2 text-center">{{ $item->threes_count }}</td>
                     <td class="w-20 px-2 py-2 text-center">{{ $item->fours_count }}</td>
                     <td class="w-20 px-2 py-2 text-center">{{ $item->fives_count }}</td>
@@ -80,6 +86,22 @@
             <div class="flex flex-col">
                 <span class="font-semibold">ФИО:</span>
                 <span>{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Телефон:</span>
+                <span>{{ $item->phone }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Email:</span>
+                <span>{{ $item->email }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Класс:</span>
+                <span>{{ $item->completed_classes_count }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Кол-во 3:</span>
+                <span>{{ $item->threes_count }}</span>
             </div>
             <div class="flex flex-col">
                 <span class="font-semibold">Кол-во 3:</span>
@@ -163,7 +185,16 @@
                         <div class="flex flex-col">
                             <label for="middle-name" class="font-semibold">Отчество</label>
                             <input wire:model="middleName" type="text" name="middle_name" id="middle-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            @error('middleName') <span class="text-red-400 font-semibold">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div class="flex flex-col">
+                            <label for="phone" class="font-semibold">Телефон</label>
+                            <input wire:model="phone" type="text" name="phone" id="phone" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="email" class="font-semibold">Email</label>
+                            <input wire:model="email" type="text" name="email" id="email" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -181,6 +212,16 @@
                             <label for="fives-count" class="font-semibold">Кол-во 5</label>
                             <input wire:model="fivesCount" type="text" name="fives_count" id="fives-count" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('fivesCount') <span class="text-red-400 font-semibold">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="flex flex-row space-x-2">
+                        <div class="flex space-x-1 items-center">
+                            <input wire:model="completedClassesCount" type="radio" id="nine-classes" value="9">
+                            <label for="nine-classes" class="cursor-pointer">9 класс</label>
+                        </div>
+                        <div class="flex space-x-1 items-center">
+                            <input wire:model="completedClassesCount" type="radio" id="eleven-classes" value="11">
+                            <label for="eleven-classes" class="cursor-pointer">11 класс</label>
                         </div>
                     </div>
                 </div>

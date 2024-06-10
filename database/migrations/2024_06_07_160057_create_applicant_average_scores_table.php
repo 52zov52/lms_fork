@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('last_name', 50);
             $table->string('first_name', 50);
             $table->string('middle_name', 50)->nullable();
+            $table->string('phone', 50)->nullable();
+            $table->string('email')->nullable();
 
             $table->foreignIdFor(User::class)
                 ->nullable()
@@ -29,6 +31,7 @@ return new class extends Migration
             $table->integer('fours_count')->default(0);
             $table->integer('fives_count')->default(0);
             $table->double('average_score')->default(0);
+            $table->integer('completed_classes_count')->default(9);
 
             $table->foreignIdFor(AdmissionCampaign::class)
                 ->constrained()

@@ -88,19 +88,19 @@
                         @endif
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="collegeApplicationsAfterNineGradesCount.{{ $value_college->id }}" wire:key="{{ $value_college->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="collegeApplicationsAfterNineGradesCount.{{ $value_college->id }}" wire:key="{{ $value_college->id }}" type="text" class="w-20 @if($collegeApplicationsAfterNineGradesCount[$value_college->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="collegeApplicationsAfterEleventhGradesCount.{{ $value_college->id }}" wire:key="{{ $value_college->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="collegeApplicationsAfterEleventhGradesCount.{{ $value_college->id }}" wire:key="{{ $value_college->id }}" type="text" class="w-20 @if($collegeApplicationsAfterEleventhGradesCount[$value_college->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="collegeContractsAfterNineGradesCount.{{ $value_college->id }}" wire:key="{{ $value_college->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="collegeContractsAfterNineGradesCount.{{ $value_college->id }}" wire:key="{{ $value_college->id }}" type="text" class="w-20 @if($collegeContractsAfterNineGradesCount[$value_college->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="collegeContractsAfterEleventhGradesCount.{{ $value_college->id }}" wire:key="{{ $value_college->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="collegeContractsAfterEleventhGradesCount.{{ $value_college->id }}" wire:key="{{ $value_college->id }}" type="text" class="w-20 @if($collegeContractsAfterEleventhGradesCount[$value_college->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="collegePaidContractsCount.{{ $value_college->id }}" wire:key="{{ $value_college->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="collegePaidContractsCount.{{ $value_college->id }}" wire:key="{{ $value_college->id }}" type="text" class="w-20 @if($collegePaidContractsCount[$value_college->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                 </tr>
                 @endforeach
@@ -147,25 +147,25 @@
                         @endif
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="bachelorApplicationsCertificateCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="bachelorApplicationsCertificateCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 @if($bachelorApplicationsCertificateCount[$value_bachelor->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="bachelorApplicationsDiplomaBachelorCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="bachelorApplicationsDiplomaBachelorCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 @if($bachelorApplicationsDiplomaBachelorCount[$value_bachelor->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="bachelorApplicationsDiplomaCollegeCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="bachelorApplicationsDiplomaCollegeCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 @if($bachelorApplicationsDiplomaCollegeCount[$value_bachelor->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="bachelorContractsCertificateCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="bachelorContractsCertificateCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 @if($bachelorContractsCertificateCount[$value_bachelor->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="bachelorContractsDiplomaBachelorCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="bachelorContractsDiplomaBachelorCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 @if($bachelorContractsDiplomaBachelorCount[$value_bachelor->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="bachelorContractsDiplomaCollegeCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="bachelorContractsDiplomaCollegeCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 @if($bachelorContractsDiplomaCollegeCount[$value_bachelor->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="bachelorPaidContractsCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="bachelorPaidContractsCount.{{ $value_bachelor->id }}" wire:key="{{ $value_bachelor->id }}" type="text" class="w-20 border @if($bachelorPaidContractsCount[$value_bachelor->id] != 0) bg-blue-300 @endif border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                 </tr>
                 @endforeach
@@ -204,13 +204,13 @@
                         @endif
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="mastersDegreeApplicationsCount.{{ $value_masters_degree->id }}" wire:key="{{ $value_masters_degree->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="mastersDegreeApplicationsCount.{{ $value_masters_degree->id }}" wire:key="{{ $value_masters_degree->id }}" type="text" class="w-20 @if($mastersDegreeApplicationsCount[$value_masters_degree->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="mastersDegreeContractsCount.{{ $value_masters_degree->id }}" wire:key="{{ $value_masters_degree->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="mastersDegreeContractsCount.{{ $value_masters_degree->id }}" wire:key="{{ $value_masters_degree->id }}" type="text" class="w-20 @if($mastersDegreeContractsCount[$value_masters_degree->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="mastersDegreePaidContractsCount.{{ $value_masters_degree->id }}" wire:key="{{ $value_masters_degree->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="mastersDegreePaidContractsCount.{{ $value_masters_degree->id }}" wire:key="{{ $value_masters_degree->id }}" type="text" class="w-20 @if($mastersDegreePaidContractsCount[$value_masters_degree->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                 </tr>
                 @endforeach
@@ -249,13 +249,13 @@
                         @endif
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="phdApplicationsCount.{{ $value_phd->id }}" wire:key="{{ $value_phd->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="phdApplicationsCount.{{ $value_phd->id }}" wire:key="{{ $value_phd->id }}" type="text" class="w-20 @if($phdApplicationsCount[$value_phd->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="phdContractsCount.{{ $value_phd->id }}" wire:key="{{ $value_phd->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="phdContractsCount.{{ $value_phd->id }}" wire:key="{{ $value_phd->id }}" type="text" class="w-20 @if($phdContractsCount[$value_phd->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                     <td class="w-20 px-2 py-2">
-                        <input wire:model="phdPaidContractsCount.{{ $value_phd->id }}" wire:key="{{ $value_phd->id }}" type="text" class="w-20 border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="phdPaidContractsCount.{{ $value_phd->id }}" wire:key="{{ $value_phd->id }}" type="text" class="w-20 @if($phdPaidContractsCount[$value_phd->id] != 0) bg-blue-300 @endif border border-gray-300 rounded px-2 text-sm md:text-base text-center text-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </td>
                 </tr>
                 @endforeach

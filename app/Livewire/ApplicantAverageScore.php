@@ -13,9 +13,12 @@ class ApplicantAverageScore extends Component
         $lastName = null,
         $firstName = null,
         $middleName = null,
+        $phone = null,
+        $email = null,
         $threesCount = 0,
         $foursCount = 0,
         $fivesCount = 0,
+        $completedClassesCount = 9,
         $admissionCampaignDirectionId = 0;
 
     public $activeAdmissionCampaignId = 0;
@@ -26,7 +29,7 @@ class ApplicantAverageScore extends Component
 
     public function mount()
     {
-        $this->directions = AdmissionCampaignDirection::get();
+        $this->directions = AdmissionCampaignDirection::where('level_education_id', '=', 2)->get();
     }
 
     public function render()
@@ -36,6 +39,7 @@ class ApplicantAverageScore extends Component
 
         $data = ModelsApplicantAverageScore::where('admission_campaign_id', '=', $this->activeAdmissionCampaignId)
             ->where('admission_campaign_direction_id', '=', $this->directionId)
+            ->orderBy('average_score', 'DESC')
             ->paginate(50);
 
         return view('livewire.applicant-average-score', ['data' => $data]);
@@ -75,10 +79,13 @@ class ApplicantAverageScore extends Component
             'last_name' => $this->lastName,
             'first_name' => $this->firstName,
             'middle_name' => $this->middleName,
+            'phone' => $this->phone,
+            'email' => $this->email,
             'threes_count' => $this->threesCount,
             'fours_count' => $this->foursCount,
             'fives_count' => $this->fivesCount,
-            'average_score' => round((($this->threesCount * 3) + ($this->foursCount * 4) + ($this->fivesCount* 5)) / ($this->threesCount+ $this->foursCount + $this->fivesCount), 1),
+            'completed_classes_count' => $this->completedClassesCount,
+            'average_score' => round((($this->threesCount * 3) + ($this->foursCount * 4) + ($this->fivesCount * 5)) / ($this->threesCount + $this->foursCount + $this->fivesCount), 1),
             'admission_campaign_id' => $this->activeAdmissionCampaignId,
             'admission_campaign_direction_id' => $this->admissionCampaignDirectionId
         ]);
@@ -97,9 +104,12 @@ class ApplicantAverageScore extends Component
         $this->lastName = $applicantAverageScore->last_name;
         $this->firstName = $applicantAverageScore->first_name;
         $this->middleName = $applicantAverageScore->middle_name;
+        $this->phone = $applicantAverageScore->phone;
+        $this->email = $applicantAverageScore->email;
         $this->threesCount = $applicantAverageScore->threes_count;
         $this->foursCount = $applicantAverageScore->fours_count;
         $this->fivesCount = $applicantAverageScore->fives_count;
+        $this->completedClassesCount = $applicantAverageScore->completed_classes_count;
         $this->admissionCampaignDirectionId = $applicantAverageScore->admission_campaign_direction_id;
     }
 
@@ -115,10 +125,13 @@ class ApplicantAverageScore extends Component
         $applicantAverageScore->last_name = $this->lastName;
         $applicantAverageScore->first_name = $this->firstName;
         $applicantAverageScore->middle_name = $this->middleName;
+        $applicantAverageScore->phone = $this->phone;
+        $applicantAverageScore->email = $this->email;
         $applicantAverageScore->threes_count = $this->threesCount;
         $applicantAverageScore->fours_count = $this->foursCount;
         $applicantAverageScore->fives_count = $this->fivesCount;
-        $applicantAverageScore->average_score = round((($this->threesCount * 3) + ($this->foursCount * 4) + ($this->fivesCount* 5)) / ($this->threesCount+ $this->foursCount + $this->fivesCount), 1);
+        $applicantAverageScore->completed_classes_count = $this->completedClassesCount;
+        $applicantAverageScore->average_score = round((($this->threesCount * 3) + ($this->foursCount * 4) + ($this->fivesCount * 5)) / ($this->threesCount + $this->foursCount + $this->fivesCount), 1);
         $applicantAverageScore->admission_campaign_direction_id = $this->admissionCampaignDirectionId;
         $applicantAverageScore->update();
 
@@ -143,9 +156,12 @@ class ApplicantAverageScore extends Component
         $this->lastName = null;
         $this->firstName = null;
         $this->middleName = null;
+        $this->phone = null;
+        $this->email = null;
         $this->threesCount = 0;
         $this->foursCount = 0;
         $this->fivesCount = 0;
+        $this->completedClassesCount = 9;
         $this->admissionCampaignDirectionId = 0;
 
         $this->resetErrorBag();
