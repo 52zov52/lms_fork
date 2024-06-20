@@ -76,6 +76,22 @@ class Report extends Component
     /**
      * @return \Illuminate\Http\RedirectResponse
      */
+    public function printCountPublicationByYearsAndStatuses()
+    {
+        return redirect()->route('print.count.publication.by.years.and.statuses');
+    }
+
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function printCountUserPublicationsByStatusAndYearRange()
+    {
+        return redirect()->route('print.count.user.publications.by.status.and.year.range');
+    }
+
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function generateContingentReport()
     {
         return redirect()->route('generate.contingent.report');

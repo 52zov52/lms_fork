@@ -150,6 +150,11 @@ class ApplicantAverageScore extends Component
         session()->flash('message', 'Запись успешно удалена!');
     }
 
+    public function print()
+    {
+        return redirect()->route('print.applicant.average.score');
+    }
+
     private function resetFields(): void
     {
         $this->id = 0;

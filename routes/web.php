@@ -7,10 +7,12 @@ use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\Reports\PrintAdmissionCampaignController;
+use App\Http\Controllers\Reports\PrintApplicantAverageScoreController;
 use App\Http\Controllers\Reports\PrintDefenseMinistryForm10Controller;
 use App\Http\Controllers\Reports\PrintPublicationController;
 use App\Http\Controllers\Reports\PrintCurrentAssessmentController;
 use App\Http\Controllers\Reports\PrintInterimAssessmentController;
+use App\Http\Controllers\Reports\PrintScienceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleReportController;
 use App\Http\Controllers\StudyPlanController;
@@ -195,4 +197,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/generate-contingent-by-age-and-gender-without-teaching-from-report', [ContingentReportController::class, 'generateContingentByAgeAndGenderWithoutTeachingFromReport'])->name('generate.contingent.by.age.and.gender.without.teaching.from.report');
 
     Route::get('/get-study-plan', [StudyPlanController::class, 'getStudyPlan'])->name('get.study.plan');
+
+    Route::get('/print-count-publication-by-years-and-statuses', [PrintScienceController::class, 'printCountPublicationByYearsAndStatuses'])->name('print.count.publication.by.years.and.statuses');
+    Route::get('/print-count-user-publications-by-status-and-year-range', [PrintScienceController::class, 'printCountUserPublicationsByStatusAndYearRange'])->name('print.count.user.publications.by.status.and.year.range');
+
+    Route::get('/print-applicant-average-score', [PrintApplicantAverageScoreController::class, 'print'])->name('print.applicant.average.score');
 });

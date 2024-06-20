@@ -63,13 +63,13 @@
             </a>
         </li>
         @endrole
-        @role('Teacher')
+        @can('access-to-contingent')
         <li class="{{ (request()->routeIs('contingent')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('contingent') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
                 <i class="fa-solid fa-people-group fa-lg"></i>
             </a>
         </li>
-        @endrole
+        @endcan
         @can('access-to-data-on-students-academic-leaves')
         <li class="{{ (request()->routeIs('academic.leave.calendar')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('academic.leave.calendar') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">

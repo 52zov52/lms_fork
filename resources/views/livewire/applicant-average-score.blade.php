@@ -26,10 +26,14 @@
                 @endforeach
             </select>
         </div>
-        <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
+        <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-end">
             <button wire:click="setEntryModalVisible(false)" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-left text-green-400 hover:text-white font-bold">
                 <i class="fa-solid fa-circle-plus fa-lg"></i>
                 Добавить запись
+            </button>
+            <button wire:click="print()" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-left text-blue-400 hover:text-white font-bold">
+                <i class="fa-solid fa-print fa-lg"></i>
+                Печать списка абитуриентов
             </button>
         </div>
     </div>

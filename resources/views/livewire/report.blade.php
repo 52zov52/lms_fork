@@ -7,6 +7,13 @@
         <li><a wire:click="roomsModalVisible" href="#" class="text-blue-500 hover:underline">Отчет по загруженности аудиторий</a></li>
         @endrole
     </ul>
+    @can('access-to-science')
+    <h2 class="mt-2 font-semibold">Наука:</h2>
+    <ul class="list-disc px-4">
+        <li><a wire:click="printCountPublicationByYearsAndStatuses" href="#" class="text-blue-500 hover:underline">Отчет о количестве публикаций в разрезе годов и статусов сборников</a></li>
+        <li><a wire:click="printCountUserPublicationsByStatusAndYearRange" href="#" class="text-blue-500 hover:underline">Отчет о количестве публикаций сотрудников в разрезе статусов сборников и годов (текущего, прошлого, 5 лет)</a></li>
+    </ul>
+    @endcan
     @can('access-to-contingent')
     <h2 class="mt-2 font-semibold">Контингент:</h2>
     <ul class="list-disc px-4">
