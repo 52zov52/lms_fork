@@ -21,8 +21,8 @@ class PrintScienceController extends Controller
                 DB::raw("COUNT(CASE WHEN status = 3 THEN 1 END) AS wos"),
                 DB::raw("COUNT(CASE WHEN status = 4 THEN 1 END) AS scopus"),
                 DB::raw("COUNT(CASE WHEN status = 5 THEN 1 END) AS isbn"),
-                DB::raw("COUNT(CASE WHEN output_data LIKE '%еждународ%научн%конференц%' THEN 1 END) AS number_articles_international_conferences"),
-                DB::raw("COUNT(CASE WHEN output_data LIKE '%конференц%'THEN 1 END) AS total_number_articles_conferences")
+                DB::raw("COUNT(CASE WHEN output_data LIKE '%еждународ%научн%конференц%' OR output_data LIKE '%nternation%onference%' THEN 1 END) AS number_articles_international_conferences"),
+                DB::raw("COUNT(CASE WHEN output_data LIKE '%онференц%' OR output_data LIKE '%onference%' THEN 1 END) AS total_number_articles_conferences")
             )->groupBy('year_publishing')
             ->get();
 
@@ -105,22 +105,22 @@ class PrintScienceController extends Controller
                 DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) AND my_publications.status = 3) THEN 1 END) AS wos_current_year"),
                 DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) AND my_publications.status = 4) THEN 1 END) AS scopus_current_year"),
                 DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) AND my_publications.status = 5) THEN 1 END) AS isbn_current_year"),
-                DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) AND my_publications.output_data LIKE '%еждународ%научн%конференц%') THEN 1 END) AS number_articles_international_conferences_current_year"),
-                DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) AND my_publications.output_data LIKE '%конференц%') THEN 1 END) AS number_articles_conferences_current_year"),
+                DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) AND (my_publications.output_data LIKE '%еждународ%научн%конференц%' OR my_publications.output_data LIKE '%nternation%onference%')) THEN 1 END) AS number_articles_international_conferences_current_year"),
+                DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) AND (my_publications.output_data LIKE '%онференц%' OR my_publications.output_data LIKE '%onference%')) THEN 1 END) AS number_articles_conferences_current_year"),
                 DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) - 1 AND my_publications.status = 1) THEN 1 END) AS rinc_last_year"),
                 DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) - 1 AND my_publications.status = 2) THEN 1 END) AS vak_last_year"),
                 DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) - 1 AND my_publications.status = 3) THEN 1 END) AS wos_last_year"),
                 DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) - 1 AND my_publications.status = 4) THEN 1 END) AS scopus_last_year"),
                 DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) - 1 AND my_publications.status = 5) THEN 1 END) AS isbn_last_year"),
-                DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) - 1 AND my_publications.output_data LIKE '%еждународ%научн%конференц%') THEN 1 END) AS number_articles_international_conferences_last_year"),
-                DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) - 1 AND my_publications.output_data LIKE '%конференц%') THEN 1 END) AS number_articles_conferences_last_year"),
+                DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) - 1 AND (my_publications.output_data LIKE '%еждународ%научн%конференц%' OR my_publications.output_data LIKE '%nternation%onference%')) THEN 1 END) AS number_articles_international_conferences_last_year"),
+                DB::raw("COUNT(CASE WHEN (year_publishing = YEAR(CURDATE()) - 1 AND (my_publications.output_data LIKE '%онференц%' OR my_publications.output_data LIKE '%onference%')) THEN 1 END) AS number_articles_conferences_last_year"),
                 DB::raw("COUNT(CASE WHEN ((year_publishing >= YEAR(CURDATE()) - 5 AND year_publishing <= YEAR(CURDATE())) AND my_publications.status = 1) THEN 1 END) AS rinc_from_five_year"),
                 DB::raw("COUNT(CASE WHEN ((year_publishing >= YEAR(CURDATE()) - 5 AND year_publishing <= YEAR(CURDATE())) AND my_publications.status = 2) THEN 1 END) AS vak_from_five_year"),
                 DB::raw("COUNT(CASE WHEN ((year_publishing >= YEAR(CURDATE()) - 5 AND year_publishing <= YEAR(CURDATE())) AND my_publications.status = 3) THEN 1 END) AS wos_from_five_year"),
                 DB::raw("COUNT(CASE WHEN ((year_publishing >= YEAR(CURDATE()) - 5 AND year_publishing <= YEAR(CURDATE())) AND my_publications.status = 4) THEN 1 END) AS scopus_from_five_year"),
                 DB::raw("COUNT(CASE WHEN ((year_publishing >= YEAR(CURDATE()) - 5 AND year_publishing <= YEAR(CURDATE())) AND my_publications.status = 5) THEN 1 END) AS isbn_from_five_year"),
-                DB::raw("COUNT(CASE WHEN ((year_publishing >= YEAR(CURDATE()) - 5 AND year_publishing <= YEAR(CURDATE())) AND my_publications.output_data LIKE '%еждународ%научн%конференц%') THEN 1 END) AS number_articles_international_conferences_from_five_year"),
-                DB::raw("COUNT(CASE WHEN ((year_publishing >= YEAR(CURDATE()) - 5 AND year_publishing <= YEAR(CURDATE())) AND my_publications.output_data LIKE '%конференц%') THEN 1 END) AS number_articles_conferences_from_five_year")
+                DB::raw("COUNT(CASE WHEN ((year_publishing >= YEAR(CURDATE()) - 5 AND year_publishing <= YEAR(CURDATE())) AND (my_publications.output_data LIKE '%еждународ%научн%конференц%' OR my_publications.output_data LIKE '%nternation%onference%')) THEN 1 END) AS number_articles_international_conferences_from_five_year"),
+                DB::raw("COUNT(CASE WHEN ((year_publishing >= YEAR(CURDATE()) - 5 AND year_publishing <= YEAR(CURDATE())) AND (my_publications.output_data LIKE '%онференц%' OR my_publications.output_data LIKE '%onference%')) THEN 1 END) AS number_articles_conferences_from_five_year")
             )
             ->groupBy('fio')
             ->orderBy('fio')
