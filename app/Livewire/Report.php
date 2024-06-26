@@ -49,6 +49,21 @@ class Report extends Component
         $this->isRoomsModalVisible = true;
     }
 
+    public function printApplicantAverageScore()
+    {
+        return redirect()->route('print.applicant.average.score');
+    }
+
+    public function printAdmissionCampaignToDay()
+    {
+        return redirect()->route('print.admission.campaign.to.day.report');
+    }
+
+    public function printAdmissionCampaignFull()
+    {
+        return redirect()->route('print.admission.campaign.full.report');
+    }
+
     /**
      * @return \Illuminate\Http\RedirectResponse
      */

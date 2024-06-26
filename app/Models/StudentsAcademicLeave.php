@@ -14,6 +14,7 @@ class StudentsAcademicLeave extends Model
     protected $fillable = [
         'user_id',
         'group_id',
+        'order_id',
         'academic_leave_start_date',
         'academic_leave_end_date',
         'description',
