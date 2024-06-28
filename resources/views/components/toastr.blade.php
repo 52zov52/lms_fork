@@ -1,4 +1,5 @@
-<div id="toast" @class([ 'fixed transition delay-150 duration-300 ease-in-out w-auto top-[4.5rem] right-5 rounded shadow-md p-4 text-xs sm:text-sm md:text-sm lg:text-base xl:text-base text-white font-medium translate-x-full opacity-0' => true,
+<div id="toast" data-notification-type="{{ $type }}" 
+    @class([ 'fixed transition delay-150 duration-300 ease-in-out w-auto top-[4.5rem] right-5 rounded shadow-md p-4 text-xs sm:text-sm md:text-sm lg:text-base xl:text-base text-white font-medium translate-x-full opacity-0' => true,
     'bg-sky-500' => $type === 'info',
     'bg-orange-500 ' => $type === 'warning',
     'bg-green-500' => $type === 'success',
