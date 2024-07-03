@@ -10,7 +10,8 @@
                 <tr class="border-b border-slate-400/20">
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
                     <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">ФИО</th>
-                    <th scope="col" class="w-36 px-2 py-2 text-left font-semibold">Группа в которой был студент</th>
+                    <th scope="col" class="w-48 px-2 py-2 text-left font-semibold">Приказ</th>
+                    <th scope="col" class="w-36 px-2 py-2 font-semibold">Группа в которой был студент</th>
                     <th scope="col" class="w-36 px-2 py-2 font-semibold">Дата выхода из академ. отпуска</th>
                     <th scope="col" class="w-20 px-2 py-2 font-semibold">Действия</th>
                 </tr>
@@ -20,7 +21,8 @@
                 <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="w-auto px-2 py-2">{{ $value->fio }}</td>
-                    <td class="w-36 px-2 py-2 text-left">{{ $value->group_name }}</td>
+                    <td class="w-48 px-2 py-2 text-left">{{ $value->order_info }}</td>
+                    <td class="w-36 px-2 py-2 text-center">{{ $value->group_name }}</td>
                     <td class="w-36 px-2 py-2 text-center">{{ $value->academic_leave_end_date }}</td>
                     <td class="w-20 px-2 py-2 text-center">
                         <button wire:click="setEntryModalVisible(true, {{ $value->id }}, {{ $value->user_id }}, {{ $value->order_id }})" class="bg-white hover:bg-orange-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-400 px-2 py-1 text-xs text-center text-orange-400 hover:text-white" title="" data-tippy-content="Редактировать">
@@ -39,6 +41,10 @@
             <div class="flex flex-col">
                 <span class="font-semibold">ФИО:</span>
                 <span>{{ $value->fio }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Приказ:</span>
+                <span>{{ $value->order_info }}</span>
             </div>
             <div class="flex flex-col">
                 <span class="font-semibold">Группа в которой был студент:</span>
