@@ -46,12 +46,16 @@
         <table style="width: 100%;" border="1">
             <body>
                 <tr>
-                    <th>Кол-во заявок СПО</th>
-                    <th>Кол-во заявок ВО</th>
+                    <th>Кол-во заявок СПО за текущий день</th>
+                    <th>Кол-во заявок СПО всего</th>
+                    <th>Кол-во заявок ВО за текущий день</th>
+                    <th>Кол-во заявок ВО всего</th>
                 </tr>
                 <tr>
-                    <td><p>{{ $countRequestSPO }}</p></td>
-                    <td><p>{{ $countRequestVO }}</p></td>
+                    <td><p>{{ $orderRequestSPO->current_count_requests }}</p></td>
+                    <td><p>{{ $orderRequestSPO->total_count_requests }}</p></td>
+                    <td><p>{{ $orderRequestVO->current_count_requests }}</p></td>
+                    <td><p>{{ $orderRequestVO->total_count_requests }}</p></td>
                 </tr>
             </body>
         </table>

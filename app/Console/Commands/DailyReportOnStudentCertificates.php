@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\DocumentOrderRequest;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class DailyReportOnStudentCertificates extends Command
@@ -28,31 +29,42 @@ class DailyReportOnStudentCertificates extends Command
      */
     public function handle()
     {
-        $countRequestSPO = DocumentOrderRequest::join('users', 'document_order_requests.requester_id', '=', 'users.id')
+        $today = Carbon::now()->format('Y-m-d');
+
+        $orderRequestSPO = DocumentOrderRequest::join('users', 'document_order_requests.requester_id', '=', 'users.id')
             ->join('group_student', 'users.id', '=', 'group_student.user_id')
             ->join('groups', 'group_student.group_id', '=', 'groups.id')
             ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
             ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
             ->where('specialities.level_education_id', '=', 2)
             ->where('document_order_requests.status', '=', 1)
-            ->count();
+            ->select(
+                DB::raw('SUM(CASE WHEN document_order_requests.created_at LIKE "' . $today . '%" THEN 1 ELSE 0 END) AS current_count_requests'),
+                DB::raw('COUNT(document_order_requests.id) AS total_count_requests')
+                )
+            ->first();
 
-        $countRequestVO = DocumentOrderRequest::join('users', 'document_order_requests.requester_id', '=', 'users.id')
+        $orderRequestVO = DocumentOrderRequest::join('users', 'document_order_requests.requester_id', '=', 'users.id')
             ->join('group_student', 'users.id', '=', 'group_student.user_id')
             ->join('groups', 'group_student.group_id', '=', 'groups.id')
             ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
             ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
             ->where('specialities.level_education_id', '<>', 2)
             ->where('document_order_requests.status', '=', 1)
-            ->count();
+            ->select(
+                DB::raw('SUM(CASE WHEN document_order_requests.created_at LIKE "' . $today . '%" THEN 1 ELSE 0 END) AS current_count_requests'),
+                DB::raw('COUNT(document_order_requests.id) AS total_count_requests')
+                )
+            ->first();
 
         Mail::send('emails.daily-report-on-student-certificates', [
-            'countRequestSPO' => $countRequestSPO,
-            'countRequestVO' => $countRequestVO
+            'orderRequestSPO' => $orderRequestSPO,
+            'orderRequestVO' => $orderRequestVO
         ], function ($message) {
             $message->from('iubip@mg-lab.ru', 'ИУБиП отчет по справкам о статусе студента');
-            $message->to(['ikuzn@iubip.ru', 'ak.direktor@iubip.ru', 'miziukov@iubip.ru'])->subject('Количество заявок от студентов на справки о статусе студента на ' . Carbon::now()->format('d.m.Y'));
+            $message->to(['g.miziukov@yandex.ru'])->subject('Количество заявок от студентов на справки о статусе студента на ' . Carbon::now()->format('d.m.Y'));
         });
+        //'ak.direktor@iubip.ru', 'miziukov@iubip.ru'
 
         $this->info('Successfully sent report.');
     }

@@ -8,9 +8,12 @@ use App\Models\StudentsAcademicLeave;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class AcademicLeaveCalendar extends Component
 {
+    use WithPagination;
+
     public $id = 0,
         $user_id = 0,
         $order_id = 0,
