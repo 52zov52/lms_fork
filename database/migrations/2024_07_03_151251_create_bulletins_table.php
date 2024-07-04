@@ -21,7 +21,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->unsignedBigInteger('work_study_plan_course_control_types_in_semesters_id');
-            $table->foreign('work_study_plan_course_control_types_in_semesters_id', 'bulletins_wsp_courses_in_semester_id_foreign')
+            $table->foreign('work_study_plan_course_control_types_in_semesters_id', 'bulletins_wsp_course_control_types_in_sem_id_foreign')
                 ->references('id')
                 ->on('work_study_plan_course_control_types_in_semesters')
                 ->onDelete('cascade');
@@ -31,9 +31,9 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->integer('bulletin_number');
-
             $table->datetime('opening_date');
             $table->datetime('closing_date');
+            $table->bigInteger('date_and_time_exam')->nullable();
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_Bulletin
             $table->timestamps();
         });

@@ -16,7 +16,7 @@ return new class extends Migration
     {
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
-            $table->string('group_name', 10);
+            $table->string('group_name', 50);
             $table->integer('course');
 
             $table->date('year_admission')->nullable();
