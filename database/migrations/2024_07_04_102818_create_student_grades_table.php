@@ -23,6 +23,11 @@ return new class extends Migration
             $table->foreignIdFor(User::class)
                 ->constrained()
                 ->cascadeOnDelete();
+
+            $table->integer('rating_attendance')->nullable();
+            $table->integer('rating_test_assignment')->nullable();
+            $table->integer('rating_practical_assignment')->nullable();
+            $table->integer('rating_final_grade')->nullable();
             
             $table->integer('module_first_attendance')->nullable();
             $table->integer('module_first_test_assignment')->nullable();
