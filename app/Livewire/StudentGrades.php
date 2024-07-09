@@ -2,12 +2,11 @@
 
 namespace App\Livewire;
 
+use App\Models\Bulletin;
 use App\Models\Group;
-use App\Models\GroupStudent;
 use App\Models\LevelEducation;
 use App\Models\Speciality;
 use App\Models\WorkStudyPlan;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class StudentGrades extends Component
@@ -29,17 +28,29 @@ class StudentGrades extends Component
 
         $listGroups = Group::whereIn('work_study_plan_id', $this->list_wsp_id)->select('id', 'group_name')->get();
 
-        $studentGrades = GroupStudent::join('users_data', 'group_student.user_id', '=', 'users_data.user_id')
-            ->join('student_grades', 'group_student.user_id', '=', 'student_grades.user_id')
-            ->where('group_student.group_id', '=', $this->group_id)
-            ->select(DB::raw("CONCAT(users_data.last_name) as fio"), 'student_grades.grade')
+        $bulletins = Bulletin::join('work_study_plan_course_control_types_in_semesters', 'bulletins.work_study_plan_course_control_types_in_semesters_id', '=', 'work_study_plan_course_control_types_in_semesters.id')
+            ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
+            ->join('work_study_plan_courses_in_semesters', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
+            ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
+            ->where('bulletins.group_id', '=', $this->group_id)
+            ->select(
+                'bulletins.id',
+                'disciplines.name as discipline_name',
+                'work_study_plan_courses_in_semesters.semester_number',
+                'control_types.name as control_name',
+                'bulletins.bulletin_number',
+                'bulletins.opening_date',
+                'bulletins.closing_date'
+            )
+            ->orderBy('work_study_plan_courses_in_semesters.semester_number')
             ->get();
 
         return view('livewire.student-grades', [
             'listLevelEducations' => $listLevelEducations,
             'listSpecialities' => $listSpecialities,
             'listGroups' => $listGroups,
-            'studentGrades' => $studentGrades
+            'bulletins' => $bulletins
         ]);
     }
 

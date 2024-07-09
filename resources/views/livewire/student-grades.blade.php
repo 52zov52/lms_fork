@@ -28,16 +28,24 @@
             <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr class="border-b border-slate-400/20">
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
-                    <th scope="col" class="w-auto px-2 py-2 font-semibold">ФИО</th>
-                    <th scope="col" class="w-32 px-2 py-2 font-semibold">Оценка</th>
+                    <th scope="col" class="w-auto px-2 py-2 font-semibold">Дисциплина</th>
+                    <th scope="col" class="w-32 px-2 py-2 font-semibold">Семестр</th>
+                    <th scope="col" class="w-32 px-2 py-2 font-semibold">Форма контроля</th>
+                    <th scope="col" class="w-32 px-2 py-2 font-semibold">№ ведомости</th>
+                    <th scope="col" class="w-32 px-2 py-2 font-semibold">Дата окртытия</th>
+                    <th scope="col" class="w-32 px-2 py-2 font-semibold">Дата закрытия</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($studentGrades as $key => $student)
+                @foreach($bulletins as $key => $bulletin)
                 <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                    <td class="w-auto px-2 py-2">{{ $student->fio }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->grade }}</td>
+                    <td class="w-auto px-2 py-2">{{ $bulletin->discipline_name }}</td>
+                    <td class="w-32 px-2 py-2 text-center">{{ $bulletin->semester_number }}</td>
+                    <td class="w-32 px-2 py-2 text-center">{{ $bulletin->control_name }}</td>
+                    <td class="w-32 px-2 py-2 text-center"> <a href="{{ route('bulletin', $bulletin->id) }}">{{ $bulletin->bulletin_number }}</a></td>
+                    <td class="w-32 px-2 py-2 text-center">{{ $bulletin->opening_date }}</td>
+                    <td class="w-32 px-2 py-2 text-center">{{ $bulletin->closing_date }}</td>
                 </tr>
                 @endforeach
             </tbody>
