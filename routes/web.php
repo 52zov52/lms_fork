@@ -139,6 +139,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.contingent');
     })->name('contingent');
 
+    Route::get('/student-grades', function () {
+        return view('pages.student-grades');
+    })->name('student.grades');
+
     Route::get('/print-defense-ministry-form-10/{userId}', [PrintDefenseMinistryForm10Controller::class, 'print'])->name('print.defense.ministry.form.10');
 
     Route::group(['middleware' => 'permission:access-to-data-on-students-academic-leaves'], function() {

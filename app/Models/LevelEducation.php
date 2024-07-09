@@ -11,6 +11,8 @@ class LevelEducation extends Model
     use HasFactory;
     use SoftDeletes;
 
+    protected $table = 'level_educations';
+
     protected $fillable = [
         'level_name'
     ];
