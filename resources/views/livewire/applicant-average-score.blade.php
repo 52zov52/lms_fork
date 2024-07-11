@@ -27,10 +27,12 @@
             </select>
         </div>
         <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-end">
+            @can('access-to-enter-admission-campaign')
             <button wire:click="setEntryModalVisible(false)" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-left text-green-400 hover:text-white font-bold">
                 <i class="fa-solid fa-circle-plus fa-lg"></i>
                 Добавить запись
             </button>
+            @endcan
             <button wire:click="print()" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-left text-blue-400 hover:text-white font-bold">
                 <i class="fa-solid fa-print fa-lg"></i>
                 Печать списка абитуриентов
@@ -53,7 +55,9 @@
                     <th scope="col" class="w-20 px-2 py-2 font-semibold">Кол-во 4</th>
                     <th scope="col" class="w-20 px-2 py-2 font-semibold">Кол-во 5</th>
                     <th scope="col" class="w-24 px-2 py-2 font-semibold">Средний балл</th>
+                    @can('access-to-enter-admission-campaign')
                     <th scope="col" class="w-24 px-2 py-2 font-semibold">Действия</th>
+                    @endcan
                 </tr>
             </thead>
             <tbody>
@@ -68,6 +72,7 @@
                     <td class="w-20 px-2 py-2 text-center">{{ $item->fours_count }}</td>
                     <td class="w-20 px-2 py-2 text-center">{{ $item->fives_count }}</td>
                     <td class="w-24 px-2 py-2 text-center">{{ $item->average_score }}</td>
+                    @can('access-to-enter-admission-campaign')
                     <td class="w-24 px-2 py-2 text-center">
                         <div class="grid gap-1 grid-cols-2">
                             <button wire:click="setEntryModalVisible(true, {{ $item->id }})" class="bg-white hover:bg-orange-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-400 px-2 py-1 text-xs text-center text-orange-400 hover:text-white" title="" data-tippy-content="Редактировать">
@@ -78,6 +83,7 @@
                             </button>
                         </div>
                     </td>
+                    @endcan
                 </tr>
                 @endforeach
             </tbody>
@@ -108,10 +114,6 @@
                 <span>{{ $item->threes_count }}</span>
             </div>
             <div class="flex flex-col">
-                <span class="font-semibold">Кол-во 3:</span>
-                <span>{{ $item->threes_count }}</span>
-            </div>
-            <div class="flex flex-col">
                 <span class="font-semibold">Кол-во 4:</span>
                 <span>{{ $item->fours_count }}</span>
             </div>
@@ -119,6 +121,11 @@
                 <span class="font-semibold">Кол-во 5:</span>
                 <span>{{ $item->fives_count }}</span>
             </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Средний балл:</span>
+                <span>{{ $item->average_score }}</span>
+            </div>
+            @can('access-to-enter-admission-campaign')
             <div class="flex flex-col">
                 <span class="font-semibold">Действия:</span>
                 <div class="flex flex-row space-x-2">
@@ -130,6 +137,7 @@
                     </button>
                 </div>
             </div>
+            @endcan
         </div>
         @endforeach
     </div>

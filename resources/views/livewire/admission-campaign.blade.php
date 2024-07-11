@@ -9,6 +9,7 @@
             </div>
         </div>
     </a>
+    @endcan
     <a x-bind:class="{ 'hovered': hovered === 'applicant_average_score' }" @mouseover="hovered = 'applicant_average_score'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('applicant.average.score') }}">
         <div class="w-full md:w-[22rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Средний балл аттестата абитуриентов</div>
@@ -18,7 +19,6 @@
             </div>
         </div>
     </a>
-    @endcan
     <a x-bind:class="{ 'hovered': hovered === 'admission_campaign_stats_to_day_report' }" @mouseover="hovered = 'admission_campaign_stats_to_day_report'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('print.admission.campaign.to.day.report') }}">
         <div class="w-full md:w-[22rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Оперативный отчет о ходе приемной кампании за {{ now()->format('d.m.Y') }}</div>
