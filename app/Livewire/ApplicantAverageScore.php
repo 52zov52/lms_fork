@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\AdmissionCampaign;
 use App\Models\AdmissionCampaignDirection;
 use App\Models\ApplicantAverageScore as ModelsApplicantAverageScore;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -29,6 +30,9 @@ class ApplicantAverageScore extends Component
     public $directionId = 0;
     public $directions = [];
 
+    public $totalAverageScore = 0.0;
+    public $contractAverageScore = 0.0;
+
     public $isEntryModalVisible = false, $isEdit = false;
 
     public function mount()
@@ -45,6 +49,21 @@ class ApplicantAverageScore extends Component
             ->where('admission_campaign_direction_id', '=', $this->directionId)
             ->orderBy('average_score', 'DESC')
             ->paginate(50);
+
+        if ($this->directionId != 0) {
+            $averageScoreData = ModelsApplicantAverageScore::where('admission_campaign_id', '=', $this->activeAdmissionCampaignId)
+                ->where('admission_campaign_direction_id', '=', $this->directionId)
+                ->select(
+                    DB::raw("COUNT('id') as num_rows"),
+                    DB::raw('SUM(average_score) as sum_average_score'),
+                    DB::raw("SUM(CASE WHEN is_contracted = 1 THEN 1 ELSE 0 END) as contract_num_rows"),
+                    DB::raw('SUM(CASE WHEN is_contracted = 1 THEN average_score ELSE 0 END) as sum_contract_average_score'),
+                )
+                ->first();
+
+                $this->totalAverageScore = round($averageScoreData->sum_average_score / $averageScoreData->num_rows, 1);
+                $this->contractAverageScore = round($averageScoreData->sum_contract_average_score / $averageScoreData->contract_num_rows, 1);
+        }
 
         return view('livewire.applicant-average-score', ['data' => $data]);
     }
@@ -176,7 +195,7 @@ class ApplicantAverageScore extends Component
         $this->completedClassesCount = 9;
         $this->admissionCampaignDirectionId = 0;
         $this->is_contracted = false;
-        
+
         $this->resetErrorBag();
         $this->resetValidation();
     }

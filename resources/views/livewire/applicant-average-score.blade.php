@@ -40,6 +40,11 @@
         </div>
     </div>
 
+    <div class="flex flex-col space-y-2">
+        <p>Общий средний балл направления подготовки: {{ $totalAverageScore }}</p>
+        <p>Средний балл направления подготовки по договорам: {{ $contractAverageScore }}</p>
+    </div>
+
     @if(!is_null($data) && count($data) != 0)
     <!-- Desktop -->
     <div class="hidden lg:block border rounded border-slate-400/20">
