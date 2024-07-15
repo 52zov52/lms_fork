@@ -61,8 +61,8 @@ class ApplicantAverageScore extends Component
                 )
                 ->first();
 
-                $this->totalAverageScore = round($averageScoreData->sum_average_score / $averageScoreData->num_rows, 1);
-                $this->contractAverageScore = round($averageScoreData->sum_contract_average_score / $averageScoreData->contract_num_rows, 1);
+                $this->totalAverageScore = ($averageScoreData->sum_average_score !=0 && $averageScoreData->num_rows != 0) ? round($averageScoreData->sum_average_score / $averageScoreData->num_rows, 1) : 0.0;
+                $this->contractAverageScore = ($averageScoreData->sum_contract_average_score !=0 && $averageScoreData->contract_num_rows != 0) ? round($averageScoreData->sum_contract_average_score / $averageScoreData->contract_num_rows, 1) : 0.0;
         }
 
         return view('livewire.applicant-average-score', ['data' => $data]);
