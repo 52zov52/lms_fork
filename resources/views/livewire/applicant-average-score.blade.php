@@ -41,8 +41,8 @@
     </div>
 
     <div class="flex flex-col space-y-2">
-        <p>Общий средний балл направления подготовки: {{ $totalAverageScore }}</p>
-        <p>Средний балл направления подготовки по договорам: {{ $contractAverageScore }}</p>
+        <p class="text-xs lg:text-sm">Общий средний балл направления подготовки: {{ $totalAverageScore }} (на базе 9 кл. {{ $totalCompletedNineClassAverageScore }}; на базе 11 кл. {{ $totalCompletedElevenClassAverageScore }})</p>
+        <p class="text-xs lg:text-sm">Средний балл направления подготовки по договорам: {{ $contractAverageScore }} (на базе 9 кл. {{ $contractCompletedNineClassAverageScore }}; на базе 11 кл. {{ $contractCompletedElevenClassAverageScore }})</p>
     </div>
 
     @if(!is_null($data) && count($data) != 0)

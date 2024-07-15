@@ -31,7 +31,12 @@ class ApplicantAverageScore extends Component
     public $directions = [];
 
     public $totalAverageScore = 0.0;
+    public $totalCompletedNineClassAverageScore = 0.0;
+    public $totalCompletedElevenClassAverageScore = 0.0;
+
     public $contractAverageScore = 0.0;
+    public $contractCompletedNineClassAverageScore = 0.0;
+    public $contractCompletedElevenClassAverageScore = 0.0;
 
     public $isEntryModalVisible = false, $isEdit = false;
 
@@ -56,13 +61,26 @@ class ApplicantAverageScore extends Component
                 ->select(
                     DB::raw("COUNT('id') as num_rows"),
                     DB::raw('SUM(average_score) as sum_average_score'),
+                    DB::raw("SUM(CASE WHEN completed_classes_count = 9 THEN 1 ELSE 0 END) as completed_nine_class_num_rows"),
+                    DB::raw('SUM(CASE WHEN completed_classes_count = 9 THEN average_score ELSE 0 END) as sum_completed_nine_class_average_score'),
+                    DB::raw("SUM(CASE WHEN completed_classes_count = 11 THEN 1 ELSE 0 END) as completed_eleven_class_num_rows"),
+                    DB::raw('SUM(CASE WHEN completed_classes_count = 11 THEN average_score ELSE 0 END) as sum_completed_eleven_class_average_score'),
                     DB::raw("SUM(CASE WHEN is_contracted = 1 THEN 1 ELSE 0 END) as contract_num_rows"),
                     DB::raw('SUM(CASE WHEN is_contracted = 1 THEN average_score ELSE 0 END) as sum_contract_average_score'),
+                    DB::raw("SUM(CASE WHEN is_contracted = 1 AND completed_classes_count = 9 THEN 1 ELSE 0 END) as contract_completed_nine_class_num_rows"),
+                    DB::raw('SUM(CASE WHEN is_contracted = 1 AND completed_classes_count = 9 THEN average_score ELSE 0 END) as sum_contract_completed_nine_class_average_score'),
+                    DB::raw("SUM(CASE WHEN is_contracted = 1 AND completed_classes_count = 11 THEN 1 ELSE 0 END) as contract_completed_eleven_class_num_rows"),
+                    DB::raw('SUM(CASE WHEN is_contracted = 1 AND completed_classes_count = 11 THEN average_score ELSE 0 END) as sum_contract_completed_eleven_class_average_score'),
                 )
                 ->first();
 
-                $this->totalAverageScore = ($averageScoreData->sum_average_score !=0 && $averageScoreData->num_rows != 0) ? round($averageScoreData->sum_average_score / $averageScoreData->num_rows, 1) : 0.0;
-                $this->contractAverageScore = ($averageScoreData->sum_contract_average_score !=0 && $averageScoreData->contract_num_rows != 0) ? round($averageScoreData->sum_contract_average_score / $averageScoreData->contract_num_rows, 1) : 0.0;
+            $this->totalAverageScore = ($averageScoreData->sum_average_score != 0 && $averageScoreData->num_rows != 0) ? round($averageScoreData->sum_average_score / $averageScoreData->num_rows, 1) : 0.0;
+            $this->totalCompletedNineClassAverageScore = ($averageScoreData->sum_completed_nine_class_average_score != 0 && $averageScoreData->completed_nine_class_num_rows != 0) ? round($averageScoreData->sum_completed_nine_class_average_score / $averageScoreData->completed_nine_class_num_rows, 1) : 0.0;
+            $this->totalCompletedElevenClassAverageScore = ($averageScoreData->sum_completed_eleven_class_average_score != 0 && $averageScoreData->completed_eleven_class_num_rows != 0) ? round($averageScoreData->sum_completed_eleven_class_average_score / $averageScoreData->completed_eleven_class_num_rows, 1) : 0.0;
+
+            $this->contractAverageScore = ($averageScoreData->sum_contract_average_score != 0 && $averageScoreData->contract_num_rows != 0) ? round($averageScoreData->sum_contract_average_score / $averageScoreData->contract_num_rows, 1) : 0.0;
+            $this->contractCompletedNineClassAverageScore = ($averageScoreData->sum_contract_completed_nine_class_average_score != 0 && $averageScoreData->contract_completed_nine_class_num_rows != 0) ? round($averageScoreData->sum_contract_completed_nine_class_average_score / $averageScoreData->contract_completed_nine_class_num_rows, 1) : 0.0;
+            $this->contractCompletedElevenClassAverageScore = ($averageScoreData->sum_contract_completed_eleven_class_average_score != 0 && $averageScoreData->contract_completed_eleven_class_num_rows != 0) ? round($averageScoreData->sum_contract_completed_eleven_class_average_score / $averageScoreData->contract_completed_eleven_class_num_rows, 1) : 0.0;
         }
 
         return view('livewire.applicant-average-score', ['data' => $data]);
