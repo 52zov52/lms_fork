@@ -49,12 +49,12 @@
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
                     <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">ФИО</th>
                     <th scope="col" class="w-40 px-2 py-2 text-left font-semibold">Тел.</th>
-                    <th scope="col" class="w-48 px-2 py-2 text-left font-semibold">Email</th>
                     <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">Класс</th>
                     <th scope="col" class="w-20 px-2 py-2 font-semibold">Кол-во 3</th>
                     <th scope="col" class="w-20 px-2 py-2 font-semibold">Кол-во 4</th>
                     <th scope="col" class="w-20 px-2 py-2 font-semibold">Кол-во 5</th>
                     <th scope="col" class="w-24 px-2 py-2 font-semibold">Средний балл</th>
+                    <th scope="col" class="w-24 px-2 py-2 font-semibold">Договор</th>
                     @can('access-to-enter-admission-campaign')
                     <th scope="col" class="w-24 px-2 py-2 font-semibold">Действия</th>
                     @endcan
@@ -66,12 +66,18 @@
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="w-auto px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
                     <td class="w-40 px-2 py-2 text-left">{{ $item->phone }}</td>
-                    <td class="w-48 px-2 py-2 text-left">{{ $item->email }}</td>
                     <td class="w-20 px-2 py-2 text-center">{{ $item->completed_classes_count }}</td>
                     <td class="w-20 px-2 py-2 text-center">{{ $item->threes_count }}</td>
                     <td class="w-20 px-2 py-2 text-center">{{ $item->fours_count }}</td>
                     <td class="w-20 px-2 py-2 text-center">{{ $item->fives_count }}</td>
                     <td class="w-24 px-2 py-2 text-center">{{ $item->average_score }}</td>
+                    <td class="w-24 px-2 py-2 text-center">
+                        @if($item->is_contracted)
+                        Да
+                        @else
+                        Нет
+                        @endif
+                    </td>
                     @can('access-to-enter-admission-campaign')
                     <td class="w-24 px-2 py-2 text-center">
                         <div class="grid gap-1 grid-cols-2">
@@ -102,10 +108,6 @@
                 <span>{{ $item->phone }}</span>
             </div>
             <div class="flex flex-col">
-                <span class="font-semibold">Email:</span>
-                <span>{{ $item->email }}</span>
-            </div>
-            <div class="flex flex-col">
                 <span class="font-semibold">Класс:</span>
                 <span>{{ $item->completed_classes_count }}</span>
             </div>
@@ -124,6 +126,16 @@
             <div class="flex flex-col">
                 <span class="font-semibold">Средний балл:</span>
                 <span>{{ $item->average_score }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Договор:</span>
+                <span>
+                    @if($item->is_contracted)
+                    Да
+                    @else
+                    Нет
+                    @endif
+                </span>
             </div>
             @can('access-to-enter-admission-campaign')
             <div class="flex flex-col">
@@ -235,6 +247,9 @@
                             <input wire:model="completedClassesCount" type="radio" id="eleven-classes" value="11">
                             <label for="eleven-classes" class="cursor-pointer">11 класс</label>
                         </div>
+                    </div>
+                    <div class="flex flex-col py-2">
+                        <label for="is-contracted"> <input wire:model="is_contracted" type="checkbox" name="is_contracted" id="is-contracted"> Договор</label>
                     </div>
                 </div>
             </x-slot>

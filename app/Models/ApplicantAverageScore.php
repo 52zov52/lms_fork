@@ -22,6 +22,7 @@ class ApplicantAverageScore extends Model
         'average_score',
         'completed_classes_count',
         'admission_campaign_id',
-        'admission_campaign_direction_id'
+        'admission_campaign_direction_id',
+        'is_contracted'
     ];
 }

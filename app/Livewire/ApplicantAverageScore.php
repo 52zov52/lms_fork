@@ -6,9 +6,12 @@ use App\Models\AdmissionCampaign;
 use App\Models\AdmissionCampaignDirection;
 use App\Models\ApplicantAverageScore as ModelsApplicantAverageScore;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ApplicantAverageScore extends Component
 {
+    use WithPagination;
+
     public $id,
         $lastName = null,
         $firstName = null,
@@ -19,7 +22,8 @@ class ApplicantAverageScore extends Component
         $foursCount = 0,
         $fivesCount = 0,
         $completedClassesCount = 9,
-        $admissionCampaignDirectionId = 0;
+        $admissionCampaignDirectionId = 0,
+        $is_contracted = false;
 
     public $activeAdmissionCampaignId = 0;
     public $directionId = 0;
@@ -87,7 +91,8 @@ class ApplicantAverageScore extends Component
             'completed_classes_count' => $this->completedClassesCount,
             'average_score' => round((($this->threesCount * 3) + ($this->foursCount * 4) + ($this->fivesCount * 5)) / ($this->threesCount + $this->foursCount + $this->fivesCount), 1),
             'admission_campaign_id' => $this->activeAdmissionCampaignId,
-            'admission_campaign_direction_id' => $this->admissionCampaignDirectionId
+            'admission_campaign_direction_id' => $this->admissionCampaignDirectionId,
+            'is_contracted' => ($this->is_contracted) ? true : false
         ]);
 
         $this->setEntryModalVisible(false);
@@ -111,6 +116,7 @@ class ApplicantAverageScore extends Component
         $this->fivesCount = $applicantAverageScore->fives_count;
         $this->completedClassesCount = $applicantAverageScore->completed_classes_count;
         $this->admissionCampaignDirectionId = $applicantAverageScore->admission_campaign_direction_id;
+        $this->is_contracted = ($applicantAverageScore->is_contracted) ? true : false;
     }
 
     public function update()
@@ -133,6 +139,7 @@ class ApplicantAverageScore extends Component
         $applicantAverageScore->completed_classes_count = $this->completedClassesCount;
         $applicantAverageScore->average_score = round((($this->threesCount * 3) + ($this->foursCount * 4) + ($this->fivesCount * 5)) / ($this->threesCount + $this->foursCount + $this->fivesCount), 1);
         $applicantAverageScore->admission_campaign_direction_id = $this->admissionCampaignDirectionId;
+        $applicantAverageScore->is_contracted = ($this->is_contracted) ? true : false;
         $applicantAverageScore->update();
 
         $this->setEntryModalVisible(false);
@@ -168,7 +175,8 @@ class ApplicantAverageScore extends Component
         $this->fivesCount = 0;
         $this->completedClassesCount = 9;
         $this->admissionCampaignDirectionId = 0;
-
+        $this->is_contracted = false;
+        
         $this->resetErrorBag();
         $this->resetValidation();
     }

@@ -43,6 +43,7 @@ return new class extends Migration
                 ->on('admission_campaign_directions')
                 ->onDelete('cascade');
 
+            $table->boolean('is_contracted')->default(0);
             $table->timestamps();
         });
     }
