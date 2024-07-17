@@ -1,5 +1,11 @@
 <div class="flex flex-col space-y-2">
 
+    <div class="flex flex-col space-y-2">
+        <p class="text-xs lg:text-sm">№ ведомости {{ $bulletin->bulletin_number }}</p>
+        <p class="text-xs lg:text-sm">Дисциплина: {{ $bulletin->discipline_name }}</p>
+        <p class="text-xs lg:text-sm">Преподаватель: {{ $bulletin->fio }}</p>
+    </div>
+
     <div class="hidden lg:block border rounded border-slate-400/20">
         <table class="w-full text-xs lg:text-sm">
             <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
