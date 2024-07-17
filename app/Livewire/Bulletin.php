@@ -33,13 +33,12 @@ class Bulletin extends Component
                 'work_study_plan_courses_in_semesters.semester_number',
                 'control_types.name as control_name',
                 'bulletins.bulletin_number',
+                'bulletins.type_bulletin_id',
                 'bulletins.opening_date',
                 'bulletins.closing_date'
             )
             ->first();
-
-            dd($bulletin);die();
-
+            
         $studentGrades = StudentGrades::join('users_data', 'student_grades.user_id', '=', 'users_data.user_id')
             ->where('student_grades.bulletin_id', '=', $this->bulletin_id)
             ->select(
