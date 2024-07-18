@@ -25,12 +25,14 @@ class Bulletin extends Component
             ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
             ->join('bulletin_teacher', 'bulletins.id', '=', 'bulletin_teacher.bulletin_id')
             ->join('users_data', 'bulletin_teacher.user_id', '=', 'users_data.user_id')
+            ->join('groups', 'groups.id' , '=', 'bulletins.group_id')
             ->where('bulletins.id', '=', $this->bulletin_id)
             ->select(
                 'bulletins.id',
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
                 'disciplines.name as discipline_name',
                 'work_study_plan_courses_in_semesters.semester_number',
+                'groups.group_name',
                 'control_types.name as control_name',
                 'bulletins.bulletin_number',
                 'bulletins.type_bulletin_id',
