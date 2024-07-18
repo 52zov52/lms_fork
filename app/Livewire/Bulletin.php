@@ -23,9 +23,9 @@ class Bulletin extends Component
             ->join('work_study_plan_courses_in_semesters', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
             ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
             ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
-            ->join('bulletin_teacher', 'bulletins.id', '=', 'bulletin_teacher.bulletin_id')
-            ->join('users_data', 'bulletin_teacher.user_id', '=', 'users_data.user_id')
-            ->join('groups', 'groups.id' , '=', 'bulletins.group_id')
+            ->leftjoin('bulletin_teacher', 'bulletins.id', '=', 'bulletin_teacher.bulletin_id')
+            ->leftjoin('users_data', 'bulletin_teacher.user_id', '=', 'users_data.user_id')
+            ->join('groups', 'groups.id', '=', 'bulletins.group_id')
             ->where('bulletins.id', '=', $this->bulletin_id)
             ->select(
                 'bulletins.id',
@@ -40,12 +40,19 @@ class Bulletin extends Component
                 'bulletins.closing_date'
             )
             ->first();
-            
+
         $studentGrades = StudentGrades::join('users_data', 'student_grades.user_id', '=', 'users_data.user_id')
             ->where('student_grades.bulletin_id', '=', $this->bulletin_id)
             ->select(
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
                 DB::raw("(SELECT ticket_number FROM student_ticket_numbers WHERE user_id = student_grades.user_id ORDER BY id DESC LIMIT 1) as ticket_number"),
+                'student_grades.first_checkpoint',
+                'student_grades.second_checkpoint',
+                'student_grades.third_checkpoint',
+                'student_grades.fourth_checkpoint',
+                'student_grades.test_percentage_achieved',
+                'student_grades.current_progress',
+                'student_grades.answer_grade',
                 'student_grades.grade'
             )
             ->orderBy('fio')
