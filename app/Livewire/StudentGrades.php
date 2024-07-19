@@ -26,7 +26,7 @@ class StudentGrades extends Component
             ->select('id')
             ->get());
 
-        $listGroups = Group::whereIn('work_study_plan_id', $this->list_wsp_id)->select('id', 'group_name')->get();
+        $listGroups = Group::whereIn('work_study_plan_id', $this->list_wsp_id)->select('id', 'group_name')->orderBy('group_name')->get();
 
         $bulletins = Bulletin::join('work_study_plan_course_control_types_in_semesters', 'bulletins.work_study_plan_course_control_types_in_semesters_id', '=', 'work_study_plan_course_control_types_in_semesters.id')
             ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')

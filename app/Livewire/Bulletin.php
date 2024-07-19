@@ -44,8 +44,21 @@ class Bulletin extends Component
         $studentGrades = StudentGrades::join('users_data', 'student_grades.user_id', '=', 'users_data.user_id')
             ->where('student_grades.bulletin_id', '=', $this->bulletin_id)
             ->select(
+                'student_grades.id',
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
                 DB::raw("(SELECT ticket_number FROM student_ticket_numbers WHERE user_id = student_grades.user_id ORDER BY id DESC LIMIT 1) as ticket_number"),
+                'student_grades.rating_attendance',
+                'student_grades.rating_test_assignment',
+                'student_grades.rating_practical_assignment',
+                'student_grades.rating_final_grade',
+                'student_grades.module_first_attendance',
+                'student_grades.module_first_test_assignment',
+                'student_grades.module_first_practical_assignment',
+                'student_grades.module_first_final_grade',
+                'student_grades.module_second_attendance',
+                'student_grades.module_second_test_assignment',
+                'student_grades.module_second_practical_assignment',
+                'student_grades.module_second_final_grade',
                 'student_grades.first_checkpoint',
                 'student_grades.second_checkpoint',
                 'student_grades.third_checkpoint',
