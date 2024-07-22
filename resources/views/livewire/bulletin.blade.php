@@ -4,6 +4,7 @@
         <p class="text-xs lg:text-sm">№ ведомости {{ $bulletin->bulletin_number }}</p>
         <p class="text-xs lg:text-sm">Группа {{ $bulletin->group_name }}</p>
         <p class="text-xs lg:text-sm">Дисциплина: {{ $bulletin->discipline_name }}</p>
+        <p class="text-xs lg:text-sm">Семестр: {{ $bulletin->semester_number }}</p>
         <p class="text-xs lg:text-sm">Форма контроля: {{ $bulletin->control_name }}</p>
         <p class="text-xs lg:text-sm">Преподаватель: {{ $bulletin->fio }}</p>
     </div>
@@ -35,16 +36,60 @@
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="w-auto px-2 py-2">{{ $student->fio }}</td>
                     <td class="w-32 px-2 py-2 text-center">{{ $student->ticket_number }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->first_checkpoint }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->second_checkpoint }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->third_checkpoint }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->test_percentage_achieved }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->fourth_checkpoint }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->current_progress }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->answer_grade }}</td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->first_checkpoint))
+                        -
+                        @else
+                        {{ $student->first_checkpoint }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->second_checkpoint))
+                        -
+                        @else
+                        {{ $student->second_checkpoint }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->third_checkpoint))
+                        -
+                        @else
+                        {{ $student->third_checkpoint }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->test_percentage_achieved))
+                        -
+                        @else
+                        {{ $student->test_percentage_achieved }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->fourth_checkpoint))
+                        -
+                        @else
+                        {{ $student->fourth_checkpoint }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->current_progress))
+                        -
+                        @else
+                        {{ $student->current_progress }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->answer_grade))
+                        -
+                        @else
+                        {{ $student->answer_grade }}
+                        @endif
+                    </td>
                     <td class="w-32 px-2 py-2 text-center">
                         @if($bulletin->control_name == 'Зачет')
                         {{ ($student->grade == 1) ? 'Зачтено' : 'Не зачтено' }}
+                        @elseif(is_null($student->grade))
+                        -
                         @else
                         {{ $student->grade }}
                         @endif
@@ -81,17 +126,67 @@
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="w-auto px-2 py-2">{{ $student->fio }}</td>
                     <td class="w-32 px-2 py-2 text-center">{{ $student->ticket_number }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->module_first_attendance }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->module_first_test_assignment }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->module_first_practical_assignment }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->module_first_final_grade }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->module_second_attendance }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->module_second_test_assignment }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->module_second_practical_assignment }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->module_second_final_grade }}</td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->module_first_attendance))
+                        -
+                        @else
+                        {{ $student->module_first_attendance }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->module_first_test_assignment))
+                        -
+                        @else
+                        {{ $student->module_first_test_assignment }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->module_first_practical_assignment))
+                        -
+                        @else
+                        {{ $student->module_first_practical_assignment }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->module_first_final_grade))
+                        -
+                        @else
+                        {{ $student->module_first_final_grade }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->module_second_attendance))
+                        -
+                        @else
+                        {{ $student->module_second_attendance }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->module_second_test_assignment))
+                        -
+                        @else
+                        {{ $student->module_second_test_assignment }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->module_second_practical_assignment))
+                        -
+                        @else
+                        {{ $student->module_second_practical_assignment }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->module_second_final_grade))
+                        -
+                        @else
+                        {{ $student->module_second_final_grade }}
+                        @endif
+                    </td>
                     <td class="w-32 px-2 py-2 text-center">
                         @if($bulletin->control_name == 'Зачет')
                         {{ ($student->grade == 1) ? 'Зачтено' : 'Не зачтено' }}
+                        @elseif(is_null($student->grade))
+                        -
                         @else
                         {{ $student->grade }}
                         @endif
@@ -120,13 +215,39 @@
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="w-auto px-2 py-2">{{ $student->fio }}</td>
                     <td class="w-32 px-2 py-2 text-center">{{ $student->ticket_number }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->rating_attendance }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->rating_test_assignment }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->rating_practical_assignment }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $student->rating_final_grade }}</td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->rating_attendance))
+                        -
+                        @else
+                        {{ $student->rating_attendance }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->rating_test_assignment))
+                        -
+                        @else
+                        {{ $student->rating_test_assignment }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->rating_practical_assignment))
+                        -
+                        @else
+                        {{ $student->rating_practical_assignment }}
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">
+                        @if(is_null($student->rating_final_grade))
+                        -
+                        @else
+                        {{ $student->rating_final_grade }}
+                        @endif
+                    </td>
                     <td class="w-32 px-2 py-2 text-center">
                         @if($bulletin->control_name == 'Зачет')
                         {{ ($student->grade == 1) ? 'Зачтено' : 'Не зачтено' }}
+                        @elseif(is_null($student->grade))
+                        -
                         @else
                         {{ $student->grade }}
                         @endif
@@ -154,6 +275,8 @@
                     <td class="w-32 px-2 py-2 text-center">
                         @if($bulletin->control_name == 'Зачет')
                         {{ ($student->grade == 1) ? 'Зачтено' : 'Не зачтено' }}
+                        @elseif(is_null($student->grade))
+                        -
                         @else
                         {{ $student->grade }}
                         @endif

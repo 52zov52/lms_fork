@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Ведомость') }}
+        {{ __('Ведомость успеваемости') }}
     </x-slot>
 
     @livewire('bulletin', ['bulletin_id' => $bulletin_id])

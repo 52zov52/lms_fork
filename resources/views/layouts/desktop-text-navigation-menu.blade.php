@@ -70,10 +70,10 @@
             </a>
         </li>
         @endcan
-        @can('access-to-admin')
+        @can('access-to-student-grades')
         <li class="{{ (request()->routeIs('student.grades')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('student.grades') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
-                <span class="whitespace-nowrap">Успеваемость</span>
+                <span class="whitespace-nowrap">Ведомости</span>
             </a>
         </li>
         @endcan
