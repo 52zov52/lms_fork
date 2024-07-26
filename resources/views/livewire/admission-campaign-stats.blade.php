@@ -43,15 +43,25 @@
         </div>
     </div>
 
-    <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-end">
-        <button onclick="showToast('update')" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-left text-blue-400 hover:text-white font-bold">
-            <i class="fa-solid fa-floppy-disk fa-lg"></i>
-            Сохранить
-        </button>
-        <button wire:click="printFullReport()" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-left text-green-400 hover:text-white font-bold">
-            <i class="fa-solid fa-file-excel"></i>
-            Скачать отчет
-        </button>
+    <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:justify-between">
+        <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
+            <select wire:model="selectedDate" wire:change="setDay" name="selected_date" id="selected-date" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <option value="0">Выберите день недели</option>
+                @foreach($listOfDate as $day)
+                <option value="{{ $day }}">{{ $day }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
+            <button onclick="showToast('update')" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-left text-blue-400 hover:text-white font-bold">
+                <i class="fa-solid fa-floppy-disk fa-lg"></i>
+                Сохранить
+            </button>
+            <button wire:click="printFullReport()" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-left text-green-400 hover:text-white font-bold">
+                <i class="fa-solid fa-file-excel"></i>
+                Скачать отчет
+            </button>
+        </div>
     </div>
 
     @if(count($college) != 0)

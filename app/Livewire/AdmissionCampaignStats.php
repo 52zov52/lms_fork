@@ -9,6 +9,7 @@ use App\Models\AdmissionCampaignStatsCollege;
 use App\Models\AdmissionCampaignStatsMastersDegree;
 use App\Models\AdmissionCampaignStatsPhD;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class AdmissionCampaignStats extends Component
@@ -44,9 +45,15 @@ class AdmissionCampaignStats extends Component
 
     public $college = [], $bachelor = [], $mastersDegree = [], $phd = [];
 
+    public $listOfDate = [];
+    public $selectedDate = "";
+
     public function render()
     {
         $admissionCampaign = AdmissionCampaign::where('is_active', '=', true)->select('id')->first();
+
+        $this->listOfDate = $this->getListOfDate($admissionCampaign->id);
+        $this->selectedDate = (empty($this->selectedDate)) ? Carbon::now()->format('d.m.Y') : Carbon::parse($this->selectedDate)->format('d.m.Y');
 
         $admissionCampaignDirections = AdmissionCampaignDirection::where('admission_campaign_id', '=', $admissionCampaign->id)
             ->where('is_active', true)
@@ -106,7 +113,7 @@ class AdmissionCampaignStats extends Component
                 ->where('admission_campaign_stats_colleges.admission_campaign_id', '=', $admissionCampaign->id)
                 ->where('admission_campaign_directions.level_education_id', '=', $this->levelEducation)
                 ->where('admission_campaign_directions.teaching_form_id', '=', $this->teachingForm)
-                ->where('admission_campaign_stats_colleges.created_at', 'like', Carbon::now()->format('Y-m-d') . '%')
+                ->where('admission_campaign_stats_colleges.created_at', 'like', Carbon::parse($this->selectedDate)->format('Y-m-d') . '%')
                 ->select(
                     'admission_campaign_stats_colleges.id',
                     'admission_campaign_directions.speciality_code',
@@ -140,7 +147,7 @@ class AdmissionCampaignStats extends Component
                 ->where('admission_campaign_stats_bachelors.admission_campaign_id', '=', $admissionCampaign->id)
                 ->where('admission_campaign_directions.level_education_id', '=', $this->levelEducation)
                 ->where('admission_campaign_directions.teaching_form_id', '=', $this->teachingForm)
-                ->where('admission_campaign_stats_bachelors.created_at', 'like', Carbon::now()->format('Y-m-d') . '%')
+                ->where('admission_campaign_stats_bachelors.created_at', 'like', Carbon::parse($this->selectedDate)->format('Y-m-d') . '%')
                 ->select(
                     'admission_campaign_stats_bachelors.id',
                     'admission_campaign_directions.speciality_code',
@@ -178,7 +185,7 @@ class AdmissionCampaignStats extends Component
                 ->where('admission_campaign_stats_masters_degrees.admission_campaign_id', '=', $admissionCampaign->id)
                 ->where('admission_campaign_directions.level_education_id', '=', $this->levelEducation)
                 ->where('admission_campaign_directions.teaching_form_id', '=', $this->teachingForm)
-                ->where('admission_campaign_stats_masters_degrees.created_at', 'like', Carbon::now()->format('Y-m-d') . '%')
+                ->where('admission_campaign_stats_masters_degrees.created_at', 'like', Carbon::parse($this->selectedDate)->format('Y-m-d') . '%')
                 ->select(
                     'admission_campaign_stats_masters_degrees.id',
                     'admission_campaign_directions.speciality_code',
@@ -208,7 +215,7 @@ class AdmissionCampaignStats extends Component
                 ->where('admission_campaign_stats_phd.admission_campaign_id', '=', $admissionCampaign->id)
                 ->where('admission_campaign_directions.level_education_id', '=', $this->levelEducation)
                 ->where('admission_campaign_directions.teaching_form_id', '=', $this->teachingForm)
-                ->where('admission_campaign_stats_phd.created_at', 'like', Carbon::now()->format('Y-m-d') . '%')
+                ->where('admission_campaign_stats_phd.created_at', 'like', Carbon::parse($this->selectedDate)->format('Y-m-d') . '%')
                 ->select(
                     'admission_campaign_stats_phd.id',
                     'admission_campaign_directions.speciality_code',
@@ -250,6 +257,11 @@ class AdmissionCampaignStats extends Component
     public function setTeachingForm($value)
     {
         $this->teachingForm = $value;
+    }
+
+    public function setDay()
+    {
+        $this->selectedDate = $this->selectedDate;
     }
 
     public function update()
@@ -372,6 +384,36 @@ class AdmissionCampaignStats extends Component
 
         session()->flash('type', 'success');
         session()->flash('message', 'Данные успешно сохранены!');
+    }
+
+    private function getListOfDate($admission_campaign_id): array
+    {
+        $daysOfWeekCollege = AdmissionCampaignStatsCollege::where('admission_campaign_id', '=', $admission_campaign_id)
+            ->select(DB::raw("DISTINCT DATE_FORMAT(created_at, '%d.%m.%Y') as date_of_week"))
+            ->get();
+        $daysOfWeekBachelor = AdmissionCampaignStatsBachelor::where('admission_campaign_id', '=', $admission_campaign_id)
+            ->select(DB::raw("DISTINCT DATE_FORMAT(created_at, '%d.%m.%Y') as date_of_week"))
+            ->get();
+        $daysOfWeekMastersDegree = AdmissionCampaignStatsMastersDegree::where('admission_campaign_id', '=', $admission_campaign_id)
+            ->select(DB::raw("DISTINCT DATE_FORMAT(created_at, '%d.%m.%Y') as date_of_week"))
+            ->get();
+        $daysOfWeekPhD = AdmissionCampaignStatsPhD::where('admission_campaign_id', '=', $admission_campaign_id)
+            ->select(DB::raw("DISTINCT DATE_FORMAT(created_at, '%d.%m.%Y') as date_of_week"))
+            ->get();
+
+        $collegeDates = $daysOfWeekCollege->pluck('date_of_week');
+        $bachelorDates = $daysOfWeekBachelor->pluck('date_of_week');
+        $mastersDates = $daysOfWeekMastersDegree->pluck('date_of_week');
+        $phdDates = $daysOfWeekPhD->pluck('date_of_week');
+
+        $dateOfWeeks = $collegeDates
+            ->merge($bachelorDates)
+            ->merge($mastersDates)
+            ->merge($phdDates)
+            ->unique()
+            ->all();
+
+        return array_values($dateOfWeeks);
     }
 
     public function printFullReport()
