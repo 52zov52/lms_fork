@@ -1,8 +1,6 @@
 <?php
 
 use App\Models\Group;
-use App\Models\User;
-use App\Models\WorkStudyPlanCoursesInSemester;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,12 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('study_thread_groups', function (Blueprint $table) {
+        Schema::create('group_study_thread_subgroup', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignIdFor(User::class)
-                ->constrained()
-                ->cascadeOnDelete();
 
             $table->foreignIdFor(Group::class)
                 ->constrained()
@@ -35,7 +29,6 @@ return new class extends Migration
 
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.StudyThread_Trainer
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
@@ -44,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('study_thread_groups');
+        Schema::dropIfExists('group_study_thread_subgroup');
     }
 };
