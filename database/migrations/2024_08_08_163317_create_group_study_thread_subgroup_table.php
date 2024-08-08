@@ -15,6 +15,12 @@ return new class extends Migration
         Schema::create('group_study_thread_subgroup', function (Blueprint $table) {
             $table->id();
 
+            $table->unsignedBigInteger('study_thread_subgroup_id');
+            $table->foreign('study_thread_subgroup_id')
+                ->references('id')
+                ->on('study_thread_subgroups')
+                ->onDelete('cascade');
+
             $table->foreignIdFor(Group::class)
                 ->constrained()
                 ->cascadeOnDelete();
@@ -27,7 +33,7 @@ return new class extends Migration
                 ->on('work_study_plan_courses_in_semesters')
                 ->onDelete('cascade');
 
-            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.StudyThread_Trainer
+            $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.StudyThreadSubGroup_ThreadGroup
             $table->timestamps();
         });
     }
