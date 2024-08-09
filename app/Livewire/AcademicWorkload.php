@@ -7,6 +7,7 @@ use App\Models\ActiveUser;
 use App\Models\StudyThreadGroup;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class AcademicWorkload extends Component
@@ -26,6 +27,38 @@ class AcademicWorkload extends Component
 
     public function render()
     {
+        $currentYear = now()->year;
+        $currentMonth = now()->month;
+
+        if ($currentMonth >= 9 && $currentMonth <= 12) {
+            $currentYear = $currentYear;
+        } else {
+            $currentYear = now()->subYear()->year;
+        }
+
+        $data = DB::table('study_thread_subgroup_user')
+            ->join('study_thread_subgroups', 'study_thread_subgroup_user.study_thread_subgroup_id', '=', 'study_thread_subgroups.id')
+            ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
+            ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
+            ->join('study_threads', 'study_thread_subgroups.study_thread_id', '=', 'study_threads.id')
+            ->join('study_thread_normatives', 'study_threads.study_thread_normative_id', '=', 'study_thread_normatives.id')
+            ->select(
+                'study_thread_subgroup_user.user_id',
+                'study_thread_subgroups.subgroup_name',
+                'group_study_thread_subgroup.student_count',
+                'groups.group_name',
+                'study_threads.name as discipline',
+                'study_thread_normatives.name as type_work',
+                'study_threads.year',
+                'study_threads.semester'
+            )
+            ->whereIn('study_thread_subgroup_user.user_id', $this->listUserId)
+            ->where('study_threads.year', '=', $currentYear)
+            ->orderBy('study_threads.semester')
+            ->orderBy('groups.group_name')
+            ->distinct()->get();
+
+        /*
         $contingentController = new ContingentController();
 
         $data = $this->sanitizeData(StudyThreadGroup::join('work_study_plan_courses_in_semesters', 'study_thread_groups.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
@@ -50,7 +83,7 @@ class AcademicWorkload extends Component
                 'work_study_plan_courses_in_semesters.semester_number'
             )
             ->distinct()->orderBy('disciplines.name', 'asc')->get()->toArray());
-
+        */
         return view('livewire.academic-workload', ['academicYear' => $this->getAcademicYear(), 'data' => $data]);
     }
 

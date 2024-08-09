@@ -25,7 +25,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->integer('year');
-            $table->integer('semester');
+            $table->integer('half_year');
             $table->unsignedBigInteger('external_id'); //Table name in IMBL BD dbo.Project_ChairDiscipline
             $table->timestamps();
         });
