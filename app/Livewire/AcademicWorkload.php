@@ -36,7 +36,7 @@ class AcademicWorkload extends Component
             $currentYear = now()->subYear()->year;
         }
 
-        $data = DB::table('study_thread_subgroup_user')
+        $data = $this->transformer(DB::table('study_thread_subgroup_user')
             ->join('study_thread_subgroups', 'study_thread_subgroup_user.study_thread_subgroup_id', '=', 'study_thread_subgroups.id')
             ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
             ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
@@ -54,9 +54,10 @@ class AcademicWorkload extends Component
             )
             ->whereIn('study_thread_subgroup_user.user_id', $this->listUserId)
             ->where('study_threads.year', '=', $currentYear)
+            ->where('study_threads.semester', '=', 2)
             ->orderBy('study_threads.semester')
             ->orderBy('groups.group_name')
-            ->distinct()->get();
+            ->distinct()->get()->toArray());
 
         /*
         $contingentController = new ContingentController();
@@ -85,6 +86,58 @@ class AcademicWorkload extends Component
             ->distinct()->orderBy('disciplines.name', 'asc')->get()->toArray());
         */
         return view('livewire.academic-workload', ['academicYear' => $this->getAcademicYear(), 'data' => $data]);
+    }
+
+    /*
+    'discipline' => 
+        ['type_work' => ['subgroup_name' => ['group_name', 'student_count']]]
+        ['type_work' => ['subgroup_name' => ['group_name', 'student_count']]]
+        ...
+    */
+
+    private function transformer($data) : array
+    {
+        $results = [];
+        $unique_discipline = array_unique(array_column($data, 'discipline'));
+
+        foreach ($unique_discipline as $discipline) {
+            $filtredDisciplines = array_filter($data, function ($item) use ($discipline) {
+                return $item->discipline == $discipline;
+            });
+
+            $unique_type_work = array_unique(array_column($filtredDisciplines, 'type_work'));
+
+            $typeWorkData = [];
+            foreach ($unique_type_work as $type_work) {
+                $filtredTypeWorks = array_filter($filtredDisciplines, function ($item) use ($type_work) {
+                    return $item->type_work == $type_work;
+                });
+
+                $unique_subgroup_name = array_unique(array_column($filtredTypeWorks, 'subgroup_name'));
+
+                $subgroupData = [];
+                foreach ($unique_subgroup_name as $subgroup_name) {
+                    $filtredSubgroups = array_filter($filtredTypeWorks, function ($item) use ($subgroup_name) {
+                        return $item->subgroup_name == $subgroup_name;
+                    });
+
+                    $groupData = array_map(function ($item) {
+                        return [
+                            "student_count" => $item->student_count,
+                            "group_name" => $item->group_name
+                        ];
+                    }, $filtredSubgroups);
+
+                    $subgroupData[$subgroup_name] = $groupData;
+                }
+
+                $typeWorkData[$type_work] = $subgroupData;
+            }
+
+            $results[$discipline] = $typeWorkData;
+        }
+
+       return $results;
     }
 
     private function getSemesters($teachingForm, $course): array
