@@ -6,19 +6,44 @@
 
     @if(!is_null($data) && count($data) != 0)
     <div class="border rounded border-slate-400/20">
-        <table class="w-full text-xs lg:text-sm">
-            <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
-                <tr class="border-b border-slate-400/20">
-                    <th scope="col" class="w-16 px-2 py-2 font-semibold">Дисциплина</th>
-                    <th scope="col" class="w-16 px-2 py-2 font-semibold">Тип работы</th>
-                    <th scope="col" class="w-16 px-2 py-2 font-semibold">Подгруппа</th>
-                    <th scope="col" class="w-16 px-2 py-2 font-semibold">Группа</th>
-                    <th scope="col" class="w-16 px-2 py-2 font-semibold">Кол-во студентов</th>
-                </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
+        <table class="w-full border">
+            @foreach($data as $disciplineKey => $disciplineValue)
+                @php
+                    $totalRowsDiscipline = array_sum(array_map(fn($typeWorkValue) => array_sum(array_map('count', $typeWorkValue)), $disciplineValue));
+                    $incrementDiscipline = 0;
+                @endphp
+                @foreach($disciplineValue as $typeWorkKey => $typeWorkValue)
+                    @php
+                        $totalRowsTypeWork = array_sum(array_map('count', $typeWorkValue));
+                        $incrementTypeWork = 0;
+                    @endphp
+                    @foreach($typeWorkValue as $subgroupKey => $subgroupValue)
+                        @php
+                            $totalRowsSubgroup = count($subgroupValue);
+                            $incrementSubgroup = 0;
+                        @endphp
+                        @foreach($subgroupValue as $key => $value)
+                            <tr class="border border-slate-400/20">
+                                @if($incrementDiscipline == 0)
+                                    <td rowspan="{{ $totalRowsDiscipline }}" class="border border-slate-400/20">{{ $disciplineKey }}</td>
+                                @endif
+                                @if($incrementTypeWork == 0)
+                                    <td rowspan="{{ $totalRowsTypeWork }}" class="border border-slate-400/20">{{ $typeWorkKey }}</td>
+                                @endif
+                                @if($incrementSubgroup == 0)
+                                    <td rowspan="{{ $totalRowsSubgroup }}" class="border border-slate-400/20">{{ $subgroupKey }}</td>
+                                @endif
+                                <td class="border border-slate-400/20">{{ $value['group_name'] }}</td>
+                            </tr>
+                            @php
+                                $incrementDiscipline++;
+                                $incrementTypeWork++;
+                                $incrementSubgroup++;
+                            @endphp
+                        @endforeach
+                    @endforeach
+                @endforeach
+            @endforeach
         </table>
     </div>
     @else
