@@ -54,7 +54,6 @@ class AcademicWorkload extends Component
             )
             ->whereIn('study_thread_subgroup_user.user_id', $this->listUserId)
             ->where('study_threads.year', '=', $currentYear)
-            ->where('study_threads.semester', '=', 2)
             ->orderBy('study_threads.semester')
             ->orderBy('groups.group_name')
             ->distinct()->get()->toArray());
@@ -95,49 +94,56 @@ class AcademicWorkload extends Component
         ...
     */
 
-    private function transformer($data) : array
+    private function transformer($data): array
     {
+        $divideData = $this->divideDataBySemiannual($data);
         $results = [];
-        $unique_discipline = array_unique(array_column($data, 'discipline'));
 
-        foreach ($unique_discipline as $discipline) {
-            $filtredDisciplines = array_filter($data, function ($item) use ($discipline) {
-                return $item->discipline == $discipline;
-            });
+        foreach ($divideData as $key => $value) {
+            $unique_discipline = array_unique(array_column($value, 'discipline'));
 
-            $unique_type_work = array_unique(array_column($filtredDisciplines, 'type_work'));
-
-            $typeWorkData = [];
-            foreach ($unique_type_work as $type_work) {
-                $filtredTypeWorks = array_filter($filtredDisciplines, function ($item) use ($type_work) {
-                    return $item->type_work == $type_work;
+            $disciplineData = [];
+            foreach ($unique_discipline as $discipline) {
+                $filtredDisciplines = array_filter($value, function ($item) use ($discipline) {
+                    return $item->discipline == $discipline;
                 });
 
-                $unique_subgroup_name = array_unique(array_column($filtredTypeWorks, 'subgroup_name'));
+                $unique_type_work = array_unique(array_column($filtredDisciplines, 'type_work'));
 
-                $subgroupData = [];
-                foreach ($unique_subgroup_name as $subgroup_name) {
-                    $filtredSubgroups = array_filter($filtredTypeWorks, function ($item) use ($subgroup_name) {
-                        return $item->subgroup_name == $subgroup_name;
+                $typeWorkData = [];
+                foreach ($unique_type_work as $type_work) {
+                    $filtredTypeWorks = array_filter($filtredDisciplines, function ($item) use ($type_work) {
+                        return $item->type_work == $type_work;
                     });
 
-                    $groupData = array_map(function ($item) {
-                        return [
-                            "student_count" => $item->student_count,
-                            "group_name" => $item->group_name
-                        ];
-                    }, $filtredSubgroups);
+                    $unique_subgroup_name = array_unique(array_column($filtredTypeWorks, 'subgroup_name'));
 
-                    $subgroupData[$subgroup_name] = $groupData;
+                    $subgroupData = [];
+                    foreach ($unique_subgroup_name as $subgroup_name) {
+                        $filtredSubgroups = array_filter($filtredTypeWorks, function ($item) use ($subgroup_name) {
+                            return $item->subgroup_name == $subgroup_name;
+                        });
+
+                        $groupData = array_map(function ($item) {
+                            return [
+                                "student_count" => $item->student_count,
+                                "group_name" => $item->group_name
+                            ];
+                        }, $filtredSubgroups);
+
+                        $subgroupData[$subgroup_name] = $groupData;
+                    }
+
+                    $typeWorkData[$type_work] = $subgroupData;
                 }
 
-                $typeWorkData[$type_work] = $subgroupData;
+                $disciplineData[$discipline] = $typeWorkData;
             }
 
-            $results[$discipline] = $typeWorkData;
+            $results[$key] = $disciplineData;
         }
-
-       return $results;
+        
+        return $results;
     }
 
     private function getSemesters($teachingForm, $course): array
@@ -200,13 +206,13 @@ class AcademicWorkload extends Component
         return $this->divideDataBySemiannual($sanitizedData);
     }
 
-    private function divideDataBySemiannual($sanitizedData)
+    private function divideDataBySemiannual($data)
     {
         $oddSemesters = [];
         $evenSemesters = [];
 
-        foreach ($sanitizedData as $value) {
-            if ($value['semester_number'] % 2 != 0) {
+        foreach ($data as $value) {
+            if ($value->semester % 2 != 0) {
                 $oddSemesters[] = $value;
             } else {
                 $evenSemesters[] = $value;
