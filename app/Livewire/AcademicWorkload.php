@@ -42,6 +42,7 @@ class AcademicWorkload extends Component
             ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
             ->join('study_threads', 'study_thread_subgroups.study_thread_id', '=', 'study_threads.id')
             ->join('study_thread_normatives', 'study_threads.study_thread_normative_id', '=', 'study_thread_normatives.id')
+            ->join('work_study_plan_courses_in_semesters', 'group_study_thread_subgroup.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
             ->select(
                 'study_thread_subgroup_user.user_id',
                 'study_thread_subgroups.subgroup_name',
@@ -50,14 +51,18 @@ class AcademicWorkload extends Component
                 'study_threads.name as discipline',
                 'study_thread_normatives.name as type_work',
                 'study_threads.year',
-                'study_threads.semester'
+                'study_threads.semester',
+                DB::raw('CASE WHEN study_threads.study_thread_normative_id = 17 THEN work_study_plan_courses_in_semesters.lecture_hours
+                            WHEN study_threads.study_thread_normative_id = 18 THEN work_study_plan_courses_in_semesters.practical_hours
+                            WHEN study_threads.study_thread_normative_id = 19 THEN work_study_plan_courses_in_semesters.laboratory_hours
+                            WHEN study_threads.study_thread_normative_id = 32 THEN work_study_plan_courses_in_semesters.group_consultation_hours
+                ELSE 0 END as hours')
             )
             ->whereIn('study_thread_subgroup_user.user_id', $this->listUserId)
             ->where('study_threads.year', '=', $currentYear)
             ->orderBy('study_threads.semester')
             ->orderBy('groups.group_name')
             ->distinct()->get()->toArray());
-
         /*
         $contingentController = new ContingentController();
 
@@ -120,6 +125,7 @@ class AcademicWorkload extends Component
 
                     $subgroupData = [];
                     foreach ($unique_subgroup_name as $subgroup_name) {
+                        
                         $filtredSubgroups = array_filter($filtredTypeWorks, function ($item) use ($subgroup_name) {
                             return $item->subgroup_name == $subgroup_name;
                         });
@@ -131,7 +137,11 @@ class AcademicWorkload extends Component
                             ];
                         }, $filtredSubgroups);
 
-                        $subgroupData[$subgroup_name] = $groupData;
+                        $hours = array_values(array_unique(array_map(function ($item) {
+                            return $item->hours;
+                        }, $filtredSubgroups)));
+
+                        $subgroupData[$subgroup_name . '|' . $hours[0]] = $groupData;
                     }
 
                     $typeWorkData[$type_work] = $subgroupData;
@@ -142,7 +152,7 @@ class AcademicWorkload extends Component
 
             $results[$key] = $disciplineData;
         }
-        
+
         return $results;
     }
 

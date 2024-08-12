@@ -22,6 +22,7 @@
                             <th scope="col" class="w-32 px-2 py-2 text-left font-semibold">Дисциплина</th>
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Тип работ</th>
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Подгруппа</th>
+                            <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Часы</th>
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Группа</th>
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Кол-во</th>
                         </tr>
@@ -51,7 +52,8 @@
                                             <td rowspan="{{ $totalRowsTypeWork }}" class="w-32 border-r border-slate-400/20 text-center px-2 py-2">{{ $typeWorkKey }}</td>
                                         @endif
                                         @if($incrementSubgroup == 0)
-                                            <td rowspan="{{ $totalRowsSubgroup }}" class="w-32 border-r border-slate-400/20 text-center px-2 py-2">{{ $subgroupKey }}</td>
+                                            <td rowspan="{{ $totalRowsSubgroup }}" class="w-32 border-r border-slate-400/20 text-center px-2 py-2">{{ explode('|',$subgroupKey)[0] }}</td>
+                                            <td rowspan="{{ $totalRowsSubgroup }}" class="w-32 border-r border-slate-400/20 text-center px-2 py-2">{{ explode('|',$subgroupKey)[1] }}</td>
                                         @endif
                                         <td class="w-32 border-r border-slate-400/20 text-center px-2 py-2">{{ $value['group_name'] }}</td>
                                         <td class="w-32 text-center px-2 py-2">{{ $value['student_count'] }}</td>
