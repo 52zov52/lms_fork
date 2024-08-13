@@ -52,11 +52,19 @@ class AcademicWorkload extends Component
                 'study_thread_normatives.name as type_work',
                 'study_threads.year',
                 'study_threads.semester',
-                DB::raw('CASE WHEN study_threads.study_thread_normative_id = 17 THEN work_study_plan_courses_in_semesters.lecture_hours
-                            WHEN study_threads.study_thread_normative_id = 18 THEN work_study_plan_courses_in_semesters.practical_hours
-                            WHEN study_threads.study_thread_normative_id = 19 THEN work_study_plan_courses_in_semesters.laboratory_hours
-                            WHEN study_threads.study_thread_normative_id = 32 THEN work_study_plan_courses_in_semesters.group_consultation_hours
-                ELSE 0 END as hours')
+                DB::raw('CASE
+                    WHEN study_threads.study_thread_normative_id IN (1, 2, 26, 34, 35) THEN work_study_plan_courses_in_semesters.control_hours
+                    WHEN study_thread_normatives.hour_weight = 1 AND study_threads.study_thread_normative_id = 17 THEN work_study_plan_courses_in_semesters.lecture_hours
+                    WHEN study_thread_normatives.hour_weight = 1 AND study_threads.study_thread_normative_id = 18 THEN work_study_plan_courses_in_semesters.practical_hours
+                    WHEN study_thread_normatives.hour_weight = 1 AND study_threads.study_thread_normative_id = 19 THEN work_study_plan_courses_in_semesters.laboratory_hours
+                    WHEN study_threads.calculation_type = 2 AND study_threads.study_thread_normative_id = 28 THEN work_study_plan_courses_in_semesters.individual_consultation_hours
+                    WHEN study_threads.calculation_type = 2 AND study_threads.study_thread_normative_id IN (29, 30) THEN work_study_plan_courses_in_semesters.course_work_hours
+                    WHEN study_threads.calculation_type = 4 AND study_threads.study_thread_normative_id = 32 THEN work_study_plan_courses_in_semesters.group_consultation_hours
+                    WHEN study_threads.calculation_type <> 4 AND study_threads.study_thread_normative_id = 36 THEN work_study_plan_courses_in_semesters.group_consultation_hours
+                    WHEN study_threads.calculation_type <> 1 AND study_threads.study_thread_normative_id IN (1, 4, 21) THEN 0
+                    WHEN study_thread_normatives.hour_weight = 8 AND study_threads.calculation_type <> 4 THEN study_thread_normatives.day_weight
+                    ELSE study_thread_normatives.person_weight * group_study_thread_subgroup.student_count
+                END as hours')
             )
             ->whereIn('study_thread_subgroup_user.user_id', $this->listUserId)
             ->where('study_threads.year', '=', $currentYear)
@@ -105,6 +113,7 @@ class AcademicWorkload extends Component
         $results = [];
 
         foreach ($divideData as $key => $value) {
+            $sumHours = 0;
             $unique_discipline = array_unique(array_column($value, 'discipline'));
 
             $disciplineData = [];
@@ -125,7 +134,7 @@ class AcademicWorkload extends Component
 
                     $subgroupData = [];
                     foreach ($unique_subgroup_name as $subgroup_name) {
-                        
+
                         $filtredSubgroups = array_filter($filtredTypeWorks, function ($item) use ($subgroup_name) {
                             return $item->subgroup_name == $subgroup_name;
                         });
@@ -141,7 +150,13 @@ class AcademicWorkload extends Component
                             return $item->hours;
                         }, $filtredSubgroups)));
 
-                        $subgroupData[$subgroup_name . '|' . $hours[0]] = $groupData;
+                        if ($type_work == 'Проверка письменной работы') {
+                            $sumHours = array_sum($hours);
+                        } else {
+                            $sumHours = $hours[0];
+                        }
+
+                        $subgroupData[$subgroup_name . '|' . $sumHours] = $groupData;
                     }
 
                     $typeWorkData[$type_work] = $subgroupData;
