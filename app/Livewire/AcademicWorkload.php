@@ -2,9 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Http\Controllers\ContingentController;
 use App\Models\ActiveUser;
-use App\Models\StudyThreadGroup;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -43,8 +41,11 @@ class AcademicWorkload extends Component
             ->join('study_threads', 'study_thread_subgroups.study_thread_id', '=', 'study_threads.id')
             ->join('study_thread_normatives', 'study_threads.study_thread_normative_id', '=', 'study_thread_normatives.id')
             ->join('work_study_plan_courses_in_semesters', 'group_study_thread_subgroup.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
+            ->join('work_study_plans', 'work_study_plan_courses.work_study_plan_id', '=', 'work_study_plans.id')
+            ->join('specialities', 'work_study_plans.speciality_id', '=', 'specialities.id')
             ->select(
-                'study_thread_subgroup_user.user_id',
+                'specialities.level_education_id',
                 'study_thread_subgroups.subgroup_name',
                 'group_study_thread_subgroup.student_count',
                 'groups.group_name',
@@ -57,10 +58,10 @@ class AcademicWorkload extends Component
                     WHEN study_thread_normatives.hour_weight = 1 AND study_threads.study_thread_normative_id = 17 THEN work_study_plan_courses_in_semesters.lecture_hours
                     WHEN study_thread_normatives.hour_weight = 1 AND study_threads.study_thread_normative_id = 18 THEN work_study_plan_courses_in_semesters.practical_hours
                     WHEN study_thread_normatives.hour_weight = 1 AND study_threads.study_thread_normative_id = 19 THEN work_study_plan_courses_in_semesters.laboratory_hours
-                    WHEN study_threads.calculation_type = 2 AND study_threads.study_thread_normative_id = 28 THEN work_study_plan_courses_in_semesters.individual_consultation_hours
-                    WHEN study_threads.calculation_type = 2 AND study_threads.study_thread_normative_id IN (29, 30) THEN work_study_plan_courses_in_semesters.course_work_hours
-                    WHEN study_threads.calculation_type = 4 AND study_threads.study_thread_normative_id = 32 THEN work_study_plan_courses_in_semesters.group_consultation_hours
-                    WHEN study_threads.calculation_type <> 4 AND study_threads.study_thread_normative_id = 36 THEN work_study_plan_courses_in_semesters.group_consultation_hours
+                    WHEN study_threads.study_thread_normative_id = 28 THEN work_study_plan_courses_in_semesters.individual_consultation_hours
+                    WHEN study_threads.study_thread_normative_id IN (29, 30) THEN work_study_plan_courses_in_semesters.course_work_hours
+                    WHEN study_threads.study_thread_normative_id = 32 THEN work_study_plan_courses_in_semesters.group_consultation_hours
+                    WHEN study_threads.study_thread_normative_id = 36 THEN work_study_plan_courses_in_semesters.group_consultation_hours
                     WHEN study_threads.calculation_type <> 1 AND study_threads.study_thread_normative_id IN (1, 4, 21) THEN 0
                     WHEN study_thread_normatives.hour_weight = 8 AND study_threads.calculation_type <> 4 THEN study_thread_normatives.day_weight
                     ELSE study_thread_normatives.person_weight * group_study_thread_subgroup.student_count
@@ -71,229 +72,132 @@ class AcademicWorkload extends Component
             ->orderBy('study_threads.semester')
             ->orderBy('groups.group_name')
             ->distinct()->get()->toArray());
-        /*
-        $contingentController = new ContingentController();
 
-        $data = $this->sanitizeData(StudyThreadGroup::join('work_study_plan_courses_in_semesters', 'study_thread_groups.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
-            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
-            ->join('work_study_plan_course_control_types_in_semesters', 'work_study_plan_courses_in_semesters.id', '=', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id')
-            ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
-            ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
-            ->join('groups', 'study_thread_groups.group_id', '=', 'groups.id')
-            ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
-            ->whereIn('study_thread_groups.user_id', $this->listUserId)
-            ->whereIn('study_thread_groups.group_id', $contingentController->groupId)
-            ->select(
-                'disciplines.name as discipline_name',
-                'groups.group_name',
-                'groups.course',
-                'control_types.name as control_name',
-                'work_study_plans.teaching_form_id',
-                'work_study_plan_courses_in_semesters.lecture_hours',
-                'work_study_plan_courses_in_semesters.practical_hours',
-                'work_study_plan_courses_in_semesters.laboratory_hours',
-                'work_study_plan_courses_in_semesters.group_consultation_hours',
-                'work_study_plan_courses_in_semesters.semester_number'
-            )
-            ->distinct()->orderBy('disciplines.name', 'asc')->get()->toArray());
-        */
         return view('livewire.academic-workload', ['academicYear' => $this->getAcademicYear(), 'data' => $data]);
     }
 
-    /*
-    'discipline' => 
-        ['type_work' => ['subgroup_name' => ['group_name', 'student_count']]]
-        ['type_work' => ['subgroup_name' => ['group_name', 'student_count']]]
-        ...
-    */
-
     private function transformer($data): array
     {
-        $divideData = $this->divideDataBySemiannual($data);
+        $dividedDataByLevelEducation = $this->divideDataByLevelEducation($data);
+        $dividedDataBySemiannual = $this->divideDataBySemiannual($dividedDataByLevelEducation);
         $results = [];
 
-        foreach ($divideData as $key => $value) {
-            $sumHours = 0;
-            $unique_discipline = array_unique(array_column($value, 'discipline'));
-
-            $disciplineData = [];
-            foreach ($unique_discipline as $discipline) {
-                $filtredDisciplines = array_filter($value, function ($item) use ($discipline) {
-                    return $item->discipline == $discipline;
-                });
-
-                $unique_type_work = array_unique(array_column($filtredDisciplines, 'type_work'));
-
-                $typeWorkData = [];
-                foreach ($unique_type_work as $type_work) {
-                    $filtredTypeWorks = array_filter($filtredDisciplines, function ($item) use ($type_work) {
-                        return $item->type_work == $type_work;
+        foreach ($dividedDataBySemiannual as $levelEducationKey => $levelEducationValue) {
+            $halfYearsData = [];
+            foreach ($levelEducationValue as $halfYearKey => $halfYearValue) {
+                $sumHours = 0;
+                $unique_discipline = array_unique(array_column($halfYearValue, 'discipline'));
+                
+                $disciplineData = [];
+                foreach ($unique_discipline as $discipline) {
+                    $filtredDisciplines = array_filter($halfYearValue, function ($item) use ($discipline) {
+                        return $item->discipline == $discipline;
                     });
 
-                    $unique_subgroup_name = array_unique(array_column($filtredTypeWorks, 'subgroup_name'));
+                    $unique_type_work = array_unique(array_column($filtredDisciplines, 'type_work'));
 
-                    $subgroupData = [];
-                    foreach ($unique_subgroup_name as $subgroup_name) {
-
-                        $filtredSubgroups = array_filter($filtredTypeWorks, function ($item) use ($subgroup_name) {
-                            return $item->subgroup_name == $subgroup_name;
+                    $typeWorkData = [];
+                    foreach ($unique_type_work as $type_work) {
+                        $filtredTypeWorks = array_filter($filtredDisciplines, function ($item) use ($type_work) {
+                            return $item->type_work == $type_work;
                         });
 
-                        $groupData = array_map(function ($item) {
-                            return [
-                                "student_count" => $item->student_count,
-                                "group_name" => $item->group_name
-                            ];
-                        }, $filtredSubgroups);
+                        $unique_subgroup_name = array_unique(array_column($filtredTypeWorks, 'subgroup_name'));
 
-                        $hours = array_values(array_unique(array_map(function ($item) {
-                            return $item->hours;
-                        }, $filtredSubgroups)));
+                        $subgroupData = [];
+                        foreach ($unique_subgroup_name as $subgroup_name) {
 
-                        if ($type_work == 'Проверка письменной работы') {
-                            $sumHours = array_sum($hours);
-                        } else {
-                            $sumHours = $hours[0];
+                            $filtredSubgroups = array_filter($filtredTypeWorks, function ($item) use ($subgroup_name) {
+                                return $item->subgroup_name == $subgroup_name;
+                            });
+
+                            $groupData = array_map(function ($item) {
+                                return [
+                                    "student_count" => $item->student_count,
+                                    "group_name" => $item->group_name
+                                ];
+                            }, $filtredSubgroups);
+
+                            $hours = array_values(array_unique(array_map(function ($item) {
+                                return $item->hours;
+                            }, $filtredSubgroups)));
+
+                            if ($type_work == 'Проверка письменной работы' || $type_work == 'Курсовая работа') {
+                                $sumHours = array_sum($hours);
+                            } else {
+                                $sumHours = $hours[0];
+                            }
+
+                            $subgroupData[$subgroup_name . '|' . $sumHours] = $groupData;
                         }
-
-                        $subgroupData[$subgroup_name . '|' . $sumHours] = $groupData;
+                        ksort($subgroupData);
+                        $typeWorkData[$type_work] = $subgroupData;
                     }
-
-                    $typeWorkData[$type_work] = $subgroupData;
+                    ksort($typeWorkData);
+                    $disciplineData[$discipline] = $typeWorkData;
                 }
-
-                $disciplineData[$discipline] = $typeWorkData;
+                ksort($disciplineData);
+                $halfYearsData[$halfYearKey] = $disciplineData;
             }
 
-            $results[$key] = $disciplineData;
+            $results[$levelEducationKey] = $halfYearsData;
         }
 
         return $results;
     }
 
-    private function getSemesters($teachingForm, $course): array
+    private function divideDataByLevelEducation($data)
     {
-        $currentSemesters = array();
+        $spo = [];
+        $vo = [];
 
-        switch ($course) {
-            case 1:
-                if ($teachingForm == 1) {
-                    $currentSemesters = [1, 2];
-                }
-
-                if ($teachingForm == 2) {
-                    $currentSemesters = [1, 2, 3];
-                }
-                break;
-            case 2:
-                if ($teachingForm == 1) {
-                    $currentSemesters = [3, 4];
-                }
-
-                if ($teachingForm == 2) {
-                    $currentSemesters = [3, 4, 5];
-                }
-                break;
-            case 3:
-                if ($teachingForm == 1) {
-                    $currentSemesters = [5, 6];
-                }
-
-                if ($teachingForm == 2) {
-                    $currentSemesters = [6, 7, 8];
-                }
-                break;
-            case 4:
-                if ($teachingForm == 1) {
-                    $currentSemesters = [7, 8];
-                }
-
-                if ($teachingForm == 2) {
-                    $currentSemesters = [9, 10, 11];
-                }
-                break;
-            default:
-                break;
-        }
-
-        return $currentSemesters;
-    }
-
-    private function sanitizeData($data)
-    {
-        $sanitizedData = array();
         foreach ($data as $key => $value) {
-            if (in_array($value['semester_number'], $this->getSemesters($value['teaching_form_id'], $value['course']))) {
-                array_push($sanitizedData, $value);
-            }
-        }
-
-        return $this->divideDataBySemiannual($sanitizedData);
-    }
-
-    private function divideDataBySemiannual($data)
-    {
-        $oddSemesters = [];
-        $evenSemesters = [];
-
-        foreach ($data as $value) {
-            if ($value->semester % 2 != 0) {
-                $oddSemesters[] = $value;
+            if ($value->level_education_id == 2) {
+                $spo[] = $value;
             } else {
-                $evenSemesters[] = $value;
+                $vo[] = $value;
             }
         }
 
         $result = array();
 
-        $result['first_half_year'] = $oddSemesters;
-        $result['second_half_year'] = $evenSemesters;
+        if(count($spo) != 0){
+            $result['spo'] = $spo;
+        }
+        
+        if(count($vo) != 0){
+            $result['vo'] = $vo;
+        }
+        
+        return $result;
+    }
+
+    private function divideDataBySemiannual($data)
+    {
+        $result = [];
+
+        foreach ($data as $key => $values) {
+            $halfYears = [];
+            $firstHalfYear = [];
+            $secondHalfYear = [];
+
+            foreach ($values as $items) {
+                if ($items->semester == 1) {
+                    $firstHalfYear[] = $items;
+                } else {
+                    $secondHalfYear[] = $items;
+                }
+            }
+
+            $halfYears['first_half_year'] = $firstHalfYear;
+            $halfYears['second_half_year'] = $secondHalfYear;
+
+            $result[$key] = $halfYears;
+        }
 
         return $result;
     }
 
-    /*
-    private function dataTransform($data)
-    {
-        $oddSemesters = [];
-        $evenSemesters = [];
-
-        foreach ($data as $value) {
-            if ($value->semester_number % 2 != 0) {
-                $oddSemesters[] = $value;
-            } else {
-                $evenSemesters[] = $value;
-            }
-        }
-
-        $transformedData['first_half_year'] = $this->collectData($oddSemesters);
-        $transformedData['second_half_year'] = $this->collectData($evenSemesters);
-
-        return $transformedData;
-    }
-
-    private function collectData($data)
-    {
-        return collect($data)->groupBy('name')->map(function ($items, $key) {
-            $groupNames = $items->pluck('group_name')->unique()->implode(', ');
-            $semesterNumbers = $items->pluck('semester_number')->unique()->sort();
-            $lectureHours = $items->pluck('lecture_hours')->first();
-            $practicalHours = $items->pluck('practical_hours')->first();
-            $laboratoryHours = $items->pluck('laboratory_hours')->first();
-            $controlName = $items->pluck('control_name')->first();
-
-            return [
-                'discipline_name' => $key,
-                'group_names' => $groupNames,
-                'control_name' => $controlName,
-                'lecture_hours' => $lectureHours,
-                'practical_hours' => $practicalHours,
-                'laboratory_hours' => $laboratoryHours,
-                'semester_numbers' => $semesterNumbers->implode(', ')
-            ];
-        })->values();
-    }
-    */
     private function getAcademicYear()
     {
         $month = (int)Carbon::now()->format('m');
