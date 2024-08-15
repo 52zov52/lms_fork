@@ -51,6 +51,7 @@ class AcademicWorkload extends Component
                 'groups.group_name',
                 'study_threads.name as discipline',
                 'study_thread_normatives.name as type_work',
+                'study_thread_normatives.sort_order',
                 'study_threads.year',
                 'study_threads.semester',
                 DB::raw('CASE
@@ -85,13 +86,20 @@ class AcademicWorkload extends Component
         foreach ($dividedDataBySemiannual as $levelEducationKey => $levelEducationValue) {
             $halfYearsData = [];
             foreach ($levelEducationValue as $halfYearKey => $halfYearValue) {
-                $sumHours = 0;
+                $totalHours = 0;
+
                 $unique_discipline = array_unique(array_column($halfYearValue, 'discipline'));
-                
+
                 $disciplineData = [];
                 foreach ($unique_discipline as $discipline) {
+                    $disciplineHours = 0;
+
                     $filtredDisciplines = array_filter($halfYearValue, function ($item) use ($discipline) {
                         return $item->discipline == $discipline;
+                    });
+
+                    usort($filtredDisciplines, function($a, $b) {
+                        return $a->sort_order <=> $b->sort_order;
                     });
 
                     $unique_type_work = array_unique(array_column($filtredDisciplines, 'type_work'));
@@ -106,6 +114,7 @@ class AcademicWorkload extends Component
 
                         $subgroupData = [];
                         foreach ($unique_subgroup_name as $subgroup_name) {
+                            $subgroupHours = 0;
 
                             $filtredSubgroups = array_filter($filtredTypeWorks, function ($item) use ($subgroup_name) {
                                 return $item->subgroup_name == $subgroup_name;
@@ -123,21 +132,22 @@ class AcademicWorkload extends Component
                             }, $filtredSubgroups)));
 
                             if ($type_work == 'Проверка письменной работы' || $type_work == 'Курсовая работа') {
-                                $sumHours = array_sum($hours);
+                                $subgroupHours = array_sum($hours);
                             } else {
-                                $sumHours = $hours[0];
+                                $subgroupHours = $hours[0];
                             }
 
-                            $subgroupData[$subgroup_name . '|' . $sumHours] = $groupData;
+                            $disciplineHours += $subgroupHours;
+                            $totalHours += $subgroupHours;
+                            $subgroupData[$subgroup_name] = ['subgroupHours' => $subgroupHours, 'groupData' => $groupData];
                         }
                         ksort($subgroupData);
                         $typeWorkData[$type_work] = $subgroupData;
                     }
-                    ksort($typeWorkData);
-                    $disciplineData[$discipline] = $typeWorkData;
+                    $disciplineData[$discipline] = ['disciplineHours' => $disciplineHours, 'typeWorkData' => $typeWorkData];
                 }
                 ksort($disciplineData);
-                $halfYearsData[$halfYearKey] = $disciplineData;
+                $halfYearsData[$halfYearKey] = ['totalHours' => $totalHours, 'disciplineData' => $disciplineData];
             }
 
             $results[$levelEducationKey] = $halfYearsData;
@@ -161,14 +171,14 @@ class AcademicWorkload extends Component
 
         $result = array();
 
-        if(count($spo) != 0){
+        if (count($spo) != 0) {
             $result['spo'] = $spo;
         }
-        
-        if(count($vo) != 0){
+
+        if (count($vo) != 0) {
             $result['vo'] = $vo;
         }
-        
+
         return $result;
     }
 
@@ -184,8 +194,10 @@ class AcademicWorkload extends Component
             foreach ($values as $items) {
                 if ($items->semester == 1) {
                     $firstHalfYear[] = $items;
-                } else {
+                } else if($items->semester == 2) {
                     $secondHalfYear[] = $items;
+                }else {
+                    
                 }
             }
 

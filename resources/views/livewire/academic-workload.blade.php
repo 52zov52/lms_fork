@@ -20,51 +20,59 @@
                     <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                         <tr class="border-b border-slate-400/20">
                             <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">Дисциплина</th>
-                            <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Тип работ</th>
-                            <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Подгруппа</th>
+                            <th scope="col" class="w-40 px-2 py-2 text-left font-semibold">Тип работ</th>
                             <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">Часы</th>
+                            <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Подгруппа</th>
                             <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">Группа</th>
                             <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">Кол-во</th>
                         </tr>
                     </thead>
                     <tbody>
                     @foreach($data as $levelEducationKey => $levelEducationValue)
-                        @if(($levelEducationKey == 'spo' || $levelEducationKey == 'vo') && count($levelEducationValue['first_half_year']) != 0)
+                        @if(($levelEducationKey == 'spo' || $levelEducationKey == 'vo') && count($levelEducationValue['first_half_year']['disciplineData']) != 0)
                             <tr class="bg-white dark:bg-slate-800 border-b border-slate-400/20">
                                 <td colspan="6" class="w-auto px-2 py-1 font-semibold">
                                     {{ ($levelEducationKey == 'spo') ? __('Среднее профессиональное образование (СПО)') : __('Высшее образование (ВО)') }}
                                 </td>
                             </tr>
                         @endif
-                        @foreach($levelEducationValue['first_half_year'] as $disciplineKey => $disciplineValue)
+                        @foreach($levelEducationValue['first_half_year']['disciplineData'] as $disciplineKey => $disciplineValue)
                             @php
-                                $totalRowsDiscipline = array_sum(array_map(fn($typeWorkValue) => array_sum(array_map('count', $typeWorkValue)), $disciplineValue));
+                                $totalRowsDiscipline = array_sum(array_map(
+                                    fn($typeWorkValue) => array_sum(array_map(
+                                        fn($subgroupValue) => count($subgroupValue['groupData']),
+                                        $typeWorkValue
+                                    )), $disciplineValue['typeWorkData']
+                                ));
                                 $incrementDiscipline = 0;
                             @endphp
-                            @foreach($disciplineValue as $typeWorkKey => $typeWorkValue)
+                            @foreach($disciplineValue['typeWorkData'] as $typeWorkKey => $typeWorkValue)
                                 @php
-                                    $totalRowsTypeWork = array_sum(array_map('count', $typeWorkValue));
+                                    $totalRowsTypeWork = array_sum(array_map(
+                                        fn($subgroupValue) => count($subgroupValue['groupData']),
+                                        $typeWorkValue
+                                    ));
                                     $incrementTypeWork = 0;
                                 @endphp
                                 @foreach($typeWorkValue as $subgroupKey => $subgroupValue)
                                     @php
-                                        $totalRowsSubgroup = count($subgroupValue);
+                                        $totalRowsSubgroup = count($subgroupValue['groupData']);
                                         $incrementSubgroup = 0;
                                     @endphp
-                                    @foreach($subgroupValue as $key => $value)
+                                    @foreach($subgroupValue['groupData'] as $key => $value)
                                         <tr class="bg-white dark:bg-slate-800 border-b border-slate-400/20">
                                             @if($incrementDiscipline == 0)
-                                                <td rowspan="{{ $totalRowsDiscipline }}" class="w-auto border-r border-slate-400/20 px-2 py-1">{{ $disciplineKey }}</td>
+                                                <td rowspan="{{ $totalRowsDiscipline }}" class="w-auto border-r border-slate-400/20 px-2 py-1 text-left">{{ $disciplineKey }}</td>
                                             @endif
                                             @if($incrementTypeWork == 0)
-                                                <td rowspan="{{ $totalRowsTypeWork }}" class="w-40 border-r border-slate-400/20 text-center px-2 py-1">{{ $typeWorkKey }}</td>
+                                                <td rowspan="{{ $totalRowsTypeWork }}" class="w-40 border-r border-slate-400/20 px-2 py-1 text-left">{{ $typeWorkKey }}</td>
                                             @endif
                                             @if($incrementSubgroup == 0)
-                                                <td rowspan="{{ $totalRowsSubgroup }}" class="w-32 border-r border-slate-400/20 text-center px-2 py-1">{{ explode('|',$subgroupKey)[0] }}</td>
-                                                <td rowspan="{{ $totalRowsSubgroup }}" class="w-20 border-r border-slate-400/20 text-center px-2 py-1">{{ explode('|',$subgroupKey)[1] }}</td>
+                                                <td rowspan="{{ $totalRowsSubgroup }}" class="w-20 border-r border-slate-400/20 px-2 py-1 text-center">{{ $subgroupValue['subgroupHours'] }}</td>
+                                                <td rowspan="{{ $totalRowsSubgroup }}" class="w-32 border-r border-slate-400/20 px-2 py-1 text-center">{{ $subgroupKey }}</td>
                                             @endif
-                                            <td class="w-20 border-r border-slate-400/20 text-center px-2 py-1">{{ $value['group_name'] }}</td>
-                                            <td class="w-20 text-center px-2 py-1">{{ $value['student_count'] }}</td>
+                                            <td class="w-20 border-r border-slate-400/20 px-2 py-1 text-center">{{ $value['group_name'] }}</td>
+                                            <td class="w-20 px-2 py-1 text-center">{{ $value['student_count'] }}</td>
                                         </tr>
                                         @php
                                             $incrementDiscipline++;
@@ -74,7 +82,22 @@
                                     @endforeach
                                 @endforeach
                             @endforeach
+                            <tr class="bg-white dark:bg-slate-800 border-b border-slate-400/20">
+                                <td class="w-auto px-2 py-2 text-left font-semibold"></td>
+                                <td class="w-40 px-2 py-2 text-left font-semibold"></td>
+                                <td class="w-20 border border-slate-400/20 px-2 py-2 text-center font-semibold">{{ $disciplineValue['disciplineHours'] }}</td>
+                                <td class="w-32 px-2 py-2 text-center font-semibold"></td>
+                                <td class="w-20 px-2 py-2 text-center font-semibold"></td>
+                                <td class="w-20 px-2 py-2 text-center font-semibold"></td>
+                            </tr>
                         @endforeach
+                        @if($levelEducationValue['first_half_year']['totalHours'] > 0)
+                        <tr class="bg-white dark:bg-slate-800 border-b border-slate-400/20">
+                            <td colspan="6" class="w-auto px-2 py-1 font-semibold">
+                                {{ __('ВСЕГО:') }} {{ $levelEducationValue['first_half_year']['totalHours'] }}
+                            </td>
+                        </tr>
+                        @endif
                     @endforeach
                     </tbody>
                 </table>
@@ -86,53 +109,59 @@
                     <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                         <tr class="border-b border-slate-400/20">
                             <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">Дисциплина</th>
-                            <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Тип работ</th>
-                            <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Подгруппа</th>
+                            <th scope="col" class="w-40 px-2 py-2 text-left font-semibold">Тип работ</th>
                             <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">Часы</th>
+                            <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Подгруппа</th>
                             <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">Группа</th>
                             <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">Кол-во</th>
                         </tr>
                     </thead>
                     <tbody>
                     @foreach($data as $levelEducationKey => $levelEducationValue)
-                        <tr class="bg-white dark:bg-slate-800 border-b border-slate-400/20">
-                            <td colspan="6" class="w-auto px-2 py-1 font-semibold">
-                                @if($levelEducationKey == 'spo')
-                                    {{ __('Среднее профессиональное образование (СПО)') }}
-                                @else
-                                    {{ __('Высшее образование (ВО)') }}
-                                @endif
-                            </td>
-                        </tr>
-                        @foreach($levelEducationValue['second_half_year'] as $disciplineKey => $disciplineValue)
+                        @if(($levelEducationKey == 'spo' || $levelEducationKey == 'vo') && count($levelEducationValue['second_half_year']['disciplineData']) != 0)
+                            <tr class="bg-white dark:bg-slate-800 border-b border-slate-400/20">
+                                <td colspan="6" class="w-auto px-2 py-1 font-semibold">
+                                    {{ ($levelEducationKey == 'spo') ? __('Среднее профессиональное образование (СПО)') : __('Высшее образование (ВО)') }}
+                                </td>
+                            </tr>
+                        @endif
+                        @foreach($levelEducationValue['second_half_year']['disciplineData'] as $disciplineKey => $disciplineValue)
                             @php
-                                $totalRowsDiscipline = array_sum(array_map(fn($typeWorkValue) => array_sum(array_map('count', $typeWorkValue)), $disciplineValue));
+                                $totalRowsDiscipline = array_sum(array_map(
+                                    fn($typeWorkValue) => array_sum(array_map(
+                                        fn($subgroupValue) => count($subgroupValue['groupData']),
+                                        $typeWorkValue
+                                    )), $disciplineValue['typeWorkData']
+                                ));
                                 $incrementDiscipline = 0;
                             @endphp
-                            @foreach($disciplineValue as $typeWorkKey => $typeWorkValue)
+                            @foreach($disciplineValue['typeWorkData'] as $typeWorkKey => $typeWorkValue)
                                 @php
-                                    $totalRowsTypeWork = array_sum(array_map('count', $typeWorkValue));
+                                    $totalRowsTypeWork = array_sum(array_map(
+                                        fn($subgroupValue) => count($subgroupValue['groupData']),
+                                        $typeWorkValue
+                                    ));
                                     $incrementTypeWork = 0;
                                 @endphp
                                 @foreach($typeWorkValue as $subgroupKey => $subgroupValue)
                                     @php
-                                        $totalRowsSubgroup = count($subgroupValue);
+                                        $totalRowsSubgroup = count($subgroupValue['groupData']);
                                         $incrementSubgroup = 0;
                                     @endphp
-                                    @foreach($subgroupValue as $key => $value)
+                                    @foreach($subgroupValue['groupData'] as $key => $value)
                                         <tr class="bg-white dark:bg-slate-800 border-b border-slate-400/20">
                                             @if($incrementDiscipline == 0)
-                                                <td rowspan="{{ $totalRowsDiscipline }}" class="w-auto border-r border-slate-400/20 px-2 py-1">{{ $disciplineKey }}</td>
+                                                <td rowspan="{{ $totalRowsDiscipline }}" class="w-auto border-r border-slate-400/20 px-2 py-1 text-left">{{ $disciplineKey }}</td>
                                             @endif
                                             @if($incrementTypeWork == 0)
-                                                <td rowspan="{{ $totalRowsTypeWork }}" class="w-40 border-r border-slate-400/20 text-center px-2 py-1">{{ $typeWorkKey }}</td>
+                                                <td rowspan="{{ $totalRowsTypeWork }}" class="w-40 border-r border-slate-400/20 px-2 py-1 text-left">{{ $typeWorkKey }}</td>
                                             @endif
                                             @if($incrementSubgroup == 0)
-                                                <td rowspan="{{ $totalRowsSubgroup }}" class="w-32 border-r border-slate-400/20 text-center px-2 py-1">{{ explode('|',$subgroupKey)[0] }}</td>
-                                                <td rowspan="{{ $totalRowsSubgroup }}" class="w-20 border-r border-slate-400/20 text-center px-2 py-1">{{ explode('|',$subgroupKey)[1] }}</td>
+                                                <td rowspan="{{ $totalRowsSubgroup }}" class="w-20 border-r border-slate-400/20 px-2 py-1 text-center">{{ $subgroupValue['subgroupHours'] }}</td>
+                                                <td rowspan="{{ $totalRowsSubgroup }}" class="w-32 border-r border-slate-400/20 px-2 py-1 text-center">{{ $subgroupKey }}</td>
                                             @endif
-                                            <td class="w-20 border-r border-slate-400/20 text-center px-2 py-1">{{ $value['group_name'] }}</td>
-                                            <td class="w-20 text-center px-2 py-1">{{ $value['student_count'] }}</td>
+                                            <td class="w-20 border-r border-slate-400/20 px-2 py-1 text-center">{{ $value['group_name'] }}</td>
+                                            <td class="w-20 px-2 py-1 text-center">{{ $value['student_count'] }}</td>
                                         </tr>
                                         @php
                                             $incrementDiscipline++;
@@ -142,7 +171,22 @@
                                     @endforeach
                                 @endforeach
                             @endforeach
+                            <tr class="bg-white dark:bg-slate-800 border-b border-slate-400/20">
+                                <td class="w-auto px-2 py-2 text-left font-semibold"></td>
+                                <td class="w-40 px-2 py-2 text-left font-semibold"></td>
+                                <td class="w-20 border border-slate-400/20 px-2 py-2 text-center font-semibold">{{ $disciplineValue['disciplineHours'] }}</td>
+                                <td class="w-32 px-2 py-2 text-center font-semibold"></td>
+                                <td class="w-20 px-2 py-2 text-center font-semibold"></td>
+                                <td class="w-20 px-2 py-2 text-center font-semibold"></td>
+                            </tr>
                         @endforeach
+                        @if($levelEducationValue['second_half_year']['totalHours'] > 0)
+                        <tr class="bg-white dark:bg-slate-800 border-b border-slate-400/20">
+                            <td colspan="6" class="w-auto px-2 py-1 font-semibold">
+                                {{ __('ВСЕГО:') }} {{ $levelEducationValue['second_half_year']['totalHours'] }}
+                            </td>
+                        </tr>
+                        @endif
                     @endforeach
                     </tbody>
                 </table>
