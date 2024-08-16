@@ -98,7 +98,97 @@ class AcademicWorkload extends Component
                         return $item->discipline == $discipline;
                     });
 
-                    usort($filtredDisciplines, function($a, $b) {
+                    usort($filtredDisciplines, function ($a, $b) {
+                        return $a->sort_order <=> $b->sort_order;
+                    });
+
+                    $unique_semester_arrival = array_unique(array_column($filtredDisciplines, 'semester'));
+
+                    $semesterArrivalData = [];
+                    foreach ($unique_semester_arrival as $semester_arrival) {
+                        $filtredDisciplinesBySemester = array_filter($filtredDisciplines, function ($item) use ($semester_arrival) {
+                            return $item->semester == $semester_arrival;
+                        });
+
+                        $unique_type_work = array_unique(array_column($filtredDisciplinesBySemester, 'type_work'));
+
+                        $typeWorkData = [];
+                        foreach ($unique_type_work as $type_work) {
+                            $filtredTypeWorks = array_filter($filtredDisciplinesBySemester, function ($item) use ($type_work) {
+                                return $item->type_work == $type_work;
+                            });
+
+                            $unique_subgroup_name = array_unique(array_column($filtredTypeWorks, 'subgroup_name'));
+
+                            $subgroupData = [];
+                            foreach ($unique_subgroup_name as $subgroup_name) {
+                                $subgroupHours = 0;
+
+                                $filtredSubgroups = array_filter($filtredTypeWorks, function ($item) use ($subgroup_name) {
+                                    return $item->subgroup_name == $subgroup_name;
+                                });
+
+                                $groupData = array_map(function ($item) {
+                                    return [
+                                        "student_count" => $item->student_count,
+                                        "group_name" => $item->group_name
+                                    ];
+                                }, $filtredSubgroups);
+
+                                $hours = array_values(array_unique(array_map(function ($item) {
+                                    return $item->hours;
+                                }, $filtredSubgroups)));
+
+                                if ($type_work == 'Проверка письменной работы' || $type_work == 'Курсовая работа') {
+                                    $subgroupHours = array_sum($hours);
+                                } else {
+                                    $subgroupHours = $hours[0];
+                                }
+
+                                $disciplineHours += $subgroupHours;
+                                $totalHours += $subgroupHours;
+                                $subgroupData[$subgroup_name] = ['subgroupHours' => $subgroupHours, 'groupData' => $groupData];
+                            }
+                            ksort($subgroupData);
+                            $typeWorkData[$type_work] = $subgroupData;
+                        }
+
+                        $semesterArrivalData[$semester_arrival] = ['typeWorkData' => $typeWorkData];
+                    }
+                    $disciplineData[$discipline] = ['disciplineHours' => $disciplineHours, 'semesterArrivalData' => $semesterArrivalData];
+                }
+                ksort($disciplineData);
+                $halfYearsData[$halfYearKey] = ['totalHours' => $totalHours, 'disciplineData' => $disciplineData];
+            }
+
+            $results[$levelEducationKey] = $halfYearsData;
+        }
+
+        return $results;
+    }
+
+    private function transformer_($data): array
+    {
+        $dividedDataByLevelEducation = $this->divideDataByLevelEducation($data);
+        $dividedDataBySemiannual = $this->divideDataBySemiannual($dividedDataByLevelEducation);
+        $results = [];
+
+        foreach ($dividedDataBySemiannual as $levelEducationKey => $levelEducationValue) {
+            $halfYearsData = [];
+            foreach ($levelEducationValue as $halfYearKey => $halfYearValue) {
+                $totalHours = 0;
+
+                $unique_discipline = array_unique(array_column($halfYearValue, 'discipline'));
+
+                $disciplineData = [];
+                foreach ($unique_discipline as $discipline) {
+                    $disciplineHours = 0;
+
+                    $filtredDisciplines = array_filter($halfYearValue, function ($item) use ($discipline) {
+                        return $item->discipline == $discipline;
+                    });
+
+                    usort($filtredDisciplines, function ($a, $b) {
                         return $a->sort_order <=> $b->sort_order;
                     });
 
@@ -194,10 +284,8 @@ class AcademicWorkload extends Component
             foreach ($values as $items) {
                 if ($items->semester == 1) {
                     $firstHalfYear[] = $items;
-                } else if($items->semester == 2) {
+                } else {
                     $secondHalfYear[] = $items;
-                }else {
-                    
                 }
             }
 
