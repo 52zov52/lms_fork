@@ -56,13 +56,16 @@
             </a>
         </li>
         @endrole
-        @role('Student')
-        <li class="{{ (request()->routeIs('document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
-            <a href="{{ route('document.order.requests') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
+        <li class="{{ (request()->routeIs('student.document.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.document.requests') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
                 <i class="fa-solid fa-file-invoice fa-lg"></i>
             </a>
         </li>
-        @endrole
+        <li class="{{ (request()->routeIs('student.document.issuances')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.document.issuances') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
+                <i class="fa-solid fa-file-invoice fa-lg"></i>
+            </a>
+        </li>
         @can('access-to-contingent')
         <li class="{{ (request()->routeIs('contingent')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('contingent') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">

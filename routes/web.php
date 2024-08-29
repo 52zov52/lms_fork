@@ -123,6 +123,16 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.document-order-request');
     })->name('document.order.requests');
 
+    //Url для сервиса заказа справок
+    Route::get('/student-document-requests', function() {
+        return view('pages.student-document-requests');
+    })->name('student.document.requests');
+
+    //Url для сервиса обработки заказов справок
+    Route::get('/student-document-issuances', function() {
+        return view('pages.student-document-issuances');
+    })->name('student.document.issuances');
+
     Route::group(['middleware' => ['role:Student']], function () {
         
     });
