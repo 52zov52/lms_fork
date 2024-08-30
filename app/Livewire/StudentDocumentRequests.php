@@ -3,13 +3,14 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\AcademicYearController;
+use App\Models\StudentDocumentIssuance;
 use App\Models\StudentDocumentRequest;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class StudentDocumentRequests extends Component
 {
-    public $documentType = 0;
+    public $documentType = 0, $employmentPlace = '';
     public $showModal = false;
 
     public $listDocumentTypes = [
@@ -20,7 +21,12 @@ class StudentDocumentRequests extends Component
 
     public function render()
     {
-        return view('livewire.student-document-requests', ['listDocumentTypes' => $this->listDocumentTypes]);
+        $studentDocumentRequests = StudentDocumentRequest::where('requester_id', Auth::user()->id)->paginate(50);
+
+        return view('livewire.student-document-requests', [
+            'listDocumentTypes' => $this->listDocumentTypes, 
+            'studentDocumentRequests' => $studentDocumentRequests
+        ]);
     }
 
     public function callMethod($methodName)
@@ -34,7 +40,7 @@ class StudentDocumentRequests extends Component
     }
 
     public function sendRequest()
-    {
+    {   
         if ($this->documentType != 0) {
             if ($this->documentType == 3) {
                 $this->showModal = true;
@@ -49,15 +55,25 @@ class StudentDocumentRequests extends Component
 
     public function store()
     {
-        StudentDocumentRequest::create([
+        $studentDocumentRequest = StudentDocumentRequest::create([
             'document_type' => $this->documentType,
             'status' => 1,
             'requester_id' => Auth::user()->id,
-            'academic_year' => AcademicYearController::getAcademicYear()
+            'academic_year' => AcademicYearController::getAcademicYear(),
+            'half_year' => AcademicYearController::getHalfYear()
         ]);
 
         if ($this->documentType == 3) {
+            StudentDocumentIssuance::create([
+                'student_document_request_id' => $studentDocumentRequest->id,
+                'employment_place' => $this->employmentPlace
+            ]);
+
             $this->showModal = false;
+        } else {
+            StudentDocumentIssuance::create([
+                'student_document_request_id' => $studentDocumentRequest->id
+            ]);
         }
 
         session()->flash('type', 'success');

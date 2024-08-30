@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreign('requester_id')->references('id')->on('users')->onDelete('cascade');
             
             $table->string('academic_year');
+            $table->integer('half_year');
             $table->timestamps();
         });
     }
