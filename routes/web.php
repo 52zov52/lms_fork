@@ -142,7 +142,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.document-retrieval-request');
         })->name('document.retrieval.requests');
 
-        Route::get('/print-document/{id}', [PrintConfirmedDocumentRequestsController::class, 'printDocument'])->name('print.document');
+        Route::get('/print-document/{id}', [PrintConfirmedDocumentRequestsController::class, 'print'])->name('print.document');
     });
 
     Route::get('/contingent', function () {

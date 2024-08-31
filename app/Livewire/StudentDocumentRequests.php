@@ -10,7 +10,7 @@ use Livewire\Component;
 
 class StudentDocumentRequests extends Component
 {
-    public $documentType = 0, $employmentPlace = '';
+    public $selectedDocumentType = 0, $employmentPlace = '';
     public $showModal = false;
 
     public $listDocumentTypes = [
@@ -24,7 +24,7 @@ class StudentDocumentRequests extends Component
         $studentDocumentRequests = StudentDocumentRequest::where('requester_id', Auth::user()->id)->paginate(50);
 
         return view('livewire.student-document-requests', [
-            'listDocumentTypes' => $this->listDocumentTypes, 
+            'listDocumentTypes' => $this->listDocumentTypes,
             'studentDocumentRequests' => $studentDocumentRequests
         ]);
     }
@@ -36,13 +36,13 @@ class StudentDocumentRequests extends Component
 
     public function setDocumentType()
     {
-        $this->documentType = $this->documentType;
+        $this->selectedDocumentType = $this->selectedDocumentType;
     }
 
     public function sendRequest()
-    {   
-        if ($this->documentType != 0) {
-            if ($this->documentType == 3) {
+    {
+        if ($this->selectedDocumentType != 0) {
+            if ($this->selectedDocumentType == 3) {
                 $this->showModal = true;
             } else {
                 $this->store();
@@ -55,15 +55,21 @@ class StudentDocumentRequests extends Component
 
     public function store()
     {
+        if ($this->selectedDocumentType == 3) {
+            $this->validate([
+                'employmentPlace' => 'required|string|max:1000'
+            ]);
+        }
+
         $studentDocumentRequest = StudentDocumentRequest::create([
-            'document_type' => $this->documentType,
+            'document_type' => $this->selectedDocumentType,
             'status' => 1,
             'requester_id' => Auth::user()->id,
             'academic_year' => AcademicYearController::getAcademicYear(),
             'half_year' => AcademicYearController::getHalfYear()
         ]);
 
-        if ($this->documentType == 3) {
+        if ($this->selectedDocumentType == 3) {
             StudentDocumentIssuance::create([
                 'student_document_request_id' => $studentDocumentRequest->id,
                 'employment_place' => $this->employmentPlace

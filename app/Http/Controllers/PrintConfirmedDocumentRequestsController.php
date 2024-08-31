@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ConfirmedDocumentRequest;
-use App\Models\DocumentOrderRequest;
-use App\Models\UserData;
+use App\Models\StudentDocumentIssuance;
+use App\Models\StudentDocumentRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,33 +11,79 @@ use PhpOffice\PhpWord\TemplateProcessor;
 
 class PrintConfirmedDocumentRequestsController extends Controller
 {
-    public function printDocument(Request $request): void
+    public function print(Request $request): void
     {
-        $documentOrderRequest = DocumentOrderRequest::where('id', '=', $request->id)->first();
-        $confirmedDocumentRequest = ConfirmedDocumentRequest::where('document_order_request_id', '=', $request->id)->first();
-        $confirmiter = UserData::select('last_name', 'first_name', 'middle_name')
-            ->where('user_id', '=', $confirmedDocumentRequest->confirmiter_id)->first();
+        $studentDocumentRequest = StudentDocumentRequest::where('id', '=', $request->id)->first();
+        $studentDocumentIssuance = StudentDocumentIssuance::where('student_document_request_id', '=', $request->id)->first();
 
-        $path  = Storage::disk('public')->path(($documentOrderRequest->document_type == 1) ? 'template/certificates/tmp_about_study.docx' : 'template/certificates/tmp_for_transport_cards.docx');
+        if ($studentDocumentRequest->document_type == 1) {
+            $path = Storage::disk('public')->path('template/certificates/tmp_about_study.docx');
+        } else if ($studentDocumentRequest->document_type == 2) {
+            $path = Storage::disk('public')->path('template/certificates/tmp_for_transport_cards.docx');
+        } else {
+            $path = Storage::disk('public')->path('template/spravka.docx');
+        }
 
         $filename = time() . '.docx';
 
         $templateProcessor = new TemplateProcessor($path);
-        $templateProcessor->setValue('date', Carbon::parse($documentOrderRequest->confirmed_date)->format('d.m.Y'));
-        $templateProcessor->setValue('number', $documentOrderRequest->document_number . '-эл.');
-        $templateProcessor->setValue('last_name', $confirmedDocumentRequest->last_name);
-        $templateProcessor->setValue('first_name', $confirmedDocumentRequest->first_name);
-        $templateProcessor->setValue('middle_name', $confirmedDocumentRequest->middle_name);
-        $templateProcessor->setValue('sex', ($confirmedDocumentRequest->sex) ? 'она' : 'он');
-        $templateProcessor->setValue('course', $confirmedDocumentRequest->course);
-        $templateProcessor->setValue('teaching_form', $confirmedDocumentRequest->teaching_form_name);
-        $templateProcessor->setValue('sp', $confirmedDocumentRequest->specialty_code . ' - ' . $confirmedDocumentRequest->speciality_name);
-        $templateProcessor->setValue('orders', $confirmedDocumentRequest->orders);
-        $templateProcessor->setValue('training_period',  $confirmedDocumentRequest->training_period);
-        $templateProcessor->setValue('is_budget', (!$confirmedDocumentRequest->is_budget) ? 'Университет не предоставляет стипендии и иные меры материальной поддержки.' : '');
-        $templateProcessor->setValue('confirmiter',  $confirmiter->last_name . ' ' . mb_substr($confirmiter->first_name, 0, 1) . '.' . mb_substr($confirmiter->middle_name, 0, 1) . '.');
+        $templateProcessor->setValue('date', Carbon::parse($studentDocumentRequest->created_at)->format('d.m.Y'));
+        $templateProcessor->setValue('number', $studentDocumentIssuance->document_number . '-эл.');
+        $templateProcessor->setValue('last_name_dative', $studentDocumentIssuance->last_name_dative);
+        $templateProcessor->setValue('first_name_dative', $studentDocumentIssuance->first_name_dative);
+        $templateProcessor->setValue('middle_name_dative', $studentDocumentIssuance->middle_name_dative);
+        $templateProcessor->setValue('course', $studentDocumentIssuance->course);
+        $templateProcessor->setValue('teaching_form', $this->transformTeachingForm($studentDocumentIssuance->teaching_form_name));
+
+        if ($studentDocumentRequest->document_type == 1 || $studentDocumentRequest->document_type == 2) {
+            $templateProcessor->setValue('sex', ($studentDocumentIssuance->sex) ? 'она' : 'он');
+            $templateProcessor->setValue('sp', $studentDocumentIssuance->specialty_code . ' - ' . $studentDocumentIssuance->speciality_name);
+            $templateProcessor->setValue('orders', $studentDocumentIssuance->orders);
+            $templateProcessor->setValue('training_period',  $studentDocumentIssuance->training_period);
+            $templateProcessor->setValue('is_budget', (!$studentDocumentIssuance->is_budget) ? 'Университет не предоставляет стипендии и иные меры материальной поддержки.' : '');
+        }
+
+        if ($studentDocumentRequest->document_type == 3) {
+            $templateProcessor->setValue('last_name', $studentDocumentIssuance->last_name);
+            $templateProcessor->setValue('first_name', $studentDocumentIssuance->first_name);
+            $templateProcessor->setValue('middle_name', $studentDocumentIssuance->middle_name);
+            $templateProcessor->setValue('specialty_code', $studentDocumentIssuance->specialty_code);
+            $templateProcessor->setValue('speciality_name', $studentDocumentIssuance->speciality_name);
+            $templateProcessor->setValue('check_in_date', Carbon::parse($studentDocumentIssuance->check_in_date)->format('d.m.Y'));
+            $templateProcessor->setValue('check_out_date', Carbon::parse($studentDocumentIssuance->check_out_date)->format('d.m.Y'));
+            $templateProcessor->setValue('check_in_duration', $studentDocumentIssuance->check_in_duration);
+            $templateProcessor->setValue('employment_place', $studentDocumentIssuance->employment_place);
+        }
 
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         $templateProcessor->saveAs("php://output");
+    }
+
+    private function transformTeachingForm($teachingForm): string
+    {
+        $result = '';
+
+        switch ($teachingForm) {
+            case 'Очная':
+                $result = 'очной';
+                break;
+            case 'Заочная':
+                $result = 'заочной';
+                break;
+            case 'Заочная форма (ускоренное обучение)':
+                $result = 'заочной (ускоренное)';
+                break;
+            case 'Очно-заочная':
+                $result = 'очно-заочной';
+                break;
+            case 'Очная (ускоренное обучение)':
+                $result = 'очной (ускоренное)';
+                break;
+            default:
+                $result = '';
+                break;
+        }
+
+        return $result;
     }
 }

@@ -2,7 +2,7 @@
     <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-        <select wire:model="documentType" wire:change="setDocumentType" name="documentType" id="document-type" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+        <select wire:model="selectedDocumentType" wire:change="setDocumentType" name="documentType" id="document-type" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option value="0">Выберите из списка тип справки</option>
             @foreach($listDocumentTypes as $key => $value)
             <option value="{{ $key }}">{{ $value }}</option>
@@ -82,6 +82,7 @@
                     <div class="flex flex-col">
                         <label for="employment-place" class="font-semibold">Место работы<span class="ml-1 text-red-500">*</span></label>
                         <textarea wire:model="employmentPlace" name="employmentPlace" id="employment-place" cols="5" rows="2" placeholder="Укажите ваше текущее место работы" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required></textarea>
+                        @error('employmentPlace') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
                 </div>
             </x-slot>
