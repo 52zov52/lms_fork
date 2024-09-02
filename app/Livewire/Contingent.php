@@ -15,9 +15,7 @@ class Contingent extends Component
     public function render()
     {
         $contingents = new ContingentController();
-        $groupId = $contingents->groupId;
-
-        $groups = Group::select('id', 'group_name')->whereIn('id', $groupId)->orderBy('group_name', 'asc')->get();
+        $groups = Group::select('id', 'group_name')->whereIn('id', $contingents->getGroupIds())->orderBy('group_name', 'asc')->get();
 
         return view('livewire.contingent', [
             'groups' => $groups,
@@ -38,11 +36,10 @@ class Contingent extends Component
 
     public function searchContingentByTicketNumbers()
     {
-        if($this->ticketNumber != "") {
+        if ($this->ticketNumber != "") {
             $contingents = new ContingentController();
             $this->contingent = $contingents->searchContingentByTicketNumbers($this->ticketNumber);
-        }
-        else {
+        } else {
             session()->flash('type', 'error');
             session()->flash('message', 'Для поиска необходимо ввести № зачетной книжки!');
         }
