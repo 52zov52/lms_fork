@@ -32,6 +32,10 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/upbringing-management', function () {
+    return view('pages.upbringing-management');
+})->name('upbringing.management');
+
 Route::get('/qr-code-document-order-requests', function () {
     return view('qr-code-document-order-requests');
 })->name('qr.code.document.order.requests');
