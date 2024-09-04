@@ -44,13 +44,18 @@ class StudentDocumentIssuances extends Component
         3 => 'Справка-вызов только для студентов очно-заочной и заочной форм обучения'
     ];
 
-    public $selectedDocumentType = 0;
+    public $listStatuses = [
+        1 => 'В обработке',
+        2 => 'Готова к выдачи',
+        3 => 'Отказано'
+    ];
+
+    public $selectedDocumentType = 0, $selectedStatus = 0;
 
     public function render()
     {
         $query = StudentDocumentIssuance::join('student_document_requests', 'student_document_issuances.student_document_request_id', '=', 'student_document_requests.id')
             ->join('users_data', 'student_document_requests.requester_id', '=', 'users_data.user_id')
-            ->where('student_document_requests.status', '=', 1)
             ->select(
                 'student_document_issuances.id',
                 'student_document_issuances.student_document_request_id',
@@ -69,10 +74,15 @@ class StudentDocumentIssuances extends Component
             $query->where('student_document_requests.document_type', '=', $this->selectedDocumentType);
         }
 
+        if ($this->selectedDocumentType != 0) {
+            $query->where('student_document_requests.status', '=', $this->selectedStatus);
+        }
+
         $studentDocumentIssuances = $query->paginate(50);
 
         return view('livewire.student-document-issuances', [
             'listDocumentTypes' => $this->listDocumentTypes,
+            'listStatuses' => $this->listStatuses,
             'studentDocumentIssuances' => $studentDocumentIssuances
         ]);
     }
@@ -85,6 +95,11 @@ class StudentDocumentIssuances extends Component
     public function setDocumentType()
     {
         $this->selectedDocumentType = $this->selectedDocumentType;
+    }
+
+    public function setStatus()
+    {
+        $this->selectedStatus = $this->selectedStatus;
     }
 
     public function edit($studentDocumentRequestId, $requesterId, $documentType)
@@ -144,7 +159,8 @@ class StudentDocumentIssuances extends Component
                 'check_out_date',
                 'check_in_duration',
                 'employment_place',
-                'is_budget'
+                'is_budget',
+                'confirmiter_id'
             )
             ->first();
 
@@ -164,7 +180,21 @@ class StudentDocumentIssuances extends Component
         $this->trainingPeriod = 'с ' . Carbon::parse($groupStudent->year_admission)->format('d.m.Y') . 'г. по ' . Carbon::parse($groupStudent->year_completion)->format('d.m.Y') . 'г.';
 
         $this->id = $studentDocumentIssuance->id;
-        $this->documentNumber = StudentDocumentRequest::where('document_type', '=', $this->documentType)->where('status', '=', 2)->count() + 1;
+
+        $lastConfirmetedDocumentNumber = StudentDocumentIssuance::join('student_document_requests', 'student_document_issuances.student_document_request_id', '=', 'student_document_requests.id')
+            ->where('student_document_requests.document_type', '=', $this->documentType)->where('student_document_requests.status', '=', 2)
+            ->select('student_document_issuances.document_number')
+            ->orderBy('student_document_issuances.id', 'desc')
+            ->first();
+
+        if (is_null($studentDocumentIssuance->confirmiter_id)) {
+            $this->documentNumber = (is_null($lastConfirmetedDocumentNumber->document_number)) ?
+                StudentDocumentRequest::where('document_type', '=', $this->documentType)->where('status', '=', 2)->count() + 1 :
+                ++$lastConfirmetedDocumentNumber->document_number;
+        } else {
+            $this->documentNumber = $lastConfirmetedDocumentNumber->document_number;
+        }
+
         $this->checkInDate = (is_null($studentDocumentIssuance->check_in_date)) ? '' : Carbon::parse($studentDocumentIssuance->check_in_date)->format('d.m.Y');
         $this->checkOutDate = (is_null($studentDocumentIssuance->check_out_date)) ? '' : Carbon::parse($studentDocumentIssuance->check_out_date)->format('d.m.Y');
         $this->checkInDuration = $studentDocumentIssuance->check_in_duration;

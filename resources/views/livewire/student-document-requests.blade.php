@@ -21,7 +21,7 @@
                     <tr class="border-b border-slate-400/20">
                         <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
                         <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">Тип справки</th>
-                        <th scope="col" class="w-36 px-2 py-2 text-left font-semibold">Статус</th>
+                        <th scope="col" class="w-44 px-2 py-2 text-left font-semibold">Статус</th>
                         <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Учебный год</th>
                         <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Полугодие</th>
                         <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Дата создания заявки</th>
@@ -40,14 +40,17 @@
                                 {{ __('Справка-вызов') }}
                             @endif
                         </td>
-                        <td class="w-36 px-2 py-2 text-left">
+                        <td class="w-44 px-2 py-2 text-left">
                             @if($value->status == 1)
                                 <span class="text-orange-400 font-bold cursor-pointer">
                                     {{ __('В обработке') }}
                                 </span>
                             @elseif($value->status == 2)
                                 <span class="text-sky-400 font-bold cursor-pointer">
-                                    {{ __('Готова к выдаче') }} 
+                                    {{ __('Готова к выдаче') }}
+                                    @if($value->document_type == 1 || $value->document_type == 2)
+                                    {{ \Carbon\Carbon::parse($value->updated_at)->addDay()->format('d.m.Y') }} после 13:00
+                                    @endif
                                 </span>
                             @else
                                 <span class="text-red-400 font-bold cursor-pointer">

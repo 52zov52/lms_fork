@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\StudentDocumentIssuance;
 use App\Models\StudentDocumentRequest;
+use App\Models\UserData;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,9 @@ class PrintConfirmedDocumentRequestsController extends Controller
     {
         $studentDocumentRequest = StudentDocumentRequest::where('id', '=', $request->id)->first();
         $studentDocumentIssuance = StudentDocumentIssuance::where('student_document_request_id', '=', $request->id)->first();
+
+        $confirmiter = UserData::select('last_name', 'first_name', 'middle_name')
+            ->where('user_id', '=', $studentDocumentIssuance->confirmiter_id)->first();
 
         if ($studentDocumentRequest->document_type == 1) {
             $path = Storage::disk('public')->path('template/certificates/tmp_about_study.docx');
@@ -41,6 +45,7 @@ class PrintConfirmedDocumentRequestsController extends Controller
             $templateProcessor->setValue('orders', $studentDocumentIssuance->orders);
             $templateProcessor->setValue('training_period',  $studentDocumentIssuance->training_period);
             $templateProcessor->setValue('is_budget', (!$studentDocumentIssuance->is_budget) ? 'Университет не предоставляет стипендии и иные меры материальной поддержки.' : '');
+            $templateProcessor->setValue('confirmiter',  $confirmiter->last_name . ' ' . mb_substr($confirmiter->first_name, 0, 1) . '.' . mb_substr($confirmiter->middle_name, 0, 1) . '.');
         }
 
         if ($studentDocumentRequest->document_type == 3) {

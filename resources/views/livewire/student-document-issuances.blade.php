@@ -2,12 +2,22 @@
     <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-        <select wire:model="selectedDocumentType" wire:change="setDocumentType" name="documentType" id="document-type" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+        <select wire:model="selectedDocumentType" wire:change="setDocumentType" name="selectedDocumentType" id="selected-document-type" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option value="0">Выберите из списка тип справки</option>
             @foreach($listDocumentTypes as $key => $value)
             <option value="{{ $key }}">{{ $value }}</option>
             @endforeach
         </select>
+        <select wire:model="selectedStatus" wire:change="setStatus" name="selectedStatus" id="selected-status" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            <option value="0">Выберите из статус заявки</option>
+            @foreach($listStatuses as $keyStatus => $valueStatus)
+            <option value="{{ $keyStatus }}">{{ $valueStatus }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
+        <p class="text-red-400 font-semibold">*Печать справки возможно только после её подтверждения!</p>
     </div>
 
     @if(!is_null($studentDocumentIssuances) && count($studentDocumentIssuances) != 0)
@@ -19,10 +29,11 @@
                     <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">ФИО</th>
                     <th scope="col" class="W-32 px-2 py-2 text-left font-semibold">Группа</th>
                     <th scope="col" class="w-52 px-2 py-2 text-left font-semibold">Тип справки</th>
+                    <th scope="col" class="w-36 px-2 py-2 text-left font-semibold">Статус</th>
                     <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Учебный год</th>
                     <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Полугодие</th>
                     <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Дата создания заявки</th>
-                    <th scope="col" class="w-28 px-2 py-2 font-semibold">Действия</th>
+                    <th scope="col" class="w-28 px-2 py-2 font-semibold">Действия*</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,6 +51,21 @@
                         {{ __('Справка-вызов') }}
                         @endif
                     </td>
+                    <td class="w-36 px-2 py-2 text-left">
+                        @if($value->status == 1)
+                        <span class="text-orange-400 font-bold cursor-pointer">
+                            {{ __('В обработке') }}
+                        </span>
+                        @elseif($value->status == 2)
+                        <span class="text-sky-400 font-bold cursor-pointer">
+                            {{ __('Готова к выдаче') }}
+                        </span>
+                        @else
+                        <span class="text-red-400 font-bold cursor-pointer">
+                            {{ __('Отклонена') }}
+                        </span>
+                        @endif
+                    </td>
                     <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }}</td>
                     <td class="w-24 px-2 py-2 text-center">{{ $value->half_year }}</td>
                     <td class="w-40 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->created_at)->format('d.m.Y') }}</td>
@@ -48,7 +74,7 @@
                             <button wire:click="edit({{ $value->student_document_request_id }}, {{ $value->requester_id }}, {{ $value->document_type }})" class="w-9 bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-green-400 font-bold" title="" data-tippy-content="Подтверждение">
                                 <i class="fa-solid fa-check"></i>
                             </button>
-                            <button wire:click="print({{ $value->student_document_request_id }})" class="w-9 bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-blue-400 font-bold" title="" data-tippy-content="Печать справки">
+                            <button wire:click="print({{ $value->student_document_request_id }})" class="w-9 bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-blue-400 font-bold" title="" data-tippy-content="Печать справки" @if(is_null($value->confirmiter_id)) disabled @endif>
                                 <i class="fa-solid fa-print"></i>
                             </button>
                         </div>
@@ -147,34 +173,41 @@
                             @error('trainingPeriod') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <div class="flex flex-col">
-                            <label for="check-in-date" class="font-semibold">Период заезда с<span class="ml-1 text-red-400">*</span></label>
-                            <input wire:model="checkInDate" type="text" id="check-in-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            @error('checkInDate') <span class="text-red-500">{{ $message }}</span> @enderror
-                        </div>
-                        <div class="flex flex-col">
-                            <label for="check-out-date" class="font-semibold">Период заезда по<span class="ml-1 text-red-400">*</span></label>
-                            <input wire:model="checkOutDate" type="text" id="check-out-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            @error('checkOutDate') <span class="text-red-500">{{ $message }}</span> @enderror
-                        </div>
-                        <div class="flex flex-col">
-                            <label for="check-in-duration" class="font-semibold">Продолжительность<span class="ml-1 text-red-400">*</span></label>
-                            <input wire:model="checkInDuration" type="text" id="check-in-duration" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            @error('checkInDuration') <span class="text-red-500">{{ $message }}</span> @enderror
-                        </div>
-                    </div>
                     <div class="flex flex-col">
-                        <label for="employment-place" class="font-semibold">Место работы<span class="ml-1 text-red-500">*</span></label>
-                        <textarea wire:model="employmentPlace" name="employmentPlace" id="employment-place" cols="5" rows="2" placeholder="Укажите текущее место работы студента" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
-                        @error('employmentPlace') <span class="text-red-500">{{ $message }}</span> @enderror
+                        <div x-data="{ open: false }">
+                            <div @click="open = !open" class="flex items-center justify-between bg-gray-200 border p-4">
+                                <p>Для очно-заочной и заочной форм обучения</p>
+                                <span :class="open ? 'fa-chevron-down' : 'fa-chevron-up'" class="fas"></span>
+                            </div>
+                            <div x-show.transition.in.duration.800ms="open" class="border p-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                    <div class="flex flex-col">
+                                        <label for="check-in-date" class="font-semibold">Период заезда с<span class="ml-1 text-red-400">*</span></label>
+                                        <input wire:model="checkInDate" type="text" id="check-in-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                        @error('checkInDate') <span class="text-red-500">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <label for="check-out-date" class="font-semibold">Период заезда по<span class="ml-1 text-red-400">*</span></label>
+                                        <input wire:model="checkOutDate" type="text" id="check-out-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                        @error('checkOutDate') <span class="text-red-500">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <label for="check-in-duration" class="font-semibold">Продолжительность<span class="ml-1 text-red-400">*</span></label>
+                                        <input wire:model="checkInDuration" type="text" id="check-in-duration" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                        @error('checkInDuration') <span class="text-red-500">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+                                <div class="flex flex-col">
+                                    <label for="employment-place" class="font-semibold">Место работы<span class="ml-1 text-red-500">*</span></label>
+                                    <textarea wire:model="employmentPlace" name="employmentPlace" id="employment-place" cols="5" rows="2" placeholder="Укажите текущее место работы студента" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+                                    @error('employmentPlace') <span class="text-red-500">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col py-2">
+                            <label for="is-budget"> <input wire:model="isBudget" type="checkbox" name="isBudget" id="is-budget"> Обучается на бюджете</label>
+                        </div>
                     </div>
-
-                    <div class="flex flex-col py-2">
-                        <label for="is-budget"> <input wire:model="isBudget" type="checkbox" name="isBudget" id="is-budget"> Обучается на бюджете</label>
-                    </div>
-                </div>
             </x-slot>
 
             <x-slot name="footer">
