@@ -8,9 +8,12 @@ use App\Models\UpbringingEventReport;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class UpbringingManagement extends Component
 {
+    use WithPagination;
+    
     public $id = 0,
         $name = '',
         $description = '',

@@ -10,9 +10,12 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class StudentDocumentIssuances extends Component
 {
+    use WithPagination;
+
     public $id = 0,
         $studentDocumentRequestId = 0,
         $lastName = '',

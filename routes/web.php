@@ -36,6 +36,10 @@ Route::get('/upbringing-management', function () {
     return view('pages.upbringing-management');
 })->name('upbringing.management');
 
+Route::get('/youth-upbringing-event-info-report', function () {
+    return view('pages.youth-upbringing-event-info-report');
+})->name('youth.upbringing.event.info.report');
+
 Route::get('/qr-code-document-order-requests', function () {
     return view('qr-code-document-order-requests');
 })->name('qr.code.document.order.requests');

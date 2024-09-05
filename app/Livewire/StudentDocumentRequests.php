@@ -7,9 +7,12 @@ use App\Models\StudentDocumentIssuance;
 use App\Models\StudentDocumentRequest;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class StudentDocumentRequests extends Component
 {
+    use WithPagination;
+
     public $selectedDocumentType = 0, $employmentPlace = '';
     public $showModal = false;
 
