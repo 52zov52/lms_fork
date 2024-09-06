@@ -20,7 +20,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
                 
             $table->integer('status')->default(1);
-            $table->string('link_to_news')->nullable();
+            $table->string('link_to_news', 500)->nullable();
             $table->string('file_path', 2048)->nullable();
             $table->timestamps();
         });

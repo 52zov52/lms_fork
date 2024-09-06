@@ -9,6 +9,17 @@
         </button>
     </div>
 
+    <div x-data="{ open: false }" class="ml-4" @mouseleave="open = false">
+        <button @mouseover="open = true" class="border border-primary-900">Category</button>
+        <div x-show="open" class="h-80 bg-red-900">
+            <ul>
+                <li>Sub-category 1</li>
+                <li>Sub-category 2</li>
+            </ul>
+        </div>
+    </div>
+
+
     @if(!is_null($upbringingEvents) && count($upbringingEvents) != 0)
     <div class="border rounded border-slate-400/20">
         <table class="w-full text-xs lg:text-sm">
@@ -37,10 +48,18 @@
                     <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }}</td>
                     <td class="w-24 px-2 py-2 text-center">{{ $value->half_year }}</td>
                     <td class="w-44 px-2 py-2">
-                        -
+                        @if(!is_null($value->link_to_news))
+                        <a href="{{ $value->link_to_news }}" class="text-blue-400 hover:underline" target="_blank">{{ $value->link_to_news }}</a>
+                        @else
+                        <span>-</span>
+                        @endif
                     </td>
                     <td class="w-16 px-2 py-2 text-center">
-                        Скачать
+                        @if(!is_null($value->file_path))
+                        <a href="storage/{{ $value->file_path }}" class="text-blue-400 hover:underline" target="_blank">Смотреть</a>
+                        @else
+                        <span>-</span>
+                        @endif
                     </td>
                     <td class="w-32 px-2 py-2 text-center">
                         <div class="flex flex-row items-center justify-center space-x-1">
@@ -143,12 +162,13 @@
     async function showToast(methodName, param = null) {
         await @this.callMethod(methodName, param);;
 
-        const toast = document.getElementById("toast");
-        toast.className = toast.className.replace(" translate-x-full opacity-0", " translate-x-0 opacity-100");
+        if (toast.dataset.notificationType != '') {
+            toast.className = toast.className.replace(" translate-x-full opacity-0", " translate-x-0 opacity-100");
 
-        setTimeout(function() {
-            toast.className = toast.className.replace(" translate-x-0 opacity-100", " translate-x-full opacity-0");
-        }, 3500);
+            setTimeout(function() {
+                toast.className = toast.className.replace(" translate-x-0 opacity-100", " translate-x-full opacity-0");
+            }, 3500);
+        }
     }
 
     function confirmDestroy(id) {

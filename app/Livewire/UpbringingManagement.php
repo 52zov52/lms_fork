@@ -13,7 +13,7 @@ use Livewire\WithPagination;
 class UpbringingManagement extends Component
 {
     use WithPagination;
-    
+
     public $id = 0,
         $name = '',
         $description = '',
@@ -63,6 +63,7 @@ class UpbringingManagement extends Component
     public function render()
     {
         $upbringingEvents = UpbringingEvent::leftJoin('users_data', 'upbringing_events.user_id', '=', 'users_data.user_id')
+            ->join('upbringing_event_reports', 'upbringing_events.id', '=', 'upbringing_event_reports.upbringing_event_id')
             ->select(
                 'upbringing_events.id',
                 'upbringing_events.name',
@@ -70,7 +71,9 @@ class UpbringingManagement extends Component
                 'upbringing_events.date',
                 'upbringing_events.academic_year',
                 'upbringing_events.half_year',
-                DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio")
+                DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
+                'upbringing_event_reports.link_to_news',
+                'upbringing_event_reports.file_path'
             )
             ->paginate(50);
 
@@ -175,7 +178,7 @@ class UpbringingManagement extends Component
     private function resetFields()
     {
         $this->id = 0;
-        $this->name = 0;
+        $this->name = '';
         $this->description = '';
         $this->date = '';
         $this->academicYear = '';
