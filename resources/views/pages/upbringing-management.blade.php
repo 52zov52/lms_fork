@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Молодежная политика и воспитательная деятельность') }}
+        {{ __('Управление мероприятиями по ВР и МП') }}
     </x-slot>
 
     @livewire('upbringing-management')

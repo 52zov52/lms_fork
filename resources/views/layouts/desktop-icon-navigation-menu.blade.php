@@ -50,32 +50,33 @@
                 <i class="fa-solid fa-chalkboard-user fa-lg"></i>
             </a>
         </li>
-        <li class="{{ (request()->routeIs('my.groups')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
-            <a href="{{ route('my.groups') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
-                <i class="fa-solid fa-user-group fa-lg"></i>
-            </a>
-        </li>
         @endrole
+        @can('manage-educational-and-youth-policy-events')
         <li class="{{ (request()->routeIs('upbringing.management')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('upbringing.management') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
-                <i class="fa-solid fa-file-invoice fa-lg"></i>
+                <i class="fa-solid fa-briefcase fa-lg"></i>
             </a>
         </li>
+        @endcan
+        @can('show-educational-and-youth-policy-events')
         <li class="{{ (request()->routeIs('youth.upbringing.event.info.report')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('youth.upbringing.event.info.report') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
-                <i class="fa-solid fa-file-invoice fa-lg"></i>
+                <i class="fa-solid fa-business-time fa-lg"></i>
             </a>
         </li>
+        @endcan
+        @can('manage-student-document-requests')
         <li class="{{ (request()->routeIs('student.document.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('student.document.requests') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
-                <i class="fa-solid fa-file-invoice fa-lg"></i>
+                <i class="fa-solid fa-file-circle-plus fa-lg"></i>
             </a>
         </li>
         <li class="{{ (request()->routeIs('student.document.issuances')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('student.document.issuances') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
-                <i class="fa-solid fa-file-invoice fa-lg"></i>
+                <i class="fa-solid fa-folder-closed fa-lg"></i>
             </a>
         </li>
+        @endcan
         @can('access-to-contingent')
         <li class="{{ (request()->routeIs('contingent')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('contingent') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">

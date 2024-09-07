@@ -2,23 +2,14 @@
 
     <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
+    @can('add-educational-and-youth-policy-events')
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-end">
         <button wire:click="modalVisible(false)" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-left text-green-400 hover:text-white font-bold">
             <i class="fa-solid fa-circle-plus fa-lg"></i>
             Добавить запись
         </button>
     </div>
-
-    <div x-data="{ open: false }" class="ml-4" @mouseleave="open = false">
-        <button @mouseover="open = true" class="border border-primary-900">Category</button>
-        <div x-show="open" class="h-80 bg-red-900">
-            <ul>
-                <li>Sub-category 1</li>
-                <li>Sub-category 2</li>
-            </ul>
-        </div>
-    </div>
-
+    @endcan
 
     @if(!is_null($upbringingEvents) && count($upbringingEvents) != 0)
     <div class="border rounded border-slate-400/20">
@@ -34,7 +25,9 @@
                     <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Полугодие</th>
                     <th scope="col" class="w-44 px-2 py-2 text-left font-semibold">Ссылка</th>
                     <th scope="col" class="w-16 px-2 py-2 font-semibold">Файл(ы)</th>
+                    @can('add-educational-and-youth-policy-events')
                     <th scope="col" class="w-32 px-2 py-2 font-semibold">Действия</th>
+                    @endcan
                 </tr>
             </thead>
             <tbody>
@@ -61,6 +54,7 @@
                         <span>-</span>
                         @endif
                     </td>
+                    @can('add-educational-and-youth-policy-events')
                     <td class="w-32 px-2 py-2 text-center">
                         <div class="flex flex-row items-center justify-center space-x-1">
                             <button wire:click="modalVisible(true, {{ $value->id }})" class="w-9 bg-white hover:bg-orange-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-400 px-2 py-1 text-xs text-center text-orange-400 hover:text-white" title="" data-tippy-content="Редактировать">
@@ -71,6 +65,7 @@
                             </button>
                         </div>
                     </td>
+                    @endcan
                 </tr>
                 @endforeach
             </tbody>
@@ -98,7 +93,7 @@
                         @error('name') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                     </div>
                     <div class="flex flex-col">
-                        <label for="description" class="font-semibold">Комментарий</label>
+                        <label for="description" class="font-semibold">Описание</label>
                         <textarea wire:model="description" name="description" id="description" cols="5" rows="5" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
                     </div>
                     <div class="flex flex-col">

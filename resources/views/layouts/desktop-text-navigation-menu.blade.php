@@ -50,19 +50,33 @@
                 <span class="whitespace-nowrap">Цифровой профиль преподавателя</span>
             </a>
         </li>
-        <li class="{{ (request()->routeIs('my.groups')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
-            <a href="{{ route('my.groups') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
-                <span class="whitespace-nowrap">Мои группы</span>
+        @endrole
+        @can('manage-educational-and-youth-policy-events')
+        <li class="{{ (request()->routeIs('upbringing.management')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('upbringing.management') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
+                <span class="whitespace-nowrap">Управление мероприятиями по ВР и МП</span>
             </a>
         </li>
-        @endrole
-        @role('Student')
-        <li class="{{ (request()->routeIs('document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
-            <a href="{{ route('document.order.requests') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
-                <span class="whitespace-nowrap">Заказ документов (справок)</span>
+        @endcan
+        @can('show-educational-and-youth-policy-events')
+        <li class="{{ (request()->routeIs('youth.upbringing.event.info.report')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('youth.upbringing.event.info.report') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
+                <span class="whitespace-nowrap">Мероприятия по ВР и МП</span>
             </a>
         </li>
-        @endrole
+        @endcan
+        @can('manage-student-document-requests')
+        <li class="{{ (request()->routeIs('student.document.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.document.requests') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
+                <span class="whitespace-nowrap">Заявки на справки</span>
+            </a>
+        </li>
+        <li class="{{ (request()->routeIs('student.document.issuances')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.document.issuances') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
+                <span class="whitespace-nowrap">Обработка заявок на справки</span>
+            </a>
+        </li>
+        @endcan
         @can('access-to-contingent')
         <li class="{{ (request()->routeIs('contingent')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('contingent') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
