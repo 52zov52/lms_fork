@@ -6,7 +6,8 @@ use Carbon\Carbon;
 
 class AcademicYearController extends Controller
 {
-    public static function getAcademicYear() : string
+    //Получение текущего учебного года в виде строки вида 0000/0000
+    public static function getAcademicYear(): string
     {
         $month = (int)Carbon::now()->format('m');
 
@@ -17,7 +18,8 @@ class AcademicYearController extends Controller
         }
     }
 
-    public static function getHalfYear() : int
+    //Получение текущего полугодия
+    public static function getHalfYear(): int
     {
         $month = (int)Carbon::now()->format('m');
 
@@ -25,6 +27,19 @@ class AcademicYearController extends Controller
             return 2;
         } else {
             return 1;
+        }
+    }
+
+    //Получение текущего года
+    public static function getYear(): int
+    {
+        $currentYear = now()->year;
+        $currentMonth = now()->month;
+
+        if ($currentMonth >= 9 && $currentMonth <= 12) {
+            return $currentYear = $currentYear;
+        } else {
+            return $currentYear = now()->subYear()->year;
         }
     }
 }

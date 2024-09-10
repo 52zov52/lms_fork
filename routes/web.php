@@ -32,6 +32,13 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+//Routes для роли Student
+Route::group(['prefix' => 'student'], function () {
+    Route::get('/my-disciplines', function () {
+        return view('pages.student.my-disciplines');
+    })->name('student.my.disciplines');
+});
+
 Route::get('/upbringing-management', function () {
     return view('pages.upbringing-management');
 })->name('upbringing.management');
