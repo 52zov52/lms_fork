@@ -52,6 +52,9 @@
                         <button wire:click="printDefenseMinistryForm10({{ $item->user_id }})" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Скачать форму № 10">
                             <i class="fa-solid fa-download"></i>
                         </button>
+                        <button wire:click="getIndividualStudentGradeReport({{ $item->user_id }})" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Ведомость индивидуальных оценок">
+                            <i class="fa-solid fa-list"></i>
+                        </button>
                     </td>
                     @endcan
                 </tr>

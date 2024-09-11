@@ -55,6 +55,11 @@ class Contingent extends Component
         }
     }
 
+    public function getIndividualStudentGradeReport($userId) 
+    {
+        return redirect()->route('individual.student.grade.report', ['userId' => $userId]);
+    }
+
     public function printDefenseMinistryForm10($userId)
     {
         return redirect()->route('print.defense.ministry.form.10', ['userId' => $userId]);

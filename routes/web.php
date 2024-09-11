@@ -6,6 +6,7 @@ use App\Http\Controllers\PrintConfirmedDocumentRequestsController;
 use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\Report\IndividualStudentGradeController;
 use App\Http\Controllers\Reports\PrintAdmissionCampaignController;
 use App\Http\Controllers\Reports\PrintApplicantAverageScoreController;
 use App\Http\Controllers\Reports\PrintDefenseMinistryForm10Controller;
@@ -31,6 +32,9 @@ use App\Http\Controllers\StudyPlanController;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+//Печать индивидуальных оценок студента по ИД
+Route::get('/individual-student-grade-report/{userId}', [IndividualStudentGradeController::class, 'print'])->name('individual.student.grade.report');
 
 //Routes для роли Student
 Route::group(['prefix' => 'student'], function () {

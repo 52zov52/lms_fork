@@ -12,7 +12,7 @@
         </li>
         <li class="{{ (request()->routeIs('student.my.disciplines')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('student.my.disciplines') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
-                <i class="fa-solid fa-book fa-lg"></i>
+                <i class="fa-solid fa-list fa-lg"></i>
             </a>
         </li>
         <li class="{{ (request()->routeIs('elibrary')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
