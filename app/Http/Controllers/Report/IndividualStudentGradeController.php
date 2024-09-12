@@ -22,7 +22,6 @@ class IndividualStudentGradeController extends Controller
             ->select(
                 'student_grades.id',
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
-                DB::raw("(SELECT ticket_number FROM student_ticket_numbers WHERE user_id = student_grades.user_id ORDER BY id DESC LIMIT 1) as ticket_number"),
                 'disciplines.name as discipline_name',
                 'work_study_plan_courses_in_semesters.semester_number',
                 'control_types.name as control_name',
@@ -32,7 +31,10 @@ class IndividualStudentGradeController extends Controller
             ->get()->toArray();
 
         $filename = time() . '.pdf';
-        $pdf = PDF::loadView('reports.pdf.individual-student-grade', ['data' => $this->groupStudentGradesBySemester($studentGrades)]);
+        $pdf = PDF::loadView('reports.pdf.individual-student-grade', [
+            'fio' => $studentGrades[0]['fio'],
+            'studentGrades' => $this->groupStudentGradesBySemester($studentGrades)
+        ]);
 
         return $pdf->download($filename);
     }
