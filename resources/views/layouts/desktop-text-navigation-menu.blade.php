@@ -20,6 +20,18 @@
                 <span class="whitespace-nowrap">Расписание</span>
             </a>
         </li>
+        @role('Student')
+        <li class="{{ (request()->routeIs('student.my.disciplines')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.my.disciplines') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
+                <span class="whitespace-nowrap">Мои дисциплины</span>
+            </a>
+        </li>
+        <li class="{{ (request()->routeIs('student.document.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.document.requests') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
+                <span class="whitespace-nowrap">Заявки на справки</span>
+            </a>
+        </li>
+        @endrole
         @can('access-to-admission-campaign')
         <li class="{{ (request()->routeIs('admission.campaign')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('admission.campaign') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
@@ -66,11 +78,6 @@
         </li>
         @endcan
         @can('manage-student-document-requests')
-        <li class="{{ (request()->routeIs('student.document.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
-            <a href="{{ route('student.document.requests') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
-                <span class="whitespace-nowrap">Заявки на справки</span>
-            </a>
-        </li>
         <li class="{{ (request()->routeIs('student.document.issuances')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('student.document.issuances') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
                 <span class="whitespace-nowrap">Обработка заявок на справки</span>

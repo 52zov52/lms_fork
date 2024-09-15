@@ -88,7 +88,7 @@ class ContingentReportController extends Controller
     public function generateContingentReport()
     {
         $contingents = new ContingentController();
-        $groupId = $contingents->groupId;
+        $groupId = $contingents->getGroupIds();
 
         $data = DB::table('groups')
             ->leftJoin('group_student', 'groups.id', '=', 'group_student.group_id')
@@ -480,7 +480,7 @@ class ContingentReportController extends Controller
     public function generateContingentByAgeAndGenderReport()
     {
         $contingents = new ContingentController();
-        $groupId = $contingents->groupId;
+        $groupId = $contingents->getGroupIds();
 
         $data = DB::table('groups')
             ->leftJoin('group_student', 'groups.id', '=', 'group_student.group_id')
@@ -756,7 +756,7 @@ class ContingentReportController extends Controller
     public function generateContingentByAgeAndGenderWithoutTeachingFromReport()
     {
         $contingents = new ContingentController();
-        $groupId = $contingents->groupId;
+        $groupId = $contingents->getGroupIds();
 
         $data = DB::table('groups')
             ->leftJoin('group_student', 'groups.id', '=', 'group_student.group_id')

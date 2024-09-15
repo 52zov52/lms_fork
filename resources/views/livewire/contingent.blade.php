@@ -35,9 +35,7 @@
                     <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">ФИО</th>
                     <th scope="col" class="w-64 px-2 py-2 font-semibold">№ зачетки</th>
                     <th scope="col" class="w-64 px-2 py-2 font-semibold">Статус</th>
-                    @can('access-to-print-defense-ministry-form-10')
                     <th scope="col" class="w-32 px-2 py-2 font-semibold">Действия</th>
-                    @endcan
                 </tr>
             </thead>
             <tbody>
@@ -47,16 +45,18 @@
                     <td class="w-auto px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
                     <td class="w-64 px-2 py-2 text-center">{{ $item->ticket_number }}</td>
                     <td class="w-64 px-2 py-2 text-center">{{ $item->state_name }}</td>
-                    @can('access-to-print-defense-ministry-form-10')
                     <td class="w-32 px-2 py-2 text-center">
+                        @can('access-to-print-defense-ministry-form-10')
                         <button wire:click="printDefenseMinistryForm10({{ $item->user_id }})" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Скачать форму № 10">
                             <i class="fa-solid fa-download"></i>
                         </button>
+                        @endcan
+                        @can('access-to-print-individual-student-grade-report')
                         <button wire:click="getIndividualStudentGradeReport({{ $item->user_id }})" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Ведомость индивидуальных оценок">
                             <i class="fa-solid fa-list"></i>
                         </button>
+                        @endcan
                     </td>
-                    @endcan
                 </tr>
                 @endforeach
             </tbody>

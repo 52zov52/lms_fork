@@ -10,11 +10,6 @@
                 <i class="fa-solid fa-graduation-cap fa-lg"></i>
             </a>
         </li>
-        <li class="{{ (request()->routeIs('student.my.disciplines')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
-            <a href="{{ route('student.my.disciplines') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
-                <i class="fa-solid fa-list fa-lg"></i>
-            </a>
-        </li>
         <li class="{{ (request()->routeIs('elibrary')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('elibrary') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
                 <i class="fa-solid fa-book fa-lg"></i>
@@ -25,6 +20,18 @@
                 <i class="fa-solid fa-calendar-days fa-lg"></i>
             </a>
         </li>
+        @role('Student')
+        <li class="{{ (request()->routeIs('student.my.disciplines')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.my.disciplines') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
+                <i class="fa-solid fa-list fa-lg"></i>
+            </a>
+        </li>
+        <li class="{{ (request()->routeIs('student.document.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.document.requests') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
+                <i class="fa-solid fa-file-circle-plus fa-lg"></i>
+            </a>
+        </li>
+        @endrole
         @can('access-to-admission-campaign')
         <li class="{{ (request()->routeIs('admission.campaign')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('admission.campaign') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
@@ -71,11 +78,6 @@
         </li>
         @endcan
         @can('manage-student-document-requests')
-        <li class="{{ (request()->routeIs('student.document.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
-            <a href="{{ route('student.document.requests') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
-                <i class="fa-solid fa-file-circle-plus fa-lg"></i>
-            </a>
-        </li>
         <li class="{{ (request()->routeIs('student.document.issuances')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('student.document.issuances') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
                 <i class="fa-solid fa-folder-closed fa-lg"></i>

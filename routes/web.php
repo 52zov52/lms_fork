@@ -33,24 +33,6 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-//Печать индивидуальных оценок студента по ИД
-Route::get('/individual-student-grade-report/{userId}', [IndividualStudentGradeController::class, 'print'])->name('individual.student.grade.report');
-
-//Routes для роли Student
-Route::group(['prefix' => 'student'], function () {
-    Route::get('/my-disciplines', function () {
-        return view('pages.student.my-disciplines');
-    })->name('student.my.disciplines');
-});
-
-Route::get('/upbringing-management', function () {
-    return view('pages.upbringing-management');
-})->name('upbringing.management');
-
-Route::get('/youth-upbringing-event-info-report', function () {
-    return view('pages.youth-upbringing-event-info-report');
-})->name('youth.upbringing.event.info.report');
-
 Route::get('/qr-code-document-order-requests', function () {
     return view('qr-code-document-order-requests');
 })->name('qr.code.document.order.requests');
@@ -72,6 +54,24 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.schedule');
     })->name('schedule');
 
+    //Печать индивидуальных оценок студента по ИД
+    Route::get('/individual-student-grade-report/{userId}', [IndividualStudentGradeController::class, 'print'])->name('individual.student.grade.report');
+
+    //Routes для роли Student
+    Route::group(['prefix' => 'student'], function () {
+        Route::get('/my-disciplines', function () {
+            return view('pages.student.my-disciplines');
+        })->name('student.my.disciplines');
+    });
+
+    Route::get('/upbringing-management', function () {
+        return view('pages.upbringing-management');
+    })->name('upbringing.management');
+
+    Route::get('/youth-upbringing-event-info-report', function () {
+        return view('pages.youth-upbringing-event-info-report');
+    })->name('youth.upbringing.event.info.report');
+
     Route::get('/admission-campaign', function () {
         return view('pages.admission-campaign');
     })->name('admission.campaign');
@@ -91,7 +91,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/operating-activity', function () {
             return view('pages.operating-activity');
         })->name('operating.activity');
-        
+
         Route::get('/decisions-rectorate', function () {
             return view('pages.decisions-rectorate');
         })->name('decisions.rectorate');
@@ -100,37 +100,37 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.decisions-council');
         })->name('decisions.council');
 
-        Route::get('/print-decisions/{category}/{dateAndNumberDecision}',[PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
+        Route::get('/print-decisions/{category}/{dateAndNumberDecision}', [PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
     });
 
     Route::group(['middleware' => ['role:Teacher']], function () {
-        Route::get('/digital-teacher-profile', function() {
+        Route::get('/digital-teacher-profile', function () {
             return view('pages.digital-teacher-profile');
         })->name('digital.teacher.profile');
 
-        Route::get('/academic-workload', function() {
+        Route::get('/academic-workload', function () {
             return view('pages.academic-workload');
         })->name('academic.workload');
 
-        Route::get('/my-publications', function() {
+        Route::get('/my-publications', function () {
             return view('pages.my-publications');
         })->name('my.publications');
 
         Route::get('/print-my-publications', [PrintPublicationController::class, 'printMyPublications'])->name('print.my.publications');
 
-        Route::get('/list-publications', function() {
+        Route::get('/list-publications', function () {
             return view('pages.list-publications');
         })->name('list.publications');
 
-        Route::get('/my-groups', function() {
+        Route::get('/my-groups', function () {
             return view('pages.my-groups');
         })->name('my.groups');
 
-        Route::get('/teacher-courses/{groupId}', function($groupId) {
+        Route::get('/teacher-courses/{groupId}', function ($groupId) {
             return view('pages.teacher-courses', compact('groupId'));
         })->name('teacher.courses');
 
-        Route::get('/e-journal/{courseTeacherId}', function($courseTeacherId) {
+        Route::get('/e-journal/{courseTeacherId}', function ($courseTeacherId) {
             return view('pages.e-journal', compact('courseTeacherId'));
         })->name('e.journal');
 
@@ -143,18 +143,16 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     })->name('document.order.requests');
 
     //Url для сервиса заказа справок
-    Route::get('/student-document-requests', function() {
+    Route::get('/student-document-requests', function () {
         return view('pages.student-document-requests');
     })->name('student.document.requests');
 
     //Url для сервиса обработки заказов справок
-    Route::get('/student-document-issuances', function() {
+    Route::get('/student-document-issuances', function () {
         return view('pages.student-document-issuances');
     })->name('student.document.issuances');
 
-    Route::group(['middleware' => ['role:Student']], function () {
-        
-    });
+    Route::group(['middleware' => ['role:Student']], function () {});
 
     Route::group(['middleware' => ['permission:access-to-student-requests-for-certificates-full|access-to-student-requests-for-certificates-spo|access-to-student-requests-for-certificates-vo']], function () {
         Route::get('/document-retrieval-requests', function () {
@@ -178,8 +176,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::get('/print-defense-ministry-form-10/{userId}', [PrintDefenseMinistryForm10Controller::class, 'print'])->name('print.defense.ministry.form.10');
 
-    Route::group(['middleware' => 'permission:access-to-data-on-students-academic-leaves'], function() {
-        Route::get('/academic-leave-calendar', function() {
+    Route::group(['middleware' => 'permission:access-to-data-on-students-academic-leaves'], function () {
+        Route::get('/academic-leave-calendar', function () {
             return view('pages.academic-leave-calendar');
         })->name('academic.leave.calendar');
     });
@@ -196,7 +194,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.academic-leave.form-z01', ['user_id' => $user_id, 'group_id' => $group_id]);
     })->name('form.z01');
 
-        Route::get('/form-claim-template-dp01/{user_id}/{group_id}', function ($user_id, $group_id) {
+    Route::get('/form-claim-template-dp01/{user_id}/{group_id}', function ($user_id, $group_id) {
         return view('pages.academic-leave.form-claim-template-dp01', ['user_id' => $user_id, 'group_id' => $group_id]);
     })->name('form.claim.template.dp01');
 
