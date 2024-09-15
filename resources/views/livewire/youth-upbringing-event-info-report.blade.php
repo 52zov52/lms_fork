@@ -23,7 +23,7 @@
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="w-auto px-2 py-2">{{ $value->name }}</td>
                     <td class="w-56 px-2 py-2">{{ $value->description }}</td>
-                    <td class="w-16 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->data)->format('d.m.Y') }}</td>
+                    <td class="w-16 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->date)->format('d.m.Y') }}</td>
                     <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }}</td>
                     <td class="w-24 px-2 py-2 text-center">{{ $value->half_year }}</td>
                     <td class="w-44 px-2 py-2">
