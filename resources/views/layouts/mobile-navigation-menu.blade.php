@@ -31,6 +31,12 @@
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Мои дисциплины</span>
             </a>
         </li>
+        <li class="{{ (request()->routeIs('student.my.grades')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.my.grades') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
+                <i class="fa-solid fa-shapes fa-lg"></i>
+                <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Мои успеваемость</span>
+            </a>
+        </li>
         <li class="{{ (request()->routeIs('student.document.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <a href="{{ route('student.document.requests') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
                 <i class="fa-solid fa-file-circle-plus fa-lg"></i>

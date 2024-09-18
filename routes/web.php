@@ -62,6 +62,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/my-disciplines', function () {
             return view('pages.student.my-disciplines');
         })->name('student.my.disciplines');
+
+        Route::get('/my-grades', function () {
+            return view('pages.student.my-grades');
+        })->name('student.my.grades');
     });
 
     Route::get('/upbringing-management', function () {
