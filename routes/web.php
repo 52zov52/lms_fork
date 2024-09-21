@@ -7,6 +7,7 @@ use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\Report\IndividualStudentGradeController;
+use App\Http\Controllers\Report\SptController;
 use App\Http\Controllers\Reports\PrintAdmissionCampaignController;
 use App\Http\Controllers\Reports\PrintApplicantAverageScoreController;
 use App\Http\Controllers\Reports\PrintDefenseMinistryForm10Controller;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Reports\PrintInterimAssessmentController;
 use App\Http\Controllers\Reports\PrintScienceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleReportController;
+use App\Http\Controllers\Student\SptConsentStatusController;
 use App\Http\Controllers\StudyPlanController;
 
 /*
@@ -54,6 +56,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.schedule');
     })->name('schedule');
 
+    Route::get('/generate-unconfirmed-consents', [SptConsentStatusController::class, 'generateUnconfirmedConsents']);
+    Route::get('/download-informed-consent/{id}', [SptConsentStatusController::class, 'downloadInformedConsent'])->name('download.informed.consent');
+
+    //Отчеты
+    Route::get('/generate-spt-report', [SptController::class, 'getStudentConsentStatuses'])->name('generate.spt.report');
+
     //Печать индивидуальных оценок студента по ИД
     Route::get('/individual-student-grade-report/{userId}', [IndividualStudentGradeController::class, 'print'])->name('individual.student.grade.report');
 
@@ -66,6 +74,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/my-grades', function () {
             return view('pages.student.my-grades');
         })->name('student.my.grades');
+
+        Route::get('/spt-consent-status', function () {
+            return view('pages.student.spt-consent-status');
+        })->name('student.spt.consent.status');
     });
 
     Route::get('/upbringing-management', function () {

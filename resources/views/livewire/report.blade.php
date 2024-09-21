@@ -30,6 +30,12 @@
         <li><a wire:click="generateContingentByAgeAndGenderWithoutTeachingFromReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней обучения</a></li>
     </ul>
     @endcan
+    @can('access-to-spt')
+    <h2 class="mt-2 font-semibold">Социально-психологическое тестирование:</h2>
+    <ul class="list-disc px-4">
+        <li><a wire:click="generateSptReport" href="#" class="text-blue-500 hover:underline">Список студентов с указанием статусов подтверждения согласия на СПТ</a></li>
+    </ul>
+    @endcan
 
     <!-- Modal dialog schedule by teacher -->
     <x-dialog-modal wire:model="isTeacherModalVisible">

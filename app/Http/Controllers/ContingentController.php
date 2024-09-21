@@ -20,6 +20,19 @@ class ContingentController extends Controller
             ->get()->toArray());
     }
 
+    public function getGroupIdsByTeachingForm($teachingForm) : array
+    {
+        return $this->extractGroupIds(StudyThread::join('study_thread_subgroups', 'study_threads.id', '=', 'study_thread_subgroups.study_thread_id')
+            ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
+            ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
+            ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
+            ->where('study_threads.year', '=', 2024)
+            ->where('work_study_plans.teaching_form_id', '=', $teachingForm)
+            ->select('groups.id')
+            ->distinct()
+            ->get()->toArray());
+    }
+
     public function getContingent($groupId): object
     {
         return GroupStudent::join('users_data', 'group_student.user_id', '=', 'users_data.user_id')
