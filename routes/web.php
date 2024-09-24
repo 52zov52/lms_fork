@@ -78,6 +78,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/spt-consent-status', function () {
             return view('pages.student.spt-consent-status');
         })->name('student.spt.consent.status');
+
+        Route::get('/social-passport', function () {
+            return view('pages.student.social-passport');
+        })->name('student.social.passport');
     });
 
     Route::get('/upbringing-management', function () {

@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class SocialPassport extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'last_name',
+        'first_name',
+        'middle_name',
+        'birthday',
+        'registered_address',
+        'housing_conditions',
+        'cohabitants',
+        'family_composition',
+        'number_of_children',
+        'father_last_name', 
+        'father_first_name', 
+        'father_middle_name',
+        'father_workplace',
+        'father_phone',
+        'mother_last_name',
+        'mother_first_name',
+        'mother_middle_name',
+        'mother_workplace',
+        'mother_phone',
+        'father_disability',
+        'mother_disability',
+        'category'
+    ];
+}
