@@ -30,18 +30,19 @@ return new class extends Migration
             $table->string('father_first_name', 50)->nullable();
             $table->string('father_middle_name', 50)->nullable();
             $table->string('father_workplace')->nullable();
-            $table->string('father_phone')->nullable();
+            $table->string('father_phone', 20)->nullable();
             $table->string('mother_last_name', 50)->nullable();
             $table->string('mother_first_name', 50)->nullable();
             $table->string('mother_middle_name', 50)->nullable();
             $table->string('mother_workplace')->nullable();
-            $table->string('mother_phone')->nullable();
+            $table->string('mother_phone', 20)->nullable();
             $table->boolean('father_disability')->default(false);
             $table->boolean('mother_disability')->default(false);
-            $table->json('category');
+            $table->json('child_categories')->nullable();
+            $table->integer('questionnaire_status')->default(0);
             $table->unsignedBigInteger('confirmiter_id')->nullable();
             $table->foreign('confirmiter_id')->references('id')->on('users')->onDelete('cascade');
-            $table->char('signature', 64)->nullable();
+            $table->char('confirmiter_signature', 64)->nullable();
             $table->timestamps();
         });
     }

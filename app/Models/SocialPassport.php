@@ -32,6 +32,9 @@ class SocialPassport extends Model
         'mother_phone',
         'father_disability',
         'mother_disability',
-        'category'
+        'child_categories',
+        'questionnaire_status',
+        'confirmiter_id',
+        'confirmiter_signature'
     ];
 }

@@ -32,7 +32,8 @@ class SocialPassport extends Component
         $motherPhone = '',
         $fatherDisability = false,
         $motherDisability = false,
-        $categories = [];
+        $childCategories = [],
+        $questionnaireStatus = 0;
 
     public function render()
     {
@@ -45,7 +46,25 @@ class SocialPassport extends Component
 
         $socialPassport = ModelsSocialPassport::where('user_id', '=', Auth::user()->id)->first();
         if (!is_null($socialPassport)) {
-            $this->categories = json_decode($socialPassport->category, true);
+            $this->registeredAddress = $socialPassport->registered_address;
+            $this->housingConditions = $socialPassport->housing_conditions;
+            $this->cohabitants = json_decode($socialPassport->cohabitants, true);
+            $this->familyComposition = $socialPassport->family_composition;
+            $this->numberOfChildren = $socialPassport->number_of_children;
+            $this->fatherLastName = $socialPassport->father_last_name;
+            $this->fatherFirstName = $socialPassport->father_first_name;
+            $this->fatherMiddleName = $socialPassport->father_middle_name;
+            $this->fatherWorkplace = $socialPassport->father_workplace;
+            $this->fatherPhone = $socialPassport->father_phone;
+            $this->motherLastName = $socialPassport->mother_last_name;
+            $this->motherFirstName = $socialPassport->mother_first_name;
+            $this->motherMiddleName = $socialPassport->mother_middle_name;
+            $this->motherWorkplace = $socialPassport->mother_workplace;
+            $this->motherPhone = $socialPassport->mother_phone;
+            $this->fatherDisability = $socialPassport->father_disability;
+            $this->motherDisability = $socialPassport->mother_disability;
+            $this->childCategories = json_decode($socialPassport->child_categories, true);
+            $this->questionnaireStatus = $socialPassport->questionnaire_status;
         }
 
         return view('livewire.student.social-passport');
@@ -67,8 +86,43 @@ class SocialPassport extends Component
         }
     }
 
+    public function backToEdit()
+    {
+        $socialPassport = ModelsSocialPassport::where('user_id', '=', Auth::user()->id)->first();
+
+        if (!is_null($socialPassport)) {
+            $socialPassport->questionnaire_status = 0;
+            $socialPassport->save();
+
+            session()->flash('type', 'success');
+            session()->flash('message', 'Запись успешно обновлена!');
+        } else {
+            session()->flash('type', 'error');
+            session()->flash('message', 'Ошибка обновления записи!');
+        }
+    }
+
     private function store()
     {
+        $this->validate([
+            'registeredAddress' => 'required|string|max:1500',
+            'housingConditions' => 'required',
+            'cohabitants' => 'required|array',
+            'familyComposition' => 'required',
+            'numberOfChildren' => 'required|integer|min:1',
+            'fatherLastName' => 'string|max:50',
+            'fatherFirstName' => 'string|max:50',
+            'fatherMiddleName' => 'string|max:50',
+            'fatherWorkplace' => 'string|max:255',
+            'fatherPhone' => 'string|max:20',
+            'motherLastName' => 'string|max:50',
+            'motherFirstName' => 'string|max:50',
+            'motherMiddleName' => 'string|max:50',
+            'motherWorkplace' => 'string|max:255',
+            'motherPhone' => 'string|max:20',
+            'childCategories' => 'array'
+        ]);
+
         ModelsSocialPassport::create([
             'user_id' => Auth::user()->id,
             'last_name' => $this->lastName,
@@ -77,7 +131,7 @@ class SocialPassport extends Component
             'birthday' => Carbon::parse($this->birthday)->format('Y-m-d'),
             'registered_address' => $this->registeredAddress,
             'housing_conditions' => $this->housingConditions,
-            'cohabitants' => $this->cohabitants,
+            'cohabitants' => json_encode($this->cohabitants),
             'family_composition' => $this->familyComposition,
             'number_of_children' => $this->numberOfChildren,
             'father_last_name' => $this->fatherLastName,
@@ -92,7 +146,8 @@ class SocialPassport extends Component
             'mother_phone' => $this->motherPhone,
             'father_disability' => $this->fatherDisability,
             'mother_disability' => $this->motherDisability,
-            'category' => $this->categories
+            'child_categories' => json_encode($this->childCategories),
+            'questionnaire_status' => 1
         ]);
 
         session()->flash('type', 'success');
@@ -101,6 +156,25 @@ class SocialPassport extends Component
 
     private function update($id)
     {
+        $this->validate([
+            'registeredAddress' => 'required|string|max:1500',
+            'housingConditions' => 'required',
+            'cohabitants' => 'required|array',
+            'familyComposition' => 'required',
+            'numberOfChildren' => 'required|integer|min:1',
+            'fatherLastName' => 'string|max:50',
+            'fatherFirstName' => 'string|max:50',
+            'fatherMiddleName' => 'string|max:50',
+            'fatherWorkplace' => 'string|max:255',
+            'fatherPhone' => 'string|max:20',
+            'motherLastName' => 'string|max:50',
+            'motherFirstName' => 'string|max:50',
+            'motherMiddleName' => 'string|max:50',
+            'motherWorkplace' => 'string|max:255',
+            'motherPhone' => 'string|max:20',
+            'childCategories' => 'array'
+        ]);
+
         $socialPassport = ModelsSocialPassport::findOrFail($id);
         $socialPassport->registered_address = $this->registeredAddress;
         $socialPassport->housing_conditions = $this->housingConditions;
@@ -119,7 +193,8 @@ class SocialPassport extends Component
         $socialPassport->mother_phone = $this->motherPhone;
         $socialPassport->father_disability = $this->fatherDisability;
         $socialPassport->mother_disability = $this->motherDisability;
-        $socialPassport->category = $this->categories;
+        $socialPassport->child_categories = $this->childCategories;
+        $socialPassport->questionnaire_status = 1;
         $socialPassport->save();
 
         session()->flash('type', 'success');

@@ -41,6 +41,11 @@
                 <span class="whitespace-nowrap">Заявки на справки</span>
             </a>
         </li>
+        <li class="{{ (request()->routeIs('student.social.passport')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.social.passport') }}" class="w-10 h-8 inline-flex items-center px-2 py-3">
+                <span class="whitespace-nowrap">Социальный паспорт обучающегося</span>
+            </a>
+        </li>
         @endrole
         @can('access-to-admission-campaign')
         <li class="{{ (request()->routeIs('admission.campaign')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">

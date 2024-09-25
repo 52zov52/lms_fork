@@ -49,6 +49,12 @@
                 <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Заявки на справки</span>
             </a>
         </li>
+        <li class="{{ (request()->routeIs('student.social.passport')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <a href="{{ route('student.social.passport') }}" class="space-x-2 px-2 py-3" :class="{ 'w-10 h-8 flex items-center justify-center': !isExpandSideBar && !isSideBarOpen, 'inline-flex items-baseline': isExpandSideBar || isSideBarOpen}">
+                <i class="fa-solid fa-passport fa-lg"></i>
+                <span x-show="isExpandSideBar || isSideBarOpen" class="whitespace-nowrap">Социальный паспорт обучающегося</span>
+            </a>
+        </li>
         @endrole
         @can('access-to-admission-campaign')
         <li class="{{ (request()->routeIs('admission.campaign')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
