@@ -100,7 +100,7 @@
         </div>
         <div class="flex flex-col">
             <label for="familyComposition" class="font-semibold">Состав семьи</label>
-            <select wire:model="familyComposition" name="familyComposition" id="familyComposition" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            <select wire:model="familyComposition" name="familyComposition" id="familyComposition" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
                 <option value="">Выберите состав семьи</option>
                 <option value="Полная семья">Полная семья</option>
                 <option value="Неполная семья">Неполная семья</option>
