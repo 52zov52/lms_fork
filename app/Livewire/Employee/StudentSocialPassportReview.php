@@ -52,7 +52,7 @@ class StudentSocialPassportReview extends Component
 
     public function download($userId) 
     {
-        
+        return redirect()->route('download.student.social.passport', ['userId' => $userId]);
     }
 
     public function confirm($userId)

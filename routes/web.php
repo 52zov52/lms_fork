@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContingentReportController;
+use App\Http\Controllers\Employee\StudentSocialPassportReviewController;
 use App\Http\Controllers\OperatingActivityReportController;
 use App\Http\Controllers\PrintConfirmedDocumentRequestsController;
 use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
@@ -67,6 +68,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/student-social-passport-review', function () {
             return view('pages.employee.student-social-passport-review');
         })->name('employee.student.social.passport.review');
+
+        Route::get('/download-student-social-passport/{userId}', [StudentSocialPassportReviewController::class, 'downloadStudentSocialPassport'])->name('download.student.social.passport');
     });
 
     //Печать индивидуальных оценок студента по ИД
