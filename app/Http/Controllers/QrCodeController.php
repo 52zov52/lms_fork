@@ -12,7 +12,7 @@ class QrCodeController extends Controller
             function () {
                 echo QrCode::size(200)
                     ->format('png')
-                    ->generate('https://lms.iubip.ru/qr-code-document-verifications/27ZFSPDg');
+                    ->generate('https://lms.iubip.ru/qr-code-document-verifications/E9BjX53W');
             },
             'qr-code.png',
             [

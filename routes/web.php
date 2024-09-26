@@ -62,6 +62,13 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     //Отчеты
     Route::get('/generate-spt-report', [SptController::class, 'getStudentConsentStatuses'])->name('generate.spt.report');
 
+    //Routes для роли Employee
+    Route::group(['prefix' => 'employee'], function () {
+        Route::get('/student-social-passport-review', function () {
+            return view('pages.employee.student-social-passport-review');
+        })->name('employee.student.social.passport.review');
+    });
+
     //Печать индивидуальных оценок студента по ИД
     Route::get('/individual-student-grade-report/{userId}', [IndividualStudentGradeController::class, 'print'])->name('individual.student.grade.report');
 

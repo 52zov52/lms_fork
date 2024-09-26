@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Student;
 
-use App\Http\Controllers\Student\SocialPassportController;
 use App\Models\SocialPassport as ModelsSocialPassport;
+use App\Models\UserData;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -37,7 +37,9 @@ class SocialPassport extends Component
 
     public function render()
     {
-        $userData = SocialPassportController::getFio();
+        $userData = UserData::select('last_name', 'first_name', 'middle_name', 'birthday')
+            ->where('user_id', '=', Auth::user()->id)
+            ->first()->toArray();
 
         $this->lastName = $userData['last_name'];
         $this->firstName = $userData['first_name'];

@@ -8,9 +8,9 @@
             @if($questionnaireStatus == 0)
             <span class="text-sky-400 font-bold">На редактировании</span>
             @elseif($questionnaireStatus == 1)
-            <span class="text-orange-400 font-bold">На утверждении</span>
+            <span class="text-orange-400 font-bold">На подтверждении</span>
             @else
-            <span class="text-green-400 font-bold">Утверждена</span>
+            <span class="text-green-400 font-bold">Подтверждена</span>
             @endif
         </div>
 
@@ -234,12 +234,6 @@
             setTimeout(function() {
                 toast.className = toast.className.replace(" translate-x-0 opacity-100", " translate-x-full opacity-0");
             }, 3500);
-        }
-    }
-
-    function confirmDestroy() {
-        if (confirm('Вы уверены, что хотите подтвердить согласие на СПТ?')) {
-            showToast('destroy');
         }
     }
 </script>
