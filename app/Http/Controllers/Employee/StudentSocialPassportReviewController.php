@@ -20,7 +20,7 @@ class StudentSocialPassportReviewController extends Controller
 
     public function downloadStudentSocialPassport($userId)
     {
-        $cohabitants = ['Мать', 'Отец', 'Бабушка'];
+        $cohabitants = ['Мать', 'Отец', 'Бабушка', 'Дедушка', 'Опекун', 'Проживаю самостоятельно', 'Другое'];
 
         $childCategories = ['Дети-инвалиды', 'Сироты', 'Дети под опекой'];
 

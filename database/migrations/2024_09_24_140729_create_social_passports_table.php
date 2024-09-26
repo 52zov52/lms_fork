@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('first_name', 50);
             $table->string('middle_name', 50)->nullable();
             $table->date('birthday');
+            $table->string('citizenship');
             $table->string('registered_address', 1500);
             $table->string('housing_conditions', 20);
             $table->json('cohabitants');
@@ -43,6 +44,7 @@ return new class extends Migration
             $table->unsignedBigInteger('confirmiter_id')->nullable();
             $table->foreign('confirmiter_id')->references('id')->on('users')->onDelete('cascade');
             $table->char('confirmiter_signature', 64)->nullable();
+            $table->char('user_signature', 64)->nullable();
             $table->timestamps();
         });
     }

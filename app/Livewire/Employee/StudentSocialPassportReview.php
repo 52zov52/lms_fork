@@ -83,6 +83,7 @@ class StudentSocialPassportReview extends Component
             $socialPassport->questionnaire_status = 0;
             $socialPassport->confirmiter_id = null;
             $socialPassport->confirmiter_signature = null;
+            $socialPassport->user_signature = null;
             $socialPassport->save();
 
             $this->getContingent();

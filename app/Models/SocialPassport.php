@@ -15,6 +15,7 @@ class SocialPassport extends Model
         'first_name',
         'middle_name',
         'birthday',
+        'citizenship',
         'registered_address',
         'housing_conditions',
         'cohabitants',
@@ -35,6 +36,7 @@ class SocialPassport extends Model
         'child_categories',
         'questionnaire_status',
         'confirmiter_id',
-        'confirmiter_signature'
+        'confirmiter_signature',
+        'user_signature'
     ];
 }

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Student;
 
+use App\Http\Controllers\Student\SocialPassportController;
 use App\Models\SocialPassport as ModelsSocialPassport;
 use App\Models\UserData;
 use Carbon\Carbon;
@@ -15,6 +16,7 @@ class SocialPassport extends Component
         $firstName = '',
         $middleName = '',
         $birthday = '',
+        $citizenship = '',
         $registeredAddress = '',
         $housingConditions = '',
         $cohabitants = [],
@@ -48,6 +50,7 @@ class SocialPassport extends Component
 
         $socialPassport = ModelsSocialPassport::where('user_id', '=', Auth::user()->id)->first();
         if (!is_null($socialPassport)) {
+            $this->citizenship = $socialPassport->citizenship;
             $this->registeredAddress = $socialPassport->registered_address;
             $this->housingConditions = $socialPassport->housing_conditions;
             $this->cohabitants = json_decode($socialPassport->cohabitants, true);
@@ -94,6 +97,7 @@ class SocialPassport extends Component
 
         if (!is_null($socialPassport)) {
             $socialPassport->questionnaire_status = 0;
+            $socialPassport->user_signature = null;
             $socialPassport->save();
 
             session()->flash('type', 'success');
@@ -107,6 +111,7 @@ class SocialPassport extends Component
     private function store()
     {
         $this->validate([
+            'citizenship' => 'required|string|max:255',
             'registeredAddress' => 'required|string|max:1500',
             'housingConditions' => 'required',
             'cohabitants' => 'required|array',
@@ -131,6 +136,7 @@ class SocialPassport extends Component
             'first_name' => $this->firstName,
             'middle_name' => $this->middleName,
             'birthday' => Carbon::parse($this->birthday)->format('Y-m-d'),
+            'citizenship' => $this->citizenship,
             'registered_address' => $this->registeredAddress,
             'housing_conditions' => $this->housingConditions,
             'cohabitants' => json_encode($this->cohabitants),
@@ -149,7 +155,8 @@ class SocialPassport extends Component
             'father_disability' => $this->fatherDisability,
             'mother_disability' => $this->motherDisability,
             'child_categories' => json_encode($this->childCategories),
-            'questionnaire_status' => 1
+            'questionnaire_status' => 1,
+            'user_signature' => SocialPassportController::getSignature(Auth::user()->id)
         ]);
 
         session()->flash('type', 'success');
@@ -159,6 +166,7 @@ class SocialPassport extends Component
     private function update($id)
     {
         $this->validate([
+            'citizenship' => 'required|string|max:255',
             'registeredAddress' => 'required|string|max:1500',
             'housingConditions' => 'required',
             'cohabitants' => 'required|array',
@@ -178,6 +186,7 @@ class SocialPassport extends Component
         ]);
 
         $socialPassport = ModelsSocialPassport::findOrFail($id);
+        $socialPassport->citizenship = $this->citizenship;
         $socialPassport->registered_address = $this->registeredAddress;
         $socialPassport->housing_conditions = $this->housingConditions;
         $socialPassport->cohabitants = $this->cohabitants;
@@ -197,6 +206,7 @@ class SocialPassport extends Component
         $socialPassport->mother_disability = $this->motherDisability;
         $socialPassport->child_categories = $this->childCategories;
         $socialPassport->questionnaire_status = 1;
+        $socialPassport->user_signature = SocialPassportController::getSignature(Auth::user()->id);
         $socialPassport->save();
 
         session()->flash('type', 'success');
