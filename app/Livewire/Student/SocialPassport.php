@@ -39,8 +39,16 @@ class SocialPassport extends Component
 
     public function render()
     {
-        $userData = UserData::select('last_name', 'first_name', 'middle_name', 'birthday')
-            ->where('user_id', '=', Auth::user()->id)
+        $userData = UserData::select(
+            'users_data.last_name',
+            'users_data.first_name',
+            'users_data.middle_name',
+            'users_data.birthday',
+            'countries.country_name'
+        )
+            ->join('users_addresses', 'users_data.user_id', '=', 'users_addresses.user_id')
+            ->join('countries', 'users_addresses.country_id', '=', 'countries.id')
+            ->where('users_data.user_id', '=', Auth::user()->id)
             ->first()->toArray();
 
         $this->lastName = $userData['last_name'];
@@ -70,6 +78,8 @@ class SocialPassport extends Component
             $this->motherDisability = $socialPassport->mother_disability;
             $this->childCategories = json_decode($socialPassport->child_categories, true);
             $this->questionnaireStatus = $socialPassport->questionnaire_status;
+        }else {
+            $this->citizenship = $userData['country_name'];
         }
 
         return view('livewire.student.social-passport');

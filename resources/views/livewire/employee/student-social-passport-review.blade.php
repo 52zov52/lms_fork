@@ -41,30 +41,29 @@
                         @endif
                     </td>
                     <td class="w-32 px-2 py-2 text-center">
-                        @if(is_null($item->questionnaire_status) || $item->questionnaire_status == 0)
-                        -
-                        @elseif($item->questionnaire_status == 1)
-                        <div class="grid gap-1 grid-cols-3">
-                            <button onclick="showToast('download', '{{ $item->user_id }}')" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-gray-400 font-bold" title="" data-tippy-content="Скачать социальный паспорт">
+                        <div class="flex flex-row items-center justify-center space-x-1">
+                            @if(is_null($item->questionnaire_status) || $item->questionnaire_status == 0)
+                            -
+                            @elseif($item->questionnaire_status == 1)
+                            <button onclick="showToast('download', '{{ $item->user_id }}')" class="w-9 bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Скачать социальный паспорт">
                                 <i class="fa-solid fa-passport"></i>
                             </button>
-                            <button onclick="confirmSocialPassport('{{ $item->user_id }}')" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-green-400 font-bold" title="" data-tippy-content="Подтвердить">
+                            <button onclick="confirmSocialPassport('{{ $item->user_id }}')" class="w-9 bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-1 text-xs text-center text-green-400 hover:text-white" title="" data-tippy-content="Подтвердить">
                                 <i class="fa-solid fa-check"></i>
                             </button>
-                            <button onclick="showToast('backToEdit', '{{ $item->user_id }}')" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-gray-400 font-bold" title="" data-tippy-content="Вернуть на редактирование">
+                            <button onclick="showToast('backToEdit', '{{ $item->user_id }}')" class="w-9 bg-white hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-gray-400 px-2 py-1 text-xs text-center text-gray-400 hover:text-white" title="" data-tippy-content="Вернуть на редактирование">
                                 <i class="fa-solid fa-rotate-left"></i>
                             </button>
-                        </div>
-                        @else
-                        <div class="grid gap-1 grid-cols-2">
-                            <button onclick="showToast('download', '{{ $item->user_id }}')" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-gray-400 font-bold" title="" data-tippy-content="Скачать социальный паспорт">
+                            @else
+                            <button onclick="showToast('download', '{{ $item->user_id }}')" class="w-9 bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Скачать социальный паспорт">
                                 <i class="fa-solid fa-passport"></i>
                             </button>
-                            <button onclick="showToast('backToEdit', '{{ $item->user_id }}')" class="bg-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-slate-200 hover:border-slate-700 dark:border-slate-400/20 px-2 py-1 text-xs text-center text-gray-400 font-bold" title="" data-tippy-content="Вернуть на редактирование">
+                            <button onclick="showToast('backToEdit', '{{ $item->user_id }}')" class="w-9 bg-white hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-gray-400 px-2 py-1 text-xs text-center text-gray-400 hover:text-white" title="" data-tippy-content="Вернуть на редактирование">
                                 <i class="fa-solid fa-rotate-left"></i>
                             </button>
+
+                            @endif
                         </div>
-                        @endif
                     </td>
                 </tr>
                 @endforeach

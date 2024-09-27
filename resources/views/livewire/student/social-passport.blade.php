@@ -42,6 +42,11 @@
             <span>{{ $birthday }}</span>
         </div>
         <div class="flex flex-col">
+            <label for="citizenship" class="font-semibold">Гражданство</label>
+            <input wire:model="citizenship" type="text" name="citizenship" id="citizenship" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+            @error('citizenship') <span class="text-red-500">{{ $message }}</span> @enderror
+        </div>
+        <div class="flex flex-col">
             <label for="registeredAddress" class="font-semibold">Место жительства (по прописке)</label>
             <input wire:model="registeredAddress" type="text" name="registeredAddress" id="registeredAddress" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
             @error('registeredAddress') <span class="text-red-500">{{ $message }}</span> @enderror
