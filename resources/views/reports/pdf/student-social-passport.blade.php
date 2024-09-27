@@ -4,44 +4,22 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Информированное согласие') }}</title>
+    <title>{{ config('app.name', 'Анкета "Социальный паспорт"') }}</title>
     <style>
         body {
             font-family: 'xo_thames';
-        }
-
-        .font-10 {
-            font-size: 10px;
-        }
-
-        .font-14 {
-            font-size: 14px;
-        }
-
-        .font-bold {
-            font-weight: bold;
         }
 
         .text-center {
             text-align: center;
         }
 
-        .p-text-indent {
-            text-align: justify;
-            text-indent: 20px;
-            margin: 0;
+        .font-12 {
+            font-size: 12px;
         }
 
         .p-1 {
-            padding: 0.25rem;
-        }
-
-        .border-rounded {
-            border-radius: 10px;
-            border: 1px solid black;
-            display: inline-block;
-            padding: 10px;
-            margin: 0;
+            padding: 0.10rem;
         }
 
         .page-break {
@@ -50,7 +28,7 @@
     </style>
 </head>
 
-<body class="font-14">
+<body class="font-12">
     <h4 class="text-center">Анкета для составления социального паспорта</h4>
     <table width="100%" border="1" cellspacing="0" cellpadding="0">
         <tbody>
@@ -61,6 +39,10 @@
             <tr>
                 <td width="30%" class="p-1">Дата рождения</td>
                 <td width="70%" class="p-1">{{ \Carbon\Carbon::parse($socialPassport->birthday)->format('d.m.Y') }}</td>
+            </tr>
+            <tr>
+                <td width="30%" class="p-1">Гражданство</td>
+                <td width="70%" class="p-1">{{ $socialPassport->citizenship }}</td>
             </tr>
             <tr>
                 <td width="30%" class="p-1">Место жительства (по прописке)</td>
@@ -126,7 +108,7 @@
                 <td width="70%" class="p-1">
                     @foreach($childCategories as $childCategory)
                     <label>
-                        <input value="{{ $childCategory }}" type="checkbox" class="mr-1" @if(str_contains($socialPassport->child_categories, $childCategory)) checked @endif>
+                        <input value="{{ $childCategory }}" type="checkbox" @if(str_contains($socialPassport->child_categories, $childCategory)) checked @endif>
                         <span>{{ $childCategory }}</span>
                     </label>
                     @endforeach

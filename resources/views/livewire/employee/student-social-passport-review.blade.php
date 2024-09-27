@@ -14,7 +14,7 @@
     </div>
 
     @if(!is_null($contingent) && count($contingent) != 0)
-    <div class="border rounded border-slate-400/20">
+    <div class="hidden lg:block border rounded border-slate-400/20">
         <table class="w-full text-xs lg:text-sm">
             <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr class="border-b border-slate-400/20">
@@ -61,7 +61,6 @@
                             <button onclick="showToast('backToEdit', '{{ $item->user_id }}')" class="w-9 bg-white hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-gray-400 px-2 py-1 text-xs text-center text-gray-400 hover:text-white" title="" data-tippy-content="Вернуть на редактирование">
                                 <i class="fa-solid fa-rotate-left"></i>
                             </button>
-
                             @endif
                         </div>
                     </td>
@@ -70,8 +69,58 @@
             </tbody>
         </table>
     </div>
+
+    <div class="lg:hidden flex flex-col space-y-2">
+        @foreach($contingent as $item)
+        <div class="flex flex-col space-y-2 bg-slate-200 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 p-4 text-xs">
+            <div class="flex flex-col">
+                <span class="font-semibold">ФИО:</span>
+                <span>{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">№ зачетки:</span>
+                <span>{{ $item->ticket_number }}</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Статус:</span>
+                @if(is_null($item->questionnaire_status) || $item->questionnaire_status == 0)
+                <span class="text-sky-400 font-bold">На редактировании</span>
+                @elseif($item->questionnaire_status == 1)
+                <span class="text-orange-400 font-bold">На подтверждении</span>
+                @else
+                <span class="text-green-400 font-bold">Подтверждена</span>
+                @endif
+            </div>
+            <div class="flex flex-col">
+                <span class="font-semibold">Действия:</span>
+                <div class="flex flex-row space-x-2">
+                    @if(is_null($item->questionnaire_status) || $item->questionnaire_status == 0)
+                    -
+                    @elseif($item->questionnaire_status == 1)
+                    <button onclick="showToast('download', '{{ $item->user_id }}')" class="w-auto grow bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Скачать социальный паспорт">
+                        <i class="fa-solid fa-passport"></i>
+                    </button>
+                    <button onclick="confirmSocialPassport('{{ $item->user_id }}')" class="w-auto grow bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-1 text-xs text-center text-green-400 hover:text-white" title="" data-tippy-content="Подтвердить">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                    <button onclick="showToast('backToEdit', '{{ $item->user_id }}')" class="w-auto grow bg-white hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-gray-400 px-2 py-1 text-xs text-center text-gray-400 hover:text-white" title="" data-tippy-content="Вернуть на редактирование">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                    @else
+                    <button onclick="showToast('download', '{{ $item->user_id }}')" class="w-auto grow bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Скачать социальный паспорт">
+                        <i class="fa-solid fa-passport"></i>
+                    </button>
+                    <button onclick="showToast('backToEdit', '{{ $item->user_id }}')" class="w-auto grow bg-white hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-gray-400 px-2 py-1 text-xs text-center text-gray-400 hover:text-white" title="" data-tippy-content="Вернуть на редактирование">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endforeach
+    </div>
     @else
-    <x-alert type="info" title="Информация" message="Для просмотра списочного состава учебной группы, выберите нужную группу из списка" />
+    <x-alert type="info" title="Информация" message="Для просмотра списка студентов, направивших социальный паспорт на утверждение, выберите нужную группу из списка" />
     @endif
 
 </div>
