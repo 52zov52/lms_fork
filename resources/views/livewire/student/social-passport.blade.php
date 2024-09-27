@@ -221,6 +221,11 @@
                         <input wire:model="childCategories" value="Дети под опекой" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дети под опекой
                     </label>
                 </div>
+                <div class="flex space-x-1 items-center">
+                    <label>
+                        <input wire:model="childCategories" value="Детей участников СВО" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Детей участников СВО
+                    </label>
+                </div>
             </div>
         </div>
     </div>

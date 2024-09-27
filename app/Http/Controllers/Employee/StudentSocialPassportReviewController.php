@@ -22,7 +22,7 @@ class StudentSocialPassportReviewController extends Controller
     {
         $cohabitants = ['Мать', 'Отец', 'Бабушка', 'Дедушка', 'Опекун', 'Проживаю самостоятельно', 'Другое'];
 
-        $childCategories = ['Дети-инвалиды', 'Сироты', 'Дети под опекой'];
+        $childCategories = ['Дети-инвалиды', 'Сироты', 'Дети под опекой', 'Детей участников СВО'];
 
         $socialPassport = SocialPassport::where('user_id', '=', $userId)->first();
 

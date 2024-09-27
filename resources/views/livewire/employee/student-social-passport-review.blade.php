@@ -48,19 +48,23 @@
                             <button onclick="showToast('download', '{{ $item->user_id }}')" class="w-9 bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Скачать социальный паспорт">
                                 <i class="fa-solid fa-passport"></i>
                             </button>
+                            @can('confirm-student-social-passport')
                             <button onclick="confirmSocialPassport('{{ $item->user_id }}')" class="w-9 bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-1 text-xs text-center text-green-400 hover:text-white" title="" data-tippy-content="Подтвердить">
                                 <i class="fa-solid fa-check"></i>
                             </button>
                             <button onclick="showToast('backToEdit', '{{ $item->user_id }}')" class="w-9 bg-white hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-gray-400 px-2 py-1 text-xs text-center text-gray-400 hover:text-white" title="" data-tippy-content="Вернуть на редактирование">
                                 <i class="fa-solid fa-rotate-left"></i>
                             </button>
+                            @endcan
                             @else
                             <button onclick="showToast('download', '{{ $item->user_id }}')" class="w-9 bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-1 text-xs text-center text-sky-400 hover:text-white" title="" data-tippy-content="Скачать социальный паспорт">
                                 <i class="fa-solid fa-passport"></i>
                             </button>
+                            @can('confirm-student-social-passport')
                             <button onclick="showToast('backToEdit', '{{ $item->user_id }}')" class="w-9 bg-white hover:bg-gray-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-gray-400 px-2 py-1 text-xs text-center text-gray-400 hover:text-white" title="" data-tippy-content="Вернуть на редактирование">
                                 <i class="fa-solid fa-rotate-left"></i>
                             </button>
+                            @endcan
                             @endif
                         </div>
                     </td>
