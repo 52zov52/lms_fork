@@ -7,6 +7,6 @@
             <p class="text-2xl text-center font-semibold">{{ __('ЧОУ ВО ЮУ (ИУБиП)') }}</p>
             <p class="text-2xl text-center font-semibold">{{ __('первый инновационный') }}</p>
         </div>
-        @livewire('qr-code-document-verifications', ['verificationCode' => $verificationCode])
+        @livewire('q-r-code-document-verifications', ['verificationCode' => $verificationCode])
     </div>
 </x-guest-layout>
