@@ -3,11 +3,9 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\ScheduleController;
-use App\View\Components\Toastr;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-use Livewire\Attributes\On;
 
 class Schedule extends Component
 {

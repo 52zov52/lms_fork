@@ -10,6 +10,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\DailyReportStudentsAcademicLeave::class,
         Commands\DailyUpdateSchedule::class,
+        Commands\SyncStudentGrades::class,
     ];
 
     /**
@@ -26,6 +27,9 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('app:daily-report-on-student-certificates')
             ->dailyAt('15:30');
+
+        $schedule->command('app:sync-student-grades')
+            ->dailyAt('03:00');
     }
 
     /**
