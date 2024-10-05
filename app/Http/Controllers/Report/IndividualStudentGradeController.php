@@ -31,7 +31,7 @@ class IndividualStudentGradeController extends Controller
             ->get()->toArray();
 
         $filename = time() . '.pdf';
-        $pdf = PDF::loadView('reports.pdf.individual-student-grade', [
+        $pdf = PDF::loadView('reports.pdf.individual-student-grades', [
             'fio' => $studentGrades[0]['fio'],
             'studentGrades' => $this->groupStudentGradesBySemester($studentGrades)
         ]);

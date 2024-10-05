@@ -29,9 +29,14 @@ class SyncStudentGrades extends Command
     {
         StudentGrades::truncate();
 
-        $filePath = Storage::disk('public')->path('student_grades/insert_data.txt');
-        $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
+        $filePath = Storage::disk('public')->path('student_grades/student_grades_data.txt');
+        $file = fopen($filePath, 'r');
+        while(!feof($file)) {
+            $line = fgets($file);
+            if (trim($line) === '') {
+                continue;
+            }
+            
             $values = explode('|', $line);
             StudentGrades::create([
                 'bulletin_id' => $values[0],
@@ -61,6 +66,8 @@ class SyncStudentGrades extends Command
                 'updated_at' => trim($values[24]),
             ]);
         }
+
+        fclose($file);
 
         $this->info('Successfully sync student grades.');
     }

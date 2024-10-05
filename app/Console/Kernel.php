@@ -29,7 +29,7 @@ class Kernel extends ConsoleKernel
             ->dailyAt('15:30');
 
         $schedule->command('app:sync-student-grades')
-            ->dailyAt('03:00');
+            ->dailyAt('05:00');
     }
 
     /**
