@@ -45,45 +45,24 @@
 
 <body>
     <div x-data="setting()" id="app" class="h-screen relative flex bg-white dark:bg-slate-800 text-gray-600 dark:text-white font-sans font-light antialiased overflow-hidden">
-        <!-- Desktop sideber -->
-        <aside class="hidden z-30 w-16 lg:flex lg:flex-shrink-0 lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5">
-            <div class="inline-flex items-center justify-center px-2">
-                <img id="logo-pc-id" x-bind:src="logo" alt="" class="w-12 h-8">
+        <aside x-cloak :class="{ 'w-16': !isSidebarExpanded, 'w-72': isSidebarExpanded }" class="hidden z-30 lg:flex lg:flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5">
+            <div :class="{ 'justify-center': !isSidebarExpanded && !isMobileMenuVisible, '': isSidebarExpanded || isMobileMenuVisible }" class="inline-flex items-center px-2">
+                <img id="logo" x-bind:src="logo" class="w-12 h-8">
+                <span x-show="isSidebarExpanded || isMobileMenuVisible" class="ml-2 text-lg font-semibold whitespace-nowrap">
+                    Личный кабинет
+                </span>
             </div>
             <div class="relative">
-                <button @click="isExpandSideBar = !isExpandSideBar" class="absolute -top-7 -right-3 bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded-full border-slate-200 hover:border-blue-400 dark:border-slate-400/20 px-2 hover:text-white dark:text-white">
-                    <template x-if="!isExpandSideBar">
+                <button @click="isSidebarExpanded = !isSidebarExpanded" class="absolute -right-3 bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded-full border-slate-200 hover:border-blue-400 dark:border-slate-400/20 px-2 hover:text-white dark:text-white">
+                    <template x-if="!isSidebarExpanded">
                         <i class="fa-solid fa-chevron-right fa-xs"></i>
                     </template>
-                    <template x-if="isExpandSideBar">
+                    <template x-if="isSidebarExpanded">
                         <i class="fa-solid fa-chevron-left fa-xs"></i>
                     </template>
                 </button>
             </div>
-            @include('layouts.desktop-icon-navigation-menu')
-        </aside>
-        <!-- Menu -->
-        <div x-cloak x-show="isExpandSideBar" class="hidden z-20 absolute left-16 w-72 h-screen lg:flex lg:flex-col lg:space-y-6 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 py-5" x-transition:enter="transition-transform ease-out duration-200" x-transition:enter-start="transform -translate-x-full" x-transition:enter-end="transform translate-x-0" x-transition:leave="transition-transform ease-in duration-200" x-transition:leave-start="transform translate-x-0" x-transition:leave-end="transform -translate-x-full">
-            <div class="h-8 inline-flex px-2">
-                <span class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
-            </div>
-            <div class="relative"></div>
-            @include('layouts.desktop-text-navigation-menu')
-        </div>
-
-        <!-- Mobile sidebar -->
-        <aside x-cloak class="lg:hidden fixed z-20 w-80 h-full flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-400/20 transition-all duration-500 ease-in-out" :class="{ '-translate-x-full opacity-0': !isSideBarOpen, 'translate-x-0 opacity-100': isSideBarOpen }">
-            <div class="flex justify-between p-4">
-                <div class="inline-flex items-center" :class="{ 'justify-center': !isSideBarOpen }">
-                    <img id="logo-mobile-id" x-bind:src="logo" alt="" class="w-12">
-                    <span class="ml-2 text-lg font-semibold whitespace-nowrap">Личный кабинет</span>
-                </div>
-                <button @click="isSideBarOpen = !isSideBarOpen">
-                    <i class="fa-solid fa-xmark fa-xl fa-lg"></i>
-                </button>
-            </div>
-            <!-- Navigation menu -->
-            @include('layouts.mobile-navigation-menu')
+            @include('layouts.menu.nav-menu')
         </aside>
 
         <div class="w-full flex flex-col">
@@ -139,24 +118,26 @@
             return {
                 logo: (localStorage.getItem('theme') === 'dark') ? "{{ asset('storage/logo_dark.png') }}" : "{{ asset('storage/logo_light.png') }}",
                 isDarkMode: (localStorage.getItem('theme') === 'dark'),
-                isExpandSideBar: false,
-                isSideBarOpen: false,
+                isSidebarExpanded: false,
+                isMobileMenuVisible: false,
+                isTooltipVisible: false,
                 toggleSideBar() {
-                    this.isExpandSideBar = !this.isExpandSideBar;
+                    this.isSidebarExpanded = !this.isSidebarExpanded;
+                },
+                toggleMobileMenu() {
+                    this.isMobileMenuVisible = !this.isMobileMenuVisible;
                 },
                 toggleDarkMode() {
                     this.isDarkMode = !this.isDarkMode;
                     localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
 
                     if (this.isDarkMode) {
-                        document.getElementById("logo-pc-id").src = "{{ asset('storage/logo_dark.png') }}";
-                        document.getElementById("logo-mobile-id").src = "{{ asset('storage/logo_dark.png') }}";
+                        document.getElementById("logo").src = "{{ asset('storage/logo_dark.png') }}";
 
                         document.getElementById('theme').classList.remove('light');
                         document.getElementById('theme').classList.add('dark');
                     } else {
-                        document.getElementById("logo-pc-id").src = "{{ asset('storage/logo_light.png') }}";
-                        document.getElementById("logo-mobile-id").src = "{{ asset('storage/logo_light.png') }}";
+                        document.getElementById("logo").src = "{{ asset('storage/logo_light.png') }}";
 
                         document.getElementById('theme').classList.remove('dark');
                         document.getElementById('theme').classList.add('light');
