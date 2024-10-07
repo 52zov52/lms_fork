@@ -1,11 +1,20 @@
-<ul class="flex flex-col items-center space-y-2 px-2 py-2 text-sm">
-    <li @mouseover="isTooltipVisible = true" @mouseover.away="isTooltipVisible = false" class="{{ (request()->routeIs('dashboard')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} relative cursor-pointer rounded">
-        <a href="{{ route('dashboard') }}" class="w-10 h-8 flex items-center justify-center space-x-2 px-2 py-3">
-            <i class="fa-solid fa-house fa-lg"></i>
+<ul class="mt-8 flex flex-col space-y-4 px-2 ">
+    <li x-data="{ isTooltipVisible: false }" @mouseover.away="isTooltipVisible = false" class="relative bg-blue-100 cursor-pointer">
+        <a @mouseover="isTooltipVisible = true" href="#">
+            RRRRRRR
         </a>
-        <span x-show="isTooltipVisible" 
-        class="absolute top-1/2 -right-16">
+        <span x-show="isSidebarExpanded || isTooltipVisible || isMobileMenuVisible"
+            :class="{ 'tooltip': !isSidebarExpanded && isTooltipVisible && !isMobileMenuVisible, 'p-2': isSidebarExpanded || isMobileMenuVisible }">
             Главная
+        </span>
+    </li>
+    <li x-data="{ isTooltipVisible: false }" @mouseover.away="isTooltipVisible = false" class="relative cursor-pointer">
+        <a @mouseover="isTooltipVisible = true" href="#">
+            RRRRRR
+        </a>
+        <span x-show="isSidebarExpanded || isTooltipVisible || isMobileMenuVisible"
+            :class="{ 'tooltip': !isSidebarExpanded && isTooltipVisible && !isMobileMenuVisible, 'p-2': isSidebarExpanded || isMobileMenuVisible }">
+            ЭБС
         </span>
     </li>
 </ul>
