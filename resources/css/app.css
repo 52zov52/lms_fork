@@ -6,7 +6,15 @@
 
 @layer components {
     .main-conteiner {
-        @apply w-full h-screen relative flex bg-white dark:bg-slate-800 text-gray-600 dark:text-white font-sans font-light antialiased overflow-hidden
+        @apply w-full h-screen relative flex bg-white dark:bg-slate-800 text-gray-600 dark:text-white font-sans font-light antialiased overflow-hidden;
+    }
+
+    .header-icon {
+        @apply w-10 h-8 flex items-center justify-center px-2 hover:text-blue-400;
+    }
+
+    .header-profile {
+        @apply w-10 h-8 flex items-center justify-center bg-slate-200 dark:bg-slate-700 border border-slate-400/20 rounded px-2 cursor-pointer;
     }
 }
 
