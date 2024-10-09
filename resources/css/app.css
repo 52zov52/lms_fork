@@ -10,7 +10,7 @@
     }
 
     .header-icon {
-        @apply w-10 h-8 flex items-center justify-center px-2 hover:text-blue-400;
+        @apply w-10 h-8 flex items-center justify-center px-2 hover:text-blue-500;
     }
 
     .header-profile {
