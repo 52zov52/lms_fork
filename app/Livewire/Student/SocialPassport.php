@@ -46,8 +46,8 @@ class SocialPassport extends Component
             'users_data.birthday',
             'countries.country_name'
         )
-            ->join('users_addresses', 'users_data.user_id', '=', 'users_addresses.user_id')
-            ->join('countries', 'users_addresses.country_id', '=', 'countries.id')
+            ->leftJoin('users_addresses', 'users_data.user_id', '=', 'users_addresses.user_id')
+            ->leftJoin('countries', 'users_addresses.country_id', '=', 'countries.id')
             ->where('users_data.user_id', '=', Auth::user()->id)
             ->first()->toArray();
 

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Заявки на справки') }}
+        <h1>{{ __('Заказ документов') }}</h1>
     </x-slot>
 
     @livewire('student-document-requests')

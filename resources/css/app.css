@@ -5,6 +5,10 @@
 @tailwind utilities;
 
 @layer components {
+    h1 {
+        @apply text-2xl font-semibold;
+    }
+
     .main-conteiner {
         @apply w-full h-screen relative flex bg-white dark:bg-slate-800 text-gray-600 dark:text-white font-sans font-light antialiased overflow-hidden;
     }
@@ -15,6 +19,26 @@
 
     .header-profile {
         @apply w-10 h-8 flex items-center justify-center bg-slate-200 dark:bg-slate-700 border border-slate-400/20 rounded px-2 cursor-pointer;
+    }
+
+    .aside-desktop {
+        @apply hidden md:w-16 md:flex md:flex-col md:border-r md:border-r-slate-400/20;
+    }
+
+    .aside-mobile {
+        @apply md:hidden fixed z-20 w-80 h-full flex flex-col bg-white dark:bg-slate-800 border-r border-r-slate-400/20 transition-all duration-500 ease-in-out;
+    }
+
+    .btn-add {
+        @apply bg-white hover:bg-green-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-500 px-2 py-2 text-xs text-left text-green-500 hover:text-white font-bold;
+    }
+
+    .btn-edit {
+        @apply bg-white hover:bg-orange-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-500 px-2 py-1 text-xs text-center text-orange-500 hover:text-white font-bold;
+    }
+
+    .btn-destroy {
+        @apply bg-white hover:bg-red-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-500 px-2 py-1 text-xs text-center text-red-500 hover:text-white font-bold;
     }
 }
 

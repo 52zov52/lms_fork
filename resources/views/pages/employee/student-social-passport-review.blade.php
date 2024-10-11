@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Студенты, направившие социальный паспорт на утверждение') }}
+        <h1>{{ __('Студенты, направившие социальный паспорт на утверждение') }}</h1>
     </x-slot>
 
     @livewire('employee.student-social-passport-review')

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Операционная деятельность') }}
+        <h1>{{ __('Операционная деятельность') }}</h1>
     </x-slot>
 
     @livewire('operating-activity')

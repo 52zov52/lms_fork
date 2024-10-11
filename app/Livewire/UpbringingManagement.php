@@ -8,10 +8,12 @@ use App\Models\UpbringingEventReport;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class UpbringingManagement extends Component
 {
+    use WithFileUploads;
     use WithPagination;
 
     public $id = 0,
@@ -20,43 +22,48 @@ class UpbringingManagement extends Component
         $date = '',
         $academicYear = '',
         $halfYear = 0,
-        $userId = 0;
+        $userId = 0,
+        $file_path = '',
+        $file = null;
+
+    public string $filename = '';
+    public int $rand = 1;
 
     public $showModal = false, $isEdit = false;
 
     public $listOfUsers = [
-        23425 => 'Абдуллаева Афсана Магоммедовна',
+        14733 => 'Абдуллаева Афсана Магоммедовна',
         2656 => 'Агаркова Наталья Юрьевна',
-        24205 => 'Акперов Гурру Имран-оглы',
+        15318 => 'Акперов Гурру Имран-оглы',
         24940 => 'Акперов Теймур Имран оглы',
-        27456 => 'Акперова Марзия Гади кызы',
-        20383 => 'Алекперов Ильгар Джаби оглы',
-        19355 => 'Алекперова Эльмира Ахмедовна',
+        2347 => 'Акперова Марзия Гади кызы',
+        2609 => 'Алекперов Ильгар Джаби оглы',
+        8399 => 'Алекперова Эльмира Ахмедовна',
         24191 => 'Артамонова Анна Геннадьевна',
         28704 => 'Балатова Умгат Абдулварисовна',
         13693 => 'Батищев Денис Романович',
         27421 => 'Блохина Анжелика Юрьевна',
         25694 => 'Вовчук Инна Анатольевна',
-        22781 => 'Галоян Яна Эдуардовна',
+        2241 => 'Галоян Яна Эдуардовна',
         18624 => 'Григорьева Наталья Станиславовна',
+        28674 => 'Дынник Дмитрий Игоревич',
         5290 => 'Жданова Елена Юрьевна',
-        23421 => 'Завацкая Ксения Вячеславовна',
-        27327 => 'Кабаненко Михаил Николаевич',
-        26960 => 'Козлова Евгения Анатольевна',
+        22144 => 'Завацкая Ксения Вячеславовна',
+        24855 => 'Кабаненко Михаил Николаевич',
+        24885 => 'Козлова Евгения Анатольевна',
         19077 => 'Коренякина Наталья Николаевна',
         3422 => 'Кузнецова Светлана Михайловна',
         20352 => 'Максименко Алина Андреевна',
-        23654 => 'Мартынов Борис Викторович',
-        24174 => 'Махотенко Марина Александровна',
+        2574 => 'Мартынов Борис Викторович',
+        12474 => 'Махотенко Марина Александровна',
         27414 => 'Мизюков Григорий Сергеевич',
-        19356 => 'Мурадова Сафура Шиховна',
+        17809 => 'Мурадова Сафура Шиховна',
         28702 => 'Прудан Ирина Георгиевна',
-        24178 => 'Семерентьева Марианна Алексеевна',
+        23377 => 'Семерентьева Марианна Алексеевна',
         18717 => 'Сенина Юлия Евгеньевна',
         23655 => 'Тлепцеришева Сюзанна Аслановна',
-        24213 => 'Фоменко Андрей Иванович',
-        20397 => 'Шевердина Ирина Викторовна',
-        27598 => 'Шкаев Димитрий Геннадиевич',
+        2447 => 'Фоменко Андрей Иванович',
+        19952 => 'Шевердина Ирина Викторовна',
         24829 => 'Шпилевская Елена Вячеславовна'
     ];
 
@@ -71,6 +78,7 @@ class UpbringingManagement extends Component
                 'upbringing_events.date',
                 'upbringing_events.academic_year',
                 'upbringing_events.half_year',
+                'upbringing_events.file_path as event_file',
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
                 'upbringing_event_reports.link_to_news',
                 'upbringing_event_reports.file_path'
@@ -101,13 +109,26 @@ class UpbringingManagement extends Component
 
     public function store()
     {
-        $this->validate([
-            'name' => 'required|string|max:1500',
-            'date' => 'required',
-            'academicYear' => 'required|string',
-            'halfYear' => 'required|numeric|min:1',
-            'userId' => 'required|numeric|min:1'
-        ]);
+        if (!is_null($this->file)) {
+            $this->validate([
+                'name' => 'required|string|max:1500',
+                'date' => 'required',
+                'academicYear' => 'required|string',
+                'halfYear' => 'required|numeric|min:1',
+                'userId' => 'required|numeric|min:1',
+                'file' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,bmp,png,zip|max:3072'
+            ]);
+        } else {
+            $this->validate([
+                'name' => 'required|string|max:1500',
+                'date' => 'required',
+                'academicYear' => 'required|string',
+                'halfYear' => 'required|numeric|min:1',
+                'userId' => 'required|numeric|min:1'
+            ]);
+        }
+
+        $filePath = (!is_null($this->file)) ? $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public') : null;
 
         $upbringingEvent = UpbringingEvent::create([
             'name' => $this->name,
@@ -115,7 +136,9 @@ class UpbringingManagement extends Component
             'date' => Carbon::parse($this->date)->format('Y-m-d'),
             'academic_year' => $this->academicYear,
             'half_year' => $this->halfYear,
-            'user_id' => $this->userId
+            'user_id' => $this->userId,
+            'file_path' =>  $filePath,
+            'filename' => (!is_null($this->file)) ? $this->file->getClientOriginalName() : null
         ]);
 
         UpbringingEventReport::create([
@@ -135,21 +158,38 @@ class UpbringingManagement extends Component
         $this->id = $id;
         $this->name = $upbringingEvent->name;
         $this->description = $upbringingEvent->description;
-        $this->date = Carbon::parse($upbringingEvent->date)->format('d.m.Y');
+        $this->date = $upbringingEvent->date;
         $this->academicYear = $upbringingEvent->academic_year;
         $this->halfYear = $upbringingEvent->half_year;
         $this->userId = $upbringingEvent->user_id;
+        $this->file_path = $upbringingEvent->file_path;
+
+        if (!is_null($upbringingEvent->file_path)) {
+            $data = explode('/', $upbringingEvent->file_path);
+            $this->filename = $data[2];
+        }
     }
 
     public function update()
     {
-        $this->validate([
-            'name' => 'required|string|max:1500',
-            'date' => 'required',
-            'academicYear' => 'required|string',
-            'halfYear' => 'required|numeric|min:1',
-            'userId' => 'required|numeric|min:1'
-        ]);
+        if (!is_null($this->file)) {
+            $this->validate([
+                'name' => 'required|string|max:1500',
+                'date' => 'required',
+                'academicYear' => 'required|string',
+                'halfYear' => 'required|numeric|min:1',
+                'userId' => 'required|numeric|min:1',
+                'file' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,bmp,png,zip|max:3072'
+            ]);
+        } else {
+            $this->validate([
+                'name' => 'required|string|max:1500',
+                'date' => 'required',
+                'academicYear' => 'required|string',
+                'halfYear' => 'required|numeric|min:1',
+                'userId' => 'required|numeric|min:1'
+            ]);
+        }
 
         $upbringingEvent = UpbringingEvent::findOrfail($this->id);
         $upbringingEvent->name = $this->name;
@@ -158,6 +198,17 @@ class UpbringingManagement extends Component
         $upbringingEvent->academic_year = $this->academicYear;
         $upbringingEvent->half_year = $this->halfYear;
         $upbringingEvent->user_id = $this->userId;
+
+        if (!is_null($this->file)) {
+            if (!is_null($upbringingEvent->file_path)) {
+                unlink(storage_path('app/public/' . $upbringingEvent->file_path));
+            }
+
+            $filePath = $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public');
+            $upbringingEvent->file_path = $filePath;
+            $upbringingEvent->filename = $this->file->getClientOriginalName();
+        }
+
         $upbringingEvent->update();
 
         $this->modalVisible(false);
@@ -169,6 +220,11 @@ class UpbringingManagement extends Component
     public function destroy($id)
     {
         $UpbringingEvent = UpbringingEvent::findOrFail($id);
+
+        if (!is_null($UpbringingEvent->file_path)) {
+            unlink(storage_path('app/public/' . $UpbringingEvent->file_path));
+        }
+
         $UpbringingEvent->delete();
 
         session()->flash('type', 'success');
@@ -184,6 +240,9 @@ class UpbringingManagement extends Component
         $this->academicYear = '';
         $this->halfYear = '';
         $this->userId = 0;
+        $this->file = null;
+
+        $this->rand++;
 
         $this->resetErrorBag();
         $this->resetValidation();

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Решение ученого совета') }}
+        <h1>{{ __('Решение ученого совета') }}</h1>
     </x-slot>
 
     @livewire('decisions-council')

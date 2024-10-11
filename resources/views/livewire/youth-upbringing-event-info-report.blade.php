@@ -42,6 +42,11 @@
                     </td>
                     <td class="w-32 px-2 py-2 text-center">
                         <div class="flex flex-row items-center justify-center space-x-1">
+                            @if(!is_null($value->event_file))
+                            <a href="storage/{{ $value->event_file }}" class="w-9 bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-1 text-xs text-center text-blue-400 hover:text-white" title="" data-tippy-content="Скачать доп. файлы к мероприятию" target="_blank">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </a>
+                            @endif
                             <button wire:click="edit({{ $value->upbringing_event_report_id }})" class="w-9 bg-white hover:bg-orange-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-400 px-2 py-1 text-xs text-center text-orange-400 hover:text-white" title="" data-tippy-content="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>

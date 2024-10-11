@@ -223,7 +223,7 @@
                 </div>
                 <div class="flex space-x-1 items-center">
                     <label>
-                        <input wire:model="childCategories" value="Детей участников СВО" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Детей участников СВО
+                        <input wire:model="childCategories" value="Дети участников СВО" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дети участников СВО
                     </label>
                 </div>
             </div>

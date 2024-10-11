@@ -23,78 +23,25 @@
 </head>
 
 <body>
-    <div x-data="setting()" class="main-conteiner">
-        <aside x-cloak :class="{'w-16': !isSideBarExpand, 'w-72': isSideBarExpand }" class="flex flex-col border-r border-r-slate-400/20 transition-all duration-500 ease-in-out">
-            <div :class="{ 'justify-center': !isSideBarExpand, 'space-x-2 px-2': isSideBarExpand }" class="flex items-center py-2.5">
-                <img id="logo" x-bind:src="logo" alt="" class="w-12 h-8">
-                <span x-show="isSideBarExpand"
-                    x-transition:enter="transition ease-out duration-1000"
-                    x-transition:enter-start="opacity-0"
-                    x-transition:enter-end="opacity-100"
-                    x-transition:leave="transition ease-in duration-0"
-                    x-transition:leave-start="opacity-100"
-                    x-transition:leave-end="opacity-0"
-                    class="font-semibold whitespace-nowrap">Личный кабинет</span>
-            </div>
-
-            <div class="mt-4 flex flex-col space-y-2 px-2.5">
-                <a href="{{ route('dashboard') }}">
-                    <div 
-                    :class="{ 'justify-center': !isSideBarExpand, 'space-x-2 px-2': isSideBarExpand }" class="h-8 flex items-center {{ (request()->routeIs('dashboard')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded text-sm">
-                        <div class="w-8 flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-home fa-lg"></i>
-                        </div>
-                    
-                        <span x-show="isSideBarExpand"
-                            x-transition:enter="transition ease-out duration-1000"
-                            x-transition:enter-start="opacity-0"
-                            x-transition:enter-end="opacity-100"
-                            x-transition:leave="transition ease-in duration-0"
-                            x-transition:leave-start="opacity-100"
-                            x-transition:leave-end="opacity-0"
-                            class="whitespace-nowrap">Главная</span>
-                    </div>
-                </a>
-                <a href="https://eiosiubip.ru/login/index.php">
-                    <div :class="{ 'justify-center': !isSideBarExpand, 'space-x-4 px-2': isSideBarExpand }" class="h-8 flex items-center hover:bg-blue-500 rounded text-sm hover:text-white">
-                        <i class="fa-solid fa-graduation-cap fa-lg"></i>
-                        <span x-show="isSideBarExpand" 
-                            x-transition:enter="transition ease-out duration-1000"
-                            x-transition:enter-start="opacity-0"
-                            x-transition:enter-end="opacity-100"
-                            x-transition:leave="transition ease-in duration-0"
-                            x-transition:leave-start="opacity-100"
-                            x-transition:leave-end="opacity-0" 
-                            class="whitespace-nowrap">Система онлайн-обучения</span>
-                    </div>
-                </a>
-                <a href="{{ route('elibrary') }}">
-                    <div 
-                    :class="{ 'justify-center': !isSideBarExpand, 'space-x-4 px-2': isSideBarExpand }" class="h-8 flex items-center {{ (request()->routeIs('elibrary')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded text-sm">
-                        <i class="fa-solid fa-book fa-lg"></i>
-                        <span x-show="isSideBarExpand"
-                            x-transition:enter="transition ease-out duration-1000"
-                            x-transition:enter-start="opacity-0"
-                            x-transition:enter-end="opacity-100"
-                            x-transition:leave="transition ease-in duration-0"
-                            x-transition:leave-start="opacity-100"
-                            x-transition:leave-end="opacity-0"
-                            class="whitespace-nowrap">Электронные библиотечные системы</span>
-                    </div>
-                </a>
-            </div>
+    <div id="app" x-data="setting()" class="main-conteiner">
+        <!-- Desktop nav menu -->
+        <aside class="aside-desktop">
+            <!-- Menu -->
+            @include('layouts.menu.nav-menu')
         </aside>
+
+        <!-- Mobile nav menu -->
+        <aside x-cloak :class="{ '-translate-x-full opacity-0': !isMobileMenuVisible, 'translate-x-0 opacity-100': isMobileMenuVisible }" class="aside-mobile">
+            <!-- Menu -->
+            @include('layouts.menu.nav-menu')
+        </aside>
+
         <div class="w-full flex flex-col">
             <header class="h-12 shrink-0 border-b border-b-slate-400/20">
-                <div class="h-full flex justify-between px-2">
-                    <div class="h-full flex items-center">
-                        <button @click="isSideBarExpand = !isSideBarExpand" class="header-icon">
-                            <template x-if="!isSideBarExpand">
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </template>
-                            <template x-if="isSideBarExpand">
-                                <i class="fa-solid fa-chevron-left"></i>
-                            </template>
+                <div class="h-full flex justify-between md:justify-end px-2">
+                    <div class="md:hidden h-full flex items-center">
+                        <button @click="isMobileMenuVisible = !isMobileMenuVisible" class="header-icon">
+                            <i class="fa-solid fa-bars"></i>
                         </button>
                     </div>
                     <div class="h-full flex space-x-1 items-center">
@@ -124,7 +71,12 @@
                 </div>
             </header>
             <main class="grow overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300 p-4">
-                {{$slot}}
+                <div class="flex flex-col">
+                    <div class="mb-4">
+                        {{ $header }}
+                    </div>
+                    {{ $slot }}
+                </div>
             </main>
         </div>
     </div>
@@ -138,7 +90,6 @@
                 logo: (localStorage.getItem('theme') === 'dark') ? "{{ asset('storage/logo_dark.png') }}" : "{{ asset('storage/logo_light.png') }}",
                 isDarkMode: (localStorage.getItem('theme') === 'dark'),
                 isMobileMenuVisible: false,
-                isSideBarExpand: false,
                 toggleDarkMode() {
                     this.isDarkMode = !this.isDarkMode;
                     localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');

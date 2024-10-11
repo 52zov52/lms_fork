@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Контингент') }}
+        <h1>{{ __('Контингент') }}</h1>
     </x-slot>
 
     @livewire('contingent')

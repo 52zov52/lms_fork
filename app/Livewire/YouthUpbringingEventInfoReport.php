@@ -36,7 +36,8 @@ class YouthUpbringingEventInfoReport extends Component
                 'upbringing_events.academic_year',
                 'upbringing_events.half_year',
                 'upbringing_event_reports.link_to_news',
-                'upbringing_event_reports.file_path'
+                'upbringing_event_reports.file_path',
+                'upbringing_events.file_path as event_file'
             )
             ->paginate(50);
 

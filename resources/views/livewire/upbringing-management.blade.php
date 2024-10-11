@@ -57,6 +57,11 @@
                     @can('add-educational-and-youth-policy-events')
                     <td class="w-32 px-2 py-2 text-center">
                         <div class="flex flex-row items-center justify-center space-x-1">
+                            @if(!is_null($value->event_file))
+                            <a href="storage/{{ $value->event_file }}" class="w-9 bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-1 text-xs text-center text-blue-400 hover:text-white" title="" data-tippy-content="Скачать доп. файлы к мероприятию" target="_blank">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </a>
+                            @endif
                             <button wire:click="modalVisible(true, {{ $value->id }})" class="w-9 bg-white hover:bg-orange-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-400 px-2 py-1 text-xs text-center text-orange-400 hover:text-white" title="" data-tippy-content="Редактировать">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
@@ -98,7 +103,7 @@
                     </div>
                     <div class="flex flex-col">
                         <label for="date" class="font-semibold">Дата проведения<span class="ml-1 text-red-400">*</span></label>
-                        <input wire:model="date" type="text" id="date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <input wire:model="date" type="date" id="date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         @error('date') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                     </div>
                     <div class="grid grid-cols-2 gap-2">
@@ -126,6 +131,26 @@
                             @endforeach
                         </select>
                         @error('userId') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="flex">
+                            <label for="file-id" class="font-semibold">Файл<span class="ml-1 text-red-500">*</span></label>
+                            <input wire:model="file" type="file" name="file" id="file-id-{{ $rand }}" class="ml-1 w-full">
+                        </div>
+                        <span class="text-xs font-semibold">доступные типы файлов: *.pdf, *.doc, *.docx, *.xls, *.xlsx, *.jpg, *.bmp, *.png, .*zip</span>
+                        <span class="text-xs font-semibold">максимальный объем файла: 3 МБ</span>
+                        <div wire:loading wire:target="file" class="text-green-500 font-semibold">Идет загрузка файла ...</div>
+                        @error('file') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
+                        @if($isEdit && !is_null($file_path))
+                        <div class="mt-2 flex">
+                            <a href="storage/{{ $file_path }}" target="_blank" class="text-blue-500 hover:underline" title="Скачать файл">
+                                <i class="fa-solid fa-paperclip"></i> {{ $filename }}
+                            </a>
+                        </div>
+                        <span class="mt-2 w-auto bg-orange-500 rounded p-2 text-white">
+                            <i class="fa-solid fa-circle-exclamation"></i> Чтобы заменить файл, загрузите в поле <b>Файл</b> новый файл
+                        </span>
+                        @endif
                     </div>
                 </div>
             </x-slot>
@@ -171,13 +196,5 @@
             showToast('destroy', id);
         }
     }
-
-    var pickerСheckInDate = new Pikaday({
-        field: document.getElementById('date'),
-        format: 'DD.MM.YYYY',
-        onSelect: function() {
-            @this.set('date', document.getElementById('date').value);
-        }
-    });
 </script>
 @endpush

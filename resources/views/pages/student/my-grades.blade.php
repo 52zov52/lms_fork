@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Моя успеваемость') }}
+        <h1>{{ __('Моя успеваемость') }}</h1>
     </x-slot>
 
     @livewire('student.my-grades')

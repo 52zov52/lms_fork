@@ -33,5 +33,16 @@
                 </div>
             </form>
         </div>
+        <!-- ТГ канал и инструкция -->
+        <div class="flex justify-between">
+            <div class="flex space-x-2 items-center">
+                <i class="fa-brands fa-telegram fa-lg"></i>
+                <a href="https://t.me/iubipdigital" class="text-blue-500 hover:underline" target="_blank">@iubipdigital</a>
+            </div>
+            <div class="flex space-x-2 items-center">
+                <i class="fa-solid fa-book-bookmark fa-lg"></i>
+                <a href="{{  asset('storage/manual_01.pdf') }}" class="text-blue-500 hover:underline" target="_blank">Инструкция</a>
+            </div>
+        </div>
     </div>
 </x-guest-layout>

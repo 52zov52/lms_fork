@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Расписание') }}
+        <h1>{{ __('Расписание') }}</h1>
     </x-slot>
 
     @livewire('schedule')

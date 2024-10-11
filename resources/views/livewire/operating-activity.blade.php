@@ -223,21 +223,36 @@
                     <div class="flex flex-col">
                         <div class="flex">
                             <label for="file-id" class="font-semibold">Файл<span class="ml-1 text-red-500">*</span></label>
-                            <input wire:model="file" type="file" name="file" id="file-id-{{ $rand }}" class="ml-1 w-full">
+                            <input wire:model="files" type="file" name="file" id="file-id-{{ $rand }}" multiple class="ml-1 w-full">
                         </div>
-                        <span class="text-xs font-semibold">доступные типы файлов: *.pdf, *.doc, *.docx, *.jpg, *.bmp, *.png</span>
+                        <span class="text-xs font-semibold">доступные типы файлов: *.pdf, *.doc, *.docx, *.xls, *.xlsx, *.jpg, *.bmp, *.png</span>
                         <span class="text-xs font-semibold">максимальный объем файла: 3 МБ</span>
-                        <div wire:loading wire:target="file" class="text-green-500 font-semibold">Идет загрузка файла ...</div>
-                        @error('file') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
-                        @if($isEdit && !is_null($file_path))
-                        <div class="mt-2 flex">
-                            <a href="storage/{{ $file_path }}" target="_blank" class="text-blue-500 hover:underline" title="Скачать файл">
-                                <i class="fa-solid fa-paperclip"></i> {{ $filename }}
-                            </a>
-                        </div>
-                        <span class="mt-2 w-auto bg-orange-500 rounded p-2 text-white">
-                            <i class="fa-solid fa-circle-exclamation"></i> Чтобы заменить файл, загрузите в поле <b>Файл</b> новый файл
-                        </span>
+                        <div wire:loading wire:target="files" class="text-green-500 font-semibold">Идет загрузка файла ...</div>
+                        @error('files') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
+                        @if($isEdit)
+                        @if(count($userFiles) != 0)
+                        <span class="font-semibold">Файл(ы): </span>
+                        <ul>
+                            @foreach ($userFiles as $userFile)
+                            <li>
+                                {{ $userFile->filename }}
+                                <button type="button" wire:click="removeFile({{ $userFile->id }})" class="ml-2 text-red-500 underline">Удалить</button>
+                            </li>
+                            @endforeach
+                        </ul>
+                        @endif
+                        @else
+                        @if(count($files) != 0)
+                        <span class="font-semibold">Файл(ы): </span>
+                        <ul>
+                            @foreach ($files as $index => $file)
+                            <li>
+                                {{ $file->getClientOriginalName() }}
+                                <button type="button" wire:click="removeFileFromArray({{ $index }})" class="ml-2 text-red-500 underline">Удалить</button>
+                            </li>
+                            @endforeach
+                        </ul>
+                        @endif
                         @endif
                     </div>
                 </div>
@@ -268,12 +283,19 @@
                         <label for="description-id" class="font-semibold">Комментарий</label>
                         <textarea wire:model="description" name="description" id="description-id" cols="5" rows="5" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" readonly></textarea>
                     </div>
-                    @if(!is_null($file))
-                    <div class="flex space-x-2">
-                        <span class="font-semibold">Файл: </span>
-                        <a href="storage/{{ $file }}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">cкачать</a>
+                    <div>
+                        @if(!is_null($userFiles))
+                        <span class="font-semibold">Файл(ы): </span>
+                        <ul>
+                            @foreach ($userFiles as $userFile)
+                            <li>
+                                {{ $userFile->filename }}
+                                <a href="storage/{{ $userFile->file_path }}" target="_blank" rel="noopener noreferrer" class="ml-2 text-blue-500 hover:underline">cкачать</a>
+                            </li>
+                            @endforeach
+                        </ul>
+                        @endif
                     </div>
-                    @endif
                 </div>
             </x-slot>
 

@@ -15,6 +15,8 @@ class UpbringingEvent extends Model
         'date',
         'academic_year',
         'half_year',
-        'user_id'
+        'user_id',
+        'file_path',
+        'filename'
     ];
 }

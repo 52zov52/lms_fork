@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Средний балл аттестата абитуриентов') }}
+        <h1>{{ __('Средний балл аттестата абитуриентов') }}</h1>
     </x-slot>
 
     @livewire('applicant-average-score')

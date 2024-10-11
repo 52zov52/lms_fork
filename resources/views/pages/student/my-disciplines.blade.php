@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        {{ __('Мои дисциплины') }}
+        <h1>{{ __('Мои дисциплины') }}</h1>
     </x-slot>
 
     @livewire('student.my-disciplines')

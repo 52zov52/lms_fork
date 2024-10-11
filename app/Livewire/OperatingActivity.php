@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\OperatingActivity as ModelsOperatingActivity;
+use App\Models\OperatingActivityFile;
 use App\Models\UserActivityDirection;
 use Carbon\Carbon;
 use DateTime;
@@ -23,7 +24,8 @@ class OperatingActivity extends Component
     public $description = '';
     public $status = 0;
     public $file_path = '';
-    public $file = null;
+    public $files = [];
+    public $userFiles = [];
     public $userId = 0;
     public $week = '';
 
@@ -105,36 +107,6 @@ class OperatingActivity extends Component
                 DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name) AS fio')
             );
 
-        /*
-        if (!empty($this->filterActivityDirection) && empty($this->filterExecutor) && empty($this->filterStatus)) {
-            $operatingActivity->where('operating_activities.activity_direction', '=', $this->filterActivityDirection);
-        }
-
-        if (empty($this->filterActivityDirection) && !empty($this->filterExecutor) && empty($this->filterStatus)) {
-            $operatingActivity->where(DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name)'), 'like', '%' . $this->filterExecutor . '%');
-        }
-
-        if (empty($this->filterActivityDirection) && empty($this->filterExecutor) && !empty($this->filterStatus)) {
-            $operatingActivity->where('operating_activities.status', '=', $this->filterStatus);
-        }
-
-        if (!empty($this->filterActivityDirection) && !empty($this->filterExecutor) && empty($this->filterStatus)) {
-            $operatingActivity->where('operating_activities.activity_direction', '=', $this->filterActivityDirection);
-            $operatingActivity->where(DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name)'), 'like', '%' . $this->filterExecutor . '%');
-        }
-
-        if (empty($this->filterActivityDirection) && !empty($this->filterExecutor) && !empty($this->filterStatus)) {
-            $operatingActivity->where(DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name)'), 'like', '%' . $this->filterExecutor . '%');
-            $operatingActivity->where('operating_activities.status', '=', $this->filterStatus);
-        }
-
-        if (!empty($this->filterActivityDirection) && !empty($this->filterExecutor) && !empty($this->filterStatus)) {
-            $operatingActivity->where('operating_activities.activity_direction', '=', $this->filterActivityDirection);
-            $operatingActivity->where(DB::raw('CONCAT(users_data.last_name," ",users_data.first_name," ",users_data.middle_name)'), 'like', '%' . $this->filterExecutor . '%');
-            $operatingActivity->where('operating_activities.status', '=', $this->filterStatus);
-        }
-        */
-
         if (!empty($this->filterActivityDirection)) {
             $operatingActivity->where('operating_activities.activity_direction', '=', $this->filterActivityDirection);
         }
@@ -198,7 +170,9 @@ class OperatingActivity extends Component
     {
         $operatingActivity = ModelsOperatingActivity::findOrFail($id);
         $this->description = $operatingActivity->description;
-        $this->file = $operatingActivity->file_path;
+
+        $operatingActivityFile = OperatingActivityFile::where('operating_activity_id', '=', $operatingActivity->id)->get();
+        $this->userFiles = $operatingActivityFile;
 
         $this->isDescriptionModalFormVisible = true;
     }
@@ -249,13 +223,13 @@ class OperatingActivity extends Component
 
     public function store(): void
     {
-        if (!is_null($this->file)) {
+        if (!empty($this->files)) {
             $this->validate([
                 'activityDirection' => 'required|string|max:255',
                 'task' => 'required|string|max:2500',
                 'description' => 'string|max:3500',
                 'status' => 'required|numeric|min:1',
-                'file' => 'file|mimes:pdf,doc,docx,jpg,bmp,png|max:3072'
+                'files.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,bmp,png|max:3072'
             ]);
         } else {
             $this->validate([
@@ -266,22 +240,46 @@ class OperatingActivity extends Component
             ]);
         }
 
-        $filePath = (!is_null($this->file)) ? $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public') : null;
-
-        ModelsOperatingActivity::create([
+        $operatingActivity = ModelsOperatingActivity::create([
             'activity_direction' => $this->activityDirection,
             'task' => $this->task,
             'description' =>  $this->description,
             'status' => $this->status,
-            'file_path' =>  $filePath,
+            'file_path' => null,
             'user_id' => Auth::user()->id
         ]);
+
+        if (!empty($this->files)) {
+            foreach ($this->files as $file) {
+                $filePath = $file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public');
+                OperatingActivityFile::create([
+                    'operating_activity_id' => $operatingActivity->id,
+                    'file_path' => $filePath,
+                    'filename' => $file->getClientOriginalName()
+                ]);
+            }
+        }
 
         $this->isCreatingAndEditingModalFormVisible = false;
         $this->resetFields();
 
         session()->flash('type', 'success');
         session()->flash('message', 'Запись успешно добавлена!');
+    }
+
+    public function removeFileFromArray($index)
+    {
+        unset($this->files[$index]);
+        $this->files = array_values($this->files); // Переиндексация массива
+    }
+
+    public function removeFile($id)
+    {
+        $operatingActivityFile = OperatingActivityFile::find($id);
+        unlink(storage_path('app/public/' . $operatingActivityFile->file_path));
+        $operatingActivityFile->delete();
+
+        $this->userFiles = OperatingActivityFile::where('operating_activity_id', '=', $this->id)->get();
     }
 
     public function edit($id, $userId): void
@@ -295,27 +293,27 @@ class OperatingActivity extends Component
         $this->description = $operatingActivity->description;
         $this->status = $operatingActivity->status;
         $this->file_path = $operatingActivity->file_path;
-
-        if (!is_null($operatingActivity->file_path)) {
-            $data = explode('/', $operatingActivity->file_path);
-            $this->filename = $data[2];
-        }
-
         $weekRange = Carbon::parse($operatingActivity->created_at);
         $this->startDate = $weekRange->startOfWeek()->format('d.m.Y');
         $this->endDate = $weekRange->endOfWeek()->format('d.m.Y');
+
+        $operatingActivityFile = OperatingActivityFile::where('operating_activity_id', '=', $operatingActivity->id)->get();
+
+        if (!is_null($operatingActivityFile)) {
+            $this->userFiles = $operatingActivityFile;
+        }
     }
 
     public function update(): void
     {
         if (Auth::user()->id == $this->userId) {
-            if (!is_null($this->file)) {
+            if (!empty($this->files)) {
                 $this->validate([
                     'activityDirection' => 'required|string|max:255',
                     'task' => 'required|string|max:2500',
                     'description' => 'string|max:3500',
                     'status' => 'required|numeric|min:1',
-                    'file' => 'file|mimes:pdf,doc,docx,jpg,bmp,png|max:3072'
+                    'files.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,bmp,png|max:3072'
                 ]);
             } else {
                 $this->validate([
@@ -331,17 +329,18 @@ class OperatingActivity extends Component
             $operatingActivity->task = $this->task;
             $operatingActivity->description = $this->description;
             $operatingActivity->status = $this->status;
-
-            if (!is_null($this->file)) {
-                if (!is_null($operatingActivity->file_path)) {
-                    unlink(storage_path('app/public/' . $operatingActivity->file_path));
-                }
-
-                $filePath = $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public');
-                $operatingActivity->file_path = $filePath;
-            }
-
             $operatingActivity->update();
+
+            if (!empty($this->files)) {
+                foreach ($this->files as $file) {
+                    $filePath = $file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public');
+                    OperatingActivityFile::create([
+                        'operating_activity_id' => $operatingActivity->id,
+                        'file_path' => $filePath,
+                        'filename' => $file->getClientOriginalName()
+                    ]);
+                }
+            }
 
             $this->isCreatingAndEditingModalFormVisible = false;
             $this->resetFields();
@@ -396,7 +395,8 @@ class OperatingActivity extends Component
         $this->description = '';
         $this->status = 0;
         $this->file_path = '';
-        $this->file = null;
+        $this->files = [];
+        $this->userFiles = [];
 
         $this->rand++;
 

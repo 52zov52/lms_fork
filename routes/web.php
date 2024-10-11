@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContingentReportController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Employee\StudentSocialPassportReviewController;
 use App\Http\Controllers\OperatingActivityReportController;
 use App\Http\Controllers\PrintConfirmedDocumentRequestsController;
@@ -45,9 +46,7 @@ Route::get('/qr-code-document-verifications/{verificationCode}', function ($veri
 })->name('qr.code.document.verifications');
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/elibrary', function () {
         return view('pages.elibrary');
@@ -173,9 +172,14 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     })->name('document.order.requests');
 
     //Url для сервиса заказа справок
-    Route::get('/student-document-requests', function () {
-        return view('pages.student-document-requests');
-    })->name('student.document.requests');
+    Route::get('/student-document-order-requests', function () {
+        return view('pages.student-document-order-requests');
+    })->name('student.document.order.requests');
+
+    //Url для анкетирования
+    Route::get('/questionnaire', function () {
+        return view('pages.questionnaire');
+    })->name('questionnaire');
 
     //Url для сервиса обработки заказов справок
     Route::get('/student-document-issuances', function () {
