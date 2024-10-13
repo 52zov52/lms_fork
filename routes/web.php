@@ -64,6 +64,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     //Routes для роли Employee
     Route::group(['prefix' => 'employee'], function () {
+        //Управление контингентом
+        Route::get('/contingent-management', function () {
+            return view('pages.employee.contingent-management');
+        })->name('employee.contingent.management');
+
         Route::get('/student-social-passport-review', function () {
             return view('pages.employee.student-social-passport-review');
         })->name('employee.student.social.passport.review');
