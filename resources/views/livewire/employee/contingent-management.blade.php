@@ -1,5 +1,6 @@
 <div x-data="{ hovered: null }" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-    <a x-bind:class="{ 'hovered': hovered === 'contingent' }" @mouseover="hovered = 'contingent'" @mouseout="hovered = null" class="w-auto" href="#">
+    @can('access-to-contingent')
+    <a x-bind:class="{ 'hovered': hovered === 'contingent' }" @mouseover="hovered = 'contingent'" @mouseout="hovered = null" class="w-auto" href="{{ route('employee.contingent') }}">
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Контингент</div>
             <div class="grow px-4 py-2 text-sm text-justify">
@@ -10,6 +11,7 @@
             </div>
         </div>
     </a>
+    @endcan
     <a x-bind:class="{ 'hovered': hovered === 'bulletins' }" @mouseover="hovered = 'bulletins'" @mouseout="hovered = null" class="w-auto" href="#">
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Ведомости</div>

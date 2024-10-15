@@ -3,5 +3,5 @@
         <h1>{{ __('Контингент') }}</h1>
     </x-slot>
 
-    @livewire('contingent')
+    @livewire('employee.contingent')
 </x-app-layout>

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ContingentReportController;
+use App\Http\Controllers\ContingentReportController as OldContingentReportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Employee\StudentSocialPassportReviewController;
 use App\Http\Controllers\OperatingActivityReportController;
@@ -8,6 +8,7 @@ use App\Http\Controllers\PrintConfirmedDocumentRequestsController;
 use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\Report\ContingentReportController;
 use App\Http\Controllers\Report\IndividualStudentGradeController;
 use App\Http\Controllers\Report\SptController;
 use App\Http\Controllers\Reports\PrintAdmissionCampaignController;
@@ -68,6 +69,19 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/contingent-management', function () {
             return view('pages.employee.contingent-management');
         })->name('employee.contingent.management');
+
+        //Контингент
+        Route::get('/contingent', function () {
+            return view('pages.employee.contingent');
+        })->name('employee.contingent');
+
+        //Отчеты по контингенту
+        Route::group(['prefix' => 'contingent'], function () {
+            Route::group(['prefix' => 'report'], function () {
+                Route::get('/download-list-of-students/{groupId}', [ContingentReportController::class, 'downloadListOfStudents'])
+                ->name('employee.contingent.report.download.list.of.students');
+            });
+        });
 
         Route::get('/student-social-passport-review', function () {
             return view('pages.employee.student-social-passport-review');
@@ -201,10 +215,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/print-document/{id}', [PrintConfirmedDocumentRequestsController::class, 'print'])->name('print.document');
     });
 
-    Route::get('/contingent', function () {
-        return view('pages.contingent');
-    })->name('contingent');
-
     Route::get('/student-grades', function () {
         return view('pages.student-grades');
     })->name('student.grades');
@@ -265,10 +275,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::get('/generate-operating-activity-report/{week}/{fio}', [OperatingActivityReportController::class, 'generateOperatingActivityReport'])->name('generate.operating.activity.report');
 
-    Route::get('/generate-list-of-students-in-group-report/{groupId}', [ContingentReportController::class, 'generateListOfStudentsInGroupReport'])->name('generate.list.of.student.in.group.report');
-    Route::get('/generate-contingent-report', [ContingentReportController::class, 'generateContingentReport'])->name('generate.contingent.report');
-    Route::get('/generate-contingent-by-age-and-gender-report', [ContingentReportController::class, 'generateContingentByAgeAndGenderReport'])->name('generate.contingent.by.age.and.gender.report');
-    Route::get('/generate-contingent-by-age-and-gender-without-teaching-from-report', [ContingentReportController::class, 'generateContingentByAgeAndGenderWithoutTeachingFromReport'])->name('generate.contingent.by.age.and.gender.without.teaching.from.report');
+    Route::get('/generate-list-of-students-in-group-report/{groupId}', [OldContingentReportController::class, 'generateListOfStudentsInGroupReport'])->name('generate.list.of.student.in.group.report');
+    Route::get('/generate-contingent-report', [OldContingentReportController::class, 'generateContingentReport'])->name('generate.contingent.report');
+    Route::get('/generate-contingent-by-age-and-gender-report', [OldContingentReportController::class, 'generateContingentByAgeAndGenderReport'])->name('generate.contingent.by.age.and.gender.report');
+    Route::get('/generate-contingent-by-age-and-gender-without-teaching-from-report', [OldContingentReportController::class, 'generateContingentByAgeAndGenderWithoutTeachingFromReport'])->name('generate.contingent.by.age.and.gender.without.teaching.from.report');
 
     Route::get('/get-study-plan', [StudyPlanController::class, 'getStudyPlan'])->name('get.study.plan');
 
