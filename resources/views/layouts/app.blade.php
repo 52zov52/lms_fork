@@ -71,7 +71,7 @@
                 </div>
             </header>
             <main class="grow overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300 p-4">
-                <div class="flex flex-col">
+                <div class="h-full flex flex-col">
                     <div class="mb-4">
                         {{ $header }}
                     </div>
