@@ -3,8 +3,8 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\AcademicYearController;
-use App\Models\StudentDocumentIssuance;
-use App\Models\StudentDocumentRequest;
+use App\Models\StudentDocumentOrderIssuance;
+use App\Models\StudentDocumentOrderRequest;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -24,11 +24,11 @@ class StudentDocumentRequests extends Component
 
     public function render()
     {
-        $studentDocumentRequests = StudentDocumentRequest::where('requester_id', Auth::user()->id)->paginate(50);
+        $studentDocumentOrderRequests = StudentDocumentOrderRequest::where('requester_id', Auth::user()->id)->paginate(50);
 
         return view('livewire.student-document-requests', [
             'listDocumentTypes' => $this->listDocumentTypes,
-            'studentDocumentRequests' => $studentDocumentRequests
+            'studentDocumentRequests' => $studentDocumentOrderRequests
         ]);
     }
 
@@ -64,7 +64,7 @@ class StudentDocumentRequests extends Component
             ]);
         }
 
-        $studentDocumentRequest = StudentDocumentRequest::create([
+        $studentDocumentOrderRequest = StudentDocumentOrderRequest::create([
             'document_type' => $this->selectedDocumentType,
             'status' => 1,
             'requester_id' => Auth::user()->id,
@@ -73,15 +73,15 @@ class StudentDocumentRequests extends Component
         ]);
 
         if ($this->selectedDocumentType == 3) {
-            StudentDocumentIssuance::create([
-                'student_document_request_id' => $studentDocumentRequest->id,
+            StudentDocumentOrderIssuance::create([
+                'student_document_order_request_id' => $studentDocumentOrderRequest->id,
                 'employment_place' => $this->employmentPlace
             ]);
 
             $this->showModal = false;
         } else {
-            StudentDocumentIssuance::create([
-                'student_document_request_id' => $studentDocumentRequest->id
+            StudentDocumentOrderIssuance::create([
+                'student_document_order_request_id' => $studentDocumentOrderRequest->id
             ]);
         }
 

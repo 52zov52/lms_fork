@@ -75,13 +75,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.employee.contingent');
         })->name('employee.contingent');
 
-        //Отчеты по контингенту
-        Route::group(['prefix' => 'contingent'], function () {
-            Route::group(['prefix' => 'report'], function () {
-                Route::get('/download-list-of-students/{groupId}', [ContingentReportController::class, 'downloadListOfStudents'])
-                ->name('employee.contingent.report.download.list.of.students');
-            });
-        });
+        //Обработка заявок на документы
+        Route::get('/student-document-order-issuances', function () {
+            return view('pages.employee.student-document-order-issuances');
+        })->name('employee.student.document.order.issuances');
 
         Route::get('/student-social-passport-review', function () {
             return view('pages.employee.student-social-passport-review');
@@ -211,8 +208,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/document-retrieval-requests', function () {
             return view('pages.document-retrieval-request');
         })->name('document.retrieval.requests');
-
-        Route::get('/print-document/{id}', [PrintConfirmedDocumentRequestsController::class, 'print'])->name('print.document');
     });
 
     Route::get('/student-grades', function () {

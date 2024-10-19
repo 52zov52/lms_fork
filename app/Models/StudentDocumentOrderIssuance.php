@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class StudentDocumentIssuance extends Model
+class StudentDocumentOrderIssuance extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'student_document_request_id',
+        'student_document_order_request_id',
         'document_number',
         'last_name',
         'first_name',

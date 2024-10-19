@@ -152,16 +152,6 @@
         </div>
     </a>
     @endcan
-    @can('manage-student-document-requests')
-    <a href="{{ route('student.document.issuances') }}">
-        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('student.document.issuances')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
-            <div class="w-8 h-8 flex items-center justify-center">
-                <i class="fa-solid fa-folder-closed fa-lg"></i>
-            </div>
-            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Обработка заявок на документы</span>
-        </div>
-    </a>
-    @endcan
     <a href="{{ route('employee.contingent.management') }}">
         <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('employee.contingent.management')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <div class="w-8 h-8 flex items-center justify-center">

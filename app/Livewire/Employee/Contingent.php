@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Response;
 
 class Contingent extends Component
 {
-    public int $groupId = 0;
+    public int $selectedGroupId = 0;
     public $ticketNumber = '';
     public $groups = [];
     public $contingent = [];
@@ -24,8 +24,8 @@ class Contingent extends Component
             ->orderBy('group_name', 'asc')
             ->get();
 
-        if ($this->groupId != 0) {
-            $this->contingent = $contingentController->getContingent($this->groupId);
+        if ($this->selectedGroupId != 0) {
+            $this->contingent = $contingentController->getContingent($this->selectedGroupId);
         }else {
             if(!empty($this->ticketNumber)) {
                 $this->contingent = $contingentController->searchContingentByTicketNumber($this->ticketNumber);
@@ -40,12 +40,12 @@ class Contingent extends Component
         $this->ticketNumber = '';
 
         $contingentController = new ContingentController();
-        $this->contingent = $contingentController->getContingent($this->groupId);
+        $this->contingent = $contingentController->getContingent($this->selectedGroupId);
     }
 
     public function searchContingentByTicketNumber(): void
     {
-        $this->groupId = 0;
+        $this->selectedGroupId = 0;
 
         $contingentController = new ContingentController();
         $this->contingent = $contingentController->searchContingentByTicketNumber($this->ticketNumber);
@@ -53,14 +53,13 @@ class Contingent extends Component
 
     public function downloadListOfStudents()
     {
-        if ($this->groupId != 0) {
+        if ($this->selectedGroupId != 0) {
              $contingentReportController = new ContingentReportController();
-             $data = $contingentReportController->downloadListOfStudents($this->groupId);
+             $data = $contingentReportController->downloadListOfStudents($this->selectedGroupId);
 
             return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
         } else {
-            session()->flash('type', 'error');
-            session()->flash('message', 'Невозможно сформировать отчет, т.к. не выбрана группа из списка!');
+            $this->dispatch('show-toast', message: 'Невозможно сформировать отчет, т.к. не выбрана группа из списка!', type:'error');
         }
     }
 }

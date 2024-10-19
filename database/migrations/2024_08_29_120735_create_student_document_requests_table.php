@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('student_document_requests', function (Blueprint $table) {
+        Schema::create('student_document_order_requests', function (Blueprint $table) {
             $table->id();
             $table->integer('document_type');
             $table->integer('status');
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('student_document_requests');
+        Schema::dropIfExists('student_document_order_requests');
     }
 };

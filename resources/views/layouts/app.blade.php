@@ -20,6 +20,7 @@
 
     <!-- Styles -->
     @livewireStyles
+    <link href="{{ asset('css/toastr.min.css') }}" rel="stylesheet">
 </head>
 
 <body>
@@ -71,7 +72,7 @@
                 </div>
             </header>
             <main class="grow overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300 p-4">
-                <div class="h-full flex flex-col">
+                <div class="h-full flex flex-col space-y-2">
                     <div class="mb-4">
                         {{ $header }}
                     </div>
@@ -82,6 +83,9 @@
     </div>
 
     @livewireScripts
+
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
+    <script src="{{ asset('js/toastr.min.js') }}"></script>
     @stack('scripts')
 
     <script>
@@ -108,6 +112,18 @@
                 }
             }
         }
+
+        toastr.options = {
+            "positionClass": "toast-top-right",
+            "closeButton": true,
+            "progressBar": true
+        }
+        
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('show-toast', (event) => {
+                toastr[event.type](event.message)
+            });
+        });
     </script>
 </body>
 

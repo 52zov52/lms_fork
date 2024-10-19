@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\StudentDocumentRequest;
+use App\Models\StudentDocumentOrderRequest;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,12 +12,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('student_document_issuances', function (Blueprint $table) {
+        Schema::create('student_document_order_issuances', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignIdFor(StudentDocumentRequest::class)
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->unsignedBigInteger('student_document_order_request_id')->nullable();
+            $table->foreign('student_document_order_request_id', 'student_doc_order_issuances_student_doc_order_request_id_foreign')
+                ->references('id')
+                ->on('student_document_order_requests')
+                ->onDelete('cascade');
 
             $table->string('document_number', 50)->nullable();
             $table->string('last_name', 50)->nullable();
@@ -51,6 +53,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('student_document_issuances');
+        Schema::dropIfExists('student_document_order_issuances');
     }
 };
