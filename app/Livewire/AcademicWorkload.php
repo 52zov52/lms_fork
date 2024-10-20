@@ -34,6 +34,19 @@ class AcademicWorkload extends Component
             $currentYear = now()->subYear()->year;
         }
 
+        $groupIds = DB::table('study_thread_subgroup_user')
+            ->join('study_thread_subgroups', 'study_thread_subgroup_user.study_thread_subgroup_id', '=', 'study_thread_subgroups.id')
+            ->join('study_threads', 'study_thread_subgroups.study_thread_id', '=', 'study_threads.id')
+            ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
+            ->whereIn('study_thread_subgroup_user.user_id', $this->listUserId)
+            ->where('study_threads.year', $currentYear)
+            ->distinct()
+            ->select('group_study_thread_subgroup.group_id')
+            ->get();
+        
+        // Преобразование результата в массив, если необходимо
+        $groupIdsArray = $groupIds->pluck('group_id')->toArray();
+
         $data = $this->transformer(DB::table('study_thread_subgroup_user')
             ->join('study_thread_subgroups', 'study_thread_subgroup_user.study_thread_subgroup_id', '=', 'study_thread_subgroups.id')
             ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
@@ -70,6 +83,7 @@ class AcademicWorkload extends Component
             )
             ->whereIn('study_thread_subgroup_user.user_id', $this->listUserId)
             ->where('study_threads.year', '=', $currentYear)
+            ->whereIn('group_study_thread_subgroup.group_id', $groupIdsArray)
             ->orderBy('study_threads.semester')
             ->orderBy('groups.group_name')
             ->distinct()->get()->toArray());
