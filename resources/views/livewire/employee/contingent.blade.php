@@ -2,7 +2,7 @@
     <div class="h-full flex flex-col space-y-2">
         <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:justify-between">
             <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-                <select wire:model="selectedGroupId" wire:change="getContingent" name="groupid" id="groupid" class="w-full md:w-auto">
+                <select wire:model="selectedGroupId" wire:change="getContingent" name="selectedGroupId" id="group-id" class="w-full md:w-auto">
                     <option value="0">Выберите группу из списка</option>
                     @foreach($groups as $group)
                     <option value="{{ $group->id }}">{{ $group->group_name }}</option>
@@ -22,7 +22,7 @@
         </div>
 
         <div class="flex flex-row space-x-2">
-            <input wire:model="ticketNumber" type="text" name="ticketNumber" id="ticketNumber" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 px-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-600 dark:placeholder-white" placeholder="Для поиска введите номер личного дела (номер зачетной книжки)">
+            <input wire:model="ticketNumber" type="text" name="ticketNumber" id="ticket-number" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 px-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-600 dark:placeholder-white" placeholder="Для поиска введите номер личного дела (номер зачетной книжки)">
             <button wire:click="searchContingentByTicketNumber" class="w-12 bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-1 text-xs text-center text-blue-400 hover:text-white">
                 <i class="fa-solid fa-magnifying-glass"></i>
             </button>

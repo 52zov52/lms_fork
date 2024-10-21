@@ -14,63 +14,60 @@
         </button>
     </div>
 
+    <div class="flex flex-row space-x-2">
+        <span class="bg-orange-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">В работе</span>
+        <span class="bg-green-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">Выполнена</span>
+        <span class="bg-red-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">Отклонена</span>
+    </div>
+
     @if(!is_null($studentDocumentRequests) && count($studentDocumentRequests) != 0)
-        <div class="border rounded border-slate-400/20">
-            <table class="w-full text-xs lg:text-sm">
-                <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
-                    <tr class="border-b border-slate-400/20">
-                        <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
-                        <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">Тип справки</th>
-                        <th scope="col" class="w-44 px-2 py-2 text-left font-semibold">Статус</th>
-                        <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Учебный год</th>
-                        <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Полугодие</th>
-                        <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Дата создания заявки</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($studentDocumentRequests as $value)
-                    <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
-                        <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                        <td class="w-auto px-2 py-2 text-left">
-                            @if($value->document_type == 1)
-                                {{ __('Справка о статусе студента') }}
-                            @elseif($value->document_type == 2)
-                                {{ __('Справка о статусе студента (для транспортных карт)') }}
-                            @else
-                                {{ __('Справка-вызов') }}
-                            @endif
-                        </td>
-                        <td class="w-44 px-2 py-2 text-left">
-                            @if($value->status == 1)
-                                <span class="text-orange-400 font-bold cursor-pointer">
-                                    {{ __('В обработке') }}
-                                </span>
-                            @elseif($value->status == 2)
-                                <span class="text-sky-400 font-bold cursor-pointer">
-                                    {{ __('Готова к выдаче') }}
-                                    @if($value->document_type == 1 || $value->document_type == 2)
-                                    {{ \Carbon\Carbon::parse($value->updated_at)->addDay()->format('d.m.Y') }} после 13:00
-                                    @endif
-                                </span>
-                            @else
-                                <span class="text-red-400 font-bold cursor-pointer">
-                                    {{ __('Отклонена') }} 
-                                </span>
-                            @endif
-                        </td>
-                        <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }}</td>
-                        <td class="w-24 px-2 py-2 text-center">{{ $value->half_year }}</td>
-                        <td class="w-40 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->created_at)->format('d.m.Y') }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <div class="mt-2">
-            {{ $studentDocumentRequests->links() }}
-        </div>
+    <div class="border rounded border-slate-400/20">
+        <table class="w-full text-xs lg:text-sm">
+            <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
+                <tr class="border-b border-slate-400/20">
+                    <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
+                    <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">Тип справки</th>
+                    <th scope="col" class="w-16 px-2 py-2 text-center font-semibold">Статус заявки</th>
+                    <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Учебный год</th>
+                    <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Полугодие</th>
+                    <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Дата создания заявки</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($studentDocumentRequests as $value)
+                <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
+                    <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
+                    <td class="w-auto px-2 py-2 text-left">
+                        @if($value->document_type == 1)
+                        {{ __('Справка о статусе студента') }}
+                        @elseif($value->document_type == 2)
+                        {{ __('Справка о статусе студента (для транспортных карт)') }}
+                        @else
+                        {{ __('Справка-вызов') }}
+                        @endif
+                    </td>
+                    <td class="w-16 px-2 py-2 text-center">
+                        @if($value->status == 1)
+                        <span class="text-orange-400 font-bold cursor-pointer" data-tippy-content="В работе">Р</span>
+                        @elseif($value->status == 2)
+                        <span class="text-green-400 font-bold cursor-pointer" data-tippy-content="Выполнена">В</span>
+                        @else
+                        <span class="text-red-400 font-bold cursor-pointer" data-tippy-content="Отклонена">О</span>
+                        @endif
+                    </td>
+                    <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }}</td>
+                    <td class="w-24 px-2 py-2 text-center">{{ $value->half_year }}</td>
+                    <td class="w-40 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->created_at)->format('d.m.Y') }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-2">
+        {{ $studentDocumentRequests->links() }}
+    </div>
     @else
-        <x-alert type="info" title="Информация" message="Список заявок на выдачу справок пуст" />
+    <x-alert type="info" title="Информация" message="Список заявок на выдачу справок пуст" />
     @endif
 
     <x-dialog-modal wire:model="showModal">

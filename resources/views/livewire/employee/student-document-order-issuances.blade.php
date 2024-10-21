@@ -1,25 +1,31 @@
 <div class="h-full">
     <div class="h-full flex flex-col space-y-2">
         <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-            <select wire:model="selectedDocumentType" wire:change="setDocumentType" name="documentType" id="documentType" class="w-full md:w-auto">
+            <select wire:model="selectedDocumentType" wire:change="setDocumentType" name="selectedDocumentType" id="selected-document-type" class="w-full md:w-auto">
                 <option value="0">Выберите из списка тип справки</option>
                 @foreach($listOfDocumentTypes as $key => $value)
                 <option value="{{ $key }}">{{ $value }}</option>
                 @endforeach
             </select>
-            <select wire:model="selectedStatus" wire:change="setStatus" name="status" id="status" class="w-full md:w-auto">
-                <option value="0">Выберите из статус заявки</option>
+            <select wire:model="selectedStatus" wire:change="setStatus" name="selectedStatus" id="selected-status" class="w-full md:w-auto">
+                <option value="0">Выберите из списка статус заявки</option>
                 @foreach($listOfStatuses as $keyStatus => $valueStatus)
                 <option value="{{ $keyStatus }}">{{ $valueStatus }}</option>
                 @endforeach
             </select>
         </div>
 
-        <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-            <p class="text-sm text-justify font-semibold text-red-400">*Печать справки возможно только после её подтверждения!</p>
+        <div class="flex flex-row space-x-2">
+            <span class="bg-orange-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">В работе</span>
+            <span class="bg-green-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">Выполнена</span>
+            <span class="bg-red-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">Отклонена</span>
         </div>
 
-        <div wire:loading.remove wire:target="render, setDocumentType, setStatus">
+        <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
+            <p class="text-xs md:text-sm text-justify font-semibold text-red-400">*Печать справки возможно только после её подтверждения!</p>
+        </div>
+
+        <div wire:loading.remove wire:target="setDocumentType, setStatus">
             @if(!is_null($studentDocumentIssuances) && count($studentDocumentIssuances) != 0)
             <div class="hidden lg:block border rounded border-slate-400/20">
                 <table class="w-full text-xs lg:text-sm">
@@ -29,11 +35,11 @@
                             <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">ФИО</th>
                             <th scope="col" class="W-32 px-2 py-2 text-left font-semibold">Группа</th>
                             <th scope="col" class="w-52 px-2 py-2 text-left font-semibold">Тип справки</th>
-                            <th scope="col" class="w-16 px-2 py-2 text-center font-semibold">Статус</th>
+                            <th scope="col" class="w-16 px-2 py-2 text-center font-semibold">Статус заявки</th>
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Учебный год</th>
                             <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Полугодие</th>
                             <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Дата создания заявки</th>
-                            <th scope="col" class="w-28 px-2 py-2 font-semibold">Действия*</th>
+                            <th scope="col" class="w-28 px-2 py-2 text-center font-semibold">Действия*</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -55,9 +61,9 @@
                                 @if($value->status == 1)
                                 <span class="text-orange-400 font-bold cursor-pointer" data-tippy-content="В работе">Р</span>
                                 @elseif($value->status == 2)
-                                <span class="text-sky-400 font-bold cursor-pointer" data-tippy-content="Готова к выдаче">Г</span>
+                                <span class="text-green-400 font-bold cursor-pointer" data-tippy-content="Выполнена">В</span>
                                 @else
-                                <span class="text-red-400 font-bold cursor-pointer" data-tippy-content="Отказано">О</span>
+                                <span class="text-red-400 font-bold cursor-pointer" data-tippy-content="Отклонена">О</span>
                                 @endif
                             </td>
                             <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }}</td>
@@ -105,13 +111,13 @@
                         @endif
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-semibold">Статус:</span>
+                        <span class="font-semibold">Статус заявки:</span>
                         @if($value->status == 1)
                         <span class="text-orange-400 font-semibold">В работе</span>
                         @elseif($value->status == 2)
-                        <span class="text-sky-400 font-semibold">Готова к выдачи</span>
+                        <span class="text-green-400 font-semibold">Выполнена</span>
                         @else
-                        <span class="text-green-400 font-semibold">Отказано</span>
+                        <span class="text-red-400 font-semibold">Отклонена</span>
                         @endif
                     </div>
                     <div class="flex flex-col">
@@ -153,7 +159,7 @@
             @endif
         </div>
         <!-- Preloader -->
-        <div class="h-full" wire:loading wire:target="render, setDocumentType, setStatus">
+        <div class="h-full" wire:loading wire:target="setDocumentType, setStatus">
             <div class="h-full flex space-x-2 items-center justify-center text-sm md:text-lg">
                 <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                 <span>Пожалуйста, подождите, идет загрузка данных</span>
@@ -166,80 +172,80 @@
         <form>
             @csrf
             <x-slot name="title">
-                Форма подтверждения заявки на справку
+                Форма подтверждения заявки на документ
             </x-slot>
 
             <x-slot name="content">
                 <div class="flex flex-col space-y-2">
                     <div class="flex flex-col">
-                        <label for="document-number" class="font-semibold">Номер справки<span class="ml-1 text-red-400">*</span></label>
-                        <input wire:model="documentNumber" type="text" id="document-number" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <label for="document-number" class="font-semibold">Номер справки<span class="text-red-400">*</span></label>
+                        <input wire:model="documentNumber" type="text" name="documentNumber" id="document-number" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         @error('documentNumber') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                         <div class="flex flex-col">
-                            <label for="last-name" class="font-semibold">Фамилия (И. п.)<span class="ml-1 text-red-400">*</span></label>
-                            <input wire:model="lastName" type="text" id="last-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="last-name" class="font-semibold">Фамилия (И. п.)<span class="text-red-400">*</span></label>
+                            <input wire:model="lastName" type="text" name="lastName" id="last-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('lastName') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                         <div class="flex flex-col">
-                            <label for="first-name" class="font-semibold">Имя (И. п.)<span class="ml-1 text-red-400">*</span></label>
-                            <input wire:model="firstName" type="text" id="first-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="first-name" class="font-semibold">Имя (И. п.)<span class="text-red-400">*</span></label>
+                            <input wire:model="firstName" type="text" name="firstName" id="first-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('firstName') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                         <div class="flex flex-col">
-                            <label for="middle-name" class="font-semibold">Отчество (при наличии) (И. п.)</label>
-                            <input wire:model="middleName" type="text" id="middle-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="middle-name" class="font-semibold">Отчество (И. п.)</label>
+                            <input wire:model="middleName" type="text" name="middleName" id="middle-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('middleName') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                         <div class="flex flex-col">
-                            <label for="last-name-dative" class="font-semibold">Фамилия (Д. п.)<span class="ml-1 text-red-400">*</span></label>
-                            <input wire:model="lastNameDative" type="text" id="last-name-dative" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="last-name-dative" class="font-semibold">Фамилия (Д. п.)<span class="text-red-400">*</span></label>
+                            <input wire:model="lastNameDative" type="text" name="lastNameDative" id="last-name-dative" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('lastNameDative') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                         <div class="flex flex-col">
-                            <label for="first-name-dative" class="font-semibold">Имя (Д. п.)<span class="ml-1 text-red-400">*</span></label>
-                            <input wire:model="firstNameDative" type="text" id="first-name-dative" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="first-name-dative" class="font-semibold">Имя (Д. п.)<span class="text-red-400">*</span></label>
+                            <input wire:model="firstNameDative" type="text" name="firstNameDative" id="first-name-dative" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('firstNameDative') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                         <div class="flex flex-col">
-                            <label for="middle-name-dative" class="font-semibold">Отчество (при наличии) (Д. п.)</label>
-                            <input wire:model="middleNameDative" type="text" id="middle-name-dative" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="middle-name-dative" class="font-semibold">Отчество (Д. п.)</label>
+                            <input wire:model="middleNameDative" type="text" name="middleNameDative" id="middle-name-dative" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('middleNameDative') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                         <div class="flex flex-col">
-                            <label for="course" class="font-semibold">Курс<span class="ml-1 text-red-400">*</span></label>
-                            <input wire:model="course" type="text" id="course" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="course" class="font-semibold">Курс<span class="text-red-400">*</span></label>
+                            <input wire:model="course" type="text" name="course" id="course" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('course') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                         <div class="flex flex-col">
-                            <label for="teaching-form-name" class="font-semibold">Форма обучения<span class="ml-1 text-red-400">*</span></label>
-                            <input wire:model="teachingFormName" type="text" id="teaching-form-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="teaching-form-name" class="font-semibold">Форма обучения<span class="text-red-400">*</span></label>
+                            <input wire:model="teachingFormName" type="text" name="teachingFormName" id="teaching-form-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('teachingFormName') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                         <div class="flex flex-col">
-                            <label for="specialty-code" class="font-semibold">Шифр<span class="ml-1 text-red-400">*</span></label>
-                            <input wire:model="specialtyCode" type="text" id="specialty-code" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <label for="specialty-code" class="font-semibold">Шифр<span class="text-red-400">*</span></label>
+                            <input wire:model="specialtyCode" type="text" name="specialtyCode" id="specialty-code" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('specialtyCode') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="flex flex-col">
-                        <label for="speciality-name" class="font-semibold">Специальность<span class="ml-1 text-red-400">*</span></label>
-                        <input wire:model="specialityName" type="text" id="speciality-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <label for="speciality-name" class="font-semibold">Специальность<span class="text-red-400">*</span></label>
+                        <input wire:model="specialityName" type="text" name="specialityName" id="speciality-name" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         @error('specialityName') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
                     <div class="flex flex-col">
-                        <label for="order" class="text-sm font-semibold">Приказ о зачислении<span class="ml-1 text-red-400">*</span></label>
-                        <input wire:model="order" type="text" id="order" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <label for="order" class="text-sm font-semibold">Приказ о зачислении<span class="text-red-400">*</span></label>
+                        <input wire:model="order" type="text" name="order" id="order" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         @error('order') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
                     <div class="flex flex-col">
-                        <label for="training-period" class="font-semibold">Срок обучения<span class="ml-1 text-red-400">*</span></label>
-                        <input wire:model="trainingPeriod" type="text" id="training-period" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <label for="training-period" class="font-semibold">Срок обучения<span class="text-red-400">*</span></label>
+                        <input wire:model="trainingPeriod" type="text" name="trainingPeriod" id="training-period" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         @error('trainingPeriod') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
                     <div class="flex flex-col">
@@ -251,32 +257,36 @@
                             <div x-show="open" class="border p-4">
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                                     <div class="flex flex-col">
-                                        <label for="check-in-date" class="font-semibold">Период заезда с<span class="ml-1 text-red-400">*</span></label>
-                                        <input wire:model="checkInDate" type="date" id="check-in-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                        <label for="check-in-date" class="font-semibold">Период заезда с<span class="text-red-400">*</span></label>
+                                        <input wire:model="checkInDate" type="date" name="checkInDate" id="check-in-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                         @error('checkInDate') <span class="text-red-500">{{ $message }}</span> @enderror
                                     </div>
                                     <div class="flex flex-col">
-                                        <label for="check-out-date" class="font-semibold">Период заезда по<span class="ml-1 text-red-400">*</span></label>
-                                        <input wire:model="checkOutDate" type="date" id="check-out-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                        <label for="check-out-date" class="font-semibold">Период заезда по<span class="text-red-400">*</span></label>
+                                        <input wire:model="checkOutDate" type="date" name="checkOutDate" id="check-out-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                         @error('checkOutDate') <span class="text-red-500">{{ $message }}</span> @enderror
                                     </div>
                                     <div class="flex flex-col">
-                                        <label for="check-in-duration" class="font-semibold">Продолжительность<span class="ml-1 text-red-400">*</span></label>
-                                        <input wire:model="checkInDuration" type="text" id="check-in-duration" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                        <label for="check-in-duration" class="font-semibold">Продолжительность<span class="text-red-400">*</span></label>
+                                        <input wire:model="checkInDuration" type="text" name="checkInDuration" id="check-in-duration" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                         @error('checkInDuration') <span class="text-red-500">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
                                 <div class="flex flex-col">
-                                    <label for="employment-place" class="font-semibold">Место работы<span class="ml-1 text-red-500">*</span></label>
+                                    <label for="employment-place" class="font-semibold">Место работы<span class="text-red-500">*</span></label>
                                     <textarea wire:model="employmentPlace" name="employmentPlace" id="employment-place" cols="5" rows="2" placeholder="Укажите текущее место работы студента" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
                                     @error('employmentPlace') <span class="text-red-500">{{ $message }}</span> @enderror
                                 </div>
                             </div>
                         </div>
-                        <div class="flex flex-col py-2">
-                            <label for="is-budget"> <input wire:model="isBudget" type="checkbox" name="isBudget" id="is-budget"> Обучается на бюджете</label>
-                        </div>
                     </div>
+                    <div class="py-2">
+                        <label for="is-budget" class="flex items-center">
+                            <input wire:model="isBudget" type="checkbox" name="isBudget" id="is-budget" class="mr-1">
+                            Обучается на бюджете
+                        </label>
+                    </div>
+                    <span class="text-red-500">*Поля обязательные для заполнения</span>
                 </div>
             </x-slot>
 

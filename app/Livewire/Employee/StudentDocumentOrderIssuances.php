@@ -32,8 +32,8 @@ class StudentDocumentOrderIssuances extends Component
 
     public $listOfStatuses = [
         1 => 'В работе',
-        2 => 'Готова к выдачи',
-        3 => 'Отказано'
+        2 => 'Выполнена',
+        3 => 'Отклонена'
     ];
 
     public $id = 0,
