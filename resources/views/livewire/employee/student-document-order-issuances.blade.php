@@ -26,7 +26,7 @@
         </div>
 
         <div wire:loading.remove wire:target="setDocumentType, setStatus">
-            @if(!is_null($studentDocumentIssuances) && count($studentDocumentIssuances) != 0)
+            @if(!is_null($studentDocumentOrderIssuances) && count($studentDocumentOrderIssuances) != 0)
             <div class="hidden lg:block border rounded border-slate-400/20">
                 <table class="w-full text-xs lg:text-sm">
                     <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
@@ -43,7 +43,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($studentDocumentIssuances as $value)
+                        @foreach($studentDocumentOrderIssuances as $value)
                         <tr wire:key="{{ $value->id }}" class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                             <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                             <td class="w-auto px-2 py-2 text-left">{{ $value->fio }}</td>
@@ -89,8 +89,9 @@
                     </tbody>
                 </table>
             </div>
+
             <div class="lg:hidden flex flex-col space-y-2">
-                @foreach($studentDocumentIssuances as $value)
+                @foreach($studentDocumentOrderIssuances as $value)
                 <div class="flex flex-col space-y-2 bg-slate-200 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 p-4 text-xs">
                     <div class="flex flex-col">
                         <span class="font-semibold">ФИО:</span>
@@ -151,8 +152,9 @@
                 </div>
                 @endforeach
             </div>
+            
             <div class="mt-2">
-                {{ $studentDocumentIssuances->links() }}
+                {{ $studentDocumentOrderIssuances->links() }}
             </div>
             @else
             <x-alert type="info" title="Информация" message="Список заявок на выдачу документов пуст" />

@@ -23,7 +23,7 @@
             </div>
         </div>
     </a>
-    <a x-bind:class="{ 'hovered': hovered === 'student_academic_leave_calendar' }" @mouseover="hovered = 'student_academic_leave_calendar'" @mouseout="hovered = null" class="w-auto" href="#">
+    <a x-bind:class="{ 'hovered': hovered === 'student_academic_leave_calendar' }" @mouseover="hovered = 'student_academic_leave_calendar'" @mouseout="hovered = null" class="w-auto" href="{{ route('employee.student.academic.leave.calendar') }}">
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Календарь академических отпусков</div>
             <div class="grow px-4 py-2 text-sm text-justify">В разделе представлены данные о периодах, на которые студентам предоставляется временное разрешение прекратить обучение по уважительным причинам</div>

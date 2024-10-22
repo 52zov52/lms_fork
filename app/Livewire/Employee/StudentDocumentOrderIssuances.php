@@ -61,10 +61,10 @@ class StudentDocumentOrderIssuances extends Component
 
     public function render()
     {
-        $studentDocumentIssuances = $this->getStudentDocumentOrderIssuance();
+        $studentDocumentOrderIssuances = $this->getStudentDocumentOrderIssuance();
 
         return view('livewire.employee.student-document-order-issuances', [
-            'studentDocumentIssuances' => $studentDocumentIssuances
+            'studentDocumentOrderIssuances' => $studentDocumentOrderIssuances
         ]);
     }
 

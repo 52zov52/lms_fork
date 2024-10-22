@@ -75,6 +75,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.employee.contingent');
         })->name('employee.contingent');
 
+        //Календарь академических отпусков
+        Route::get('/student-academic-leave-calendar', function () {
+            return view('pages.employee.student-academic-leave-calendar');
+        })->name('employee.student.academic.leave.calendar');
+
         //Обработка заявок на документы
         Route::get('/student-document-order-issuances', function () {
             return view('pages.employee.student-document-order-issuances');
@@ -183,10 +188,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/print-interim-assessment/{courseTeacherId}', [PrintInterimAssessmentController::class, 'printInterimAssessment'])->name('print.interim.assessment');
     });
 
-    Route::get('/document-order-requests', function () {
-        return view('pages.document-order-request');
-    })->name('document.order.requests');
-
     //Url для сервиса заказа справок
     Route::get('/student-document-order-requests', function () {
         return view('pages.student-document-order-requests');
@@ -196,11 +197,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/questionnaire', function () {
         return view('pages.questionnaire');
     })->name('questionnaire');
-
-    //Url для сервиса обработки заказов справок
-    Route::get('/student-document-issuances', function () {
-        return view('pages.student-document-issuances');
-    })->name('student.document.issuances');
 
     Route::group(['middleware' => ['role:Student']], function () {});
 
@@ -220,16 +216,19 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::get('/print-defense-ministry-form-10/{userId}', [PrintDefenseMinistryForm10Controller::class, 'print'])->name('print.defense.ministry.form.10');
 
+    //Удалить
     Route::group(['middleware' => 'permission:access-to-data-on-students-academic-leaves'], function () {
         Route::get('/academic-leave-calendar', function () {
             return view('pages.academic-leave-calendar');
         })->name('academic.leave.calendar');
     });
 
+    //Удалить
     Route::get('/documents-students-academic-leaves/{user_id}/{group_id}', function ($user_id, $group_id) {
         return view('pages.documents-students-academic-leaves', ['user_id' => $user_id, 'group_id' => $group_id]);
     })->name('documents.students.academic.leaves');
 
+    //Удалить
     Route::get('/personal-records-check-sheet/{user_id}/{group_id}', function ($user_id, $group_id) {
         return view('pages.academic-leave.personal-records-check-sheet', ['user_id' => $user_id, 'group_id' => $group_id]);
     })->name('personal.records.check.sheet');
