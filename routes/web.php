@@ -98,6 +98,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/my-groups', function () {
             return view('pages.teacher.my-groups');
         })->name('teacher.my.groups');
+
+        //Список учебных дисциплин группы по ИД
+        Route::get('/course-list/{groupId}', function ($groupId) {
+            return view('pages.teacher.course-list', compact('groupId'));
+        })->name('teacher.course.list');
     });
 
     //Печать индивидуальных оценок студента по ИД

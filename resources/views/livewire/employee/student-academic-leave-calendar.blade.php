@@ -130,5 +130,4 @@
             </x-slot>
         </form>
     </x-dialog-modal>
-
 </div>
