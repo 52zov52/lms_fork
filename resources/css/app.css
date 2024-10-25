@@ -9,7 +9,7 @@
         @apply text-2xl font-semibold;
     }
 
-    select {
+    .form-select {
         @apply bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
     }
 

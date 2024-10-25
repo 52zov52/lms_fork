@@ -2,7 +2,7 @@
     <div class="h-full flex flex-col space-y-2">
         <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:justify-between">
             <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-                <select wire:model="selectedGroupId" wire:change="getContingent" name="selectedGroupId" id="group-id" class="w-full md:w-auto">
+                <select wire:model="selectedGroupId" wire:change="getContingent" name="selectedGroupId" id="group-id" class="w-full md:w-auto form-select">
                     <option value="0">Выберите группу из списка</option>
                     @foreach($groups as $group)
                     <option value="{{ $group->id }}">{{ $group->group_name }}</option>

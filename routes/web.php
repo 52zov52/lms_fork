@@ -92,6 +92,14 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/download-student-social-passport/{userId}', [StudentSocialPassportReviewController::class, 'downloadStudentSocialPassport'])->name('download.student.social.passport');
     });
 
+    //Routes для роли Teacher
+    Route::group(['prefix' => 'teacher'], function () {
+        //Мои учебные группы
+        Route::get('/my-groups', function () {
+            return view('pages.teacher.my-groups');
+        })->name('teacher.my.groups');
+    });
+
     //Печать индивидуальных оценок студента по ИД
     Route::get('/individual-student-grade-report/{userId}', [IndividualStudentGradeController::class, 'print'])->name('individual.student.grade.report');
 

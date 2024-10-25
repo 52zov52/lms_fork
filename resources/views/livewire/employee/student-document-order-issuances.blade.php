@@ -1,13 +1,13 @@
 <div class="h-full">
     <div class="h-full flex flex-col space-y-2">
         <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-            <select wire:model="selectedDocumentType" wire:change="setDocumentType" name="selectedDocumentType" id="selected-document-type" class="w-full md:w-auto">
+            <select wire:model="selectedDocumentType" wire:change="setDocumentType" name="selectedDocumentType" id="selected-document-type" class="w-full md:w-auto form-select">
                 <option value="0">Выберите из списка тип справки</option>
                 @foreach($listOfDocumentTypes as $key => $value)
                 <option value="{{ $key }}">{{ $value }}</option>
                 @endforeach
             </select>
-            <select wire:model="selectedStatus" wire:change="setStatus" name="selectedStatus" id="selected-status" class="w-full md:w-auto">
+            <select wire:model="selectedStatus" wire:change="setStatus" name="selectedStatus" id="selected-status" class="w-full md:w-auto form-select">
                 <option value="0">Выберите из списка статус заявки</option>
                 @foreach($listOfStatuses as $keyStatus => $valueStatus)
                 <option value="{{ $keyStatus }}">{{ $valueStatus }}</option>
