@@ -56,4 +56,12 @@ class CourseList extends Component
             'courseList' => $courseList
         ]);
     }
+
+    public function redirectToEJournal($wspCoursesInSemesterId)
+    {
+        return redirect()->route('teacher.e.journal', [
+            'wspCoursesInSemesterId' => $wspCoursesInSemesterId,
+            'groupId' => $this->groupId
+        ]);
+    }
 }

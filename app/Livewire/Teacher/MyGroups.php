@@ -4,8 +4,8 @@ namespace App\Livewire\Teacher;
 
 use App\Http\Controllers\AcademicYearController;
 use App\Models\ActiveUser;
+use App\Models\StudyThreadSubGroupUser;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class MyGroups extends Component
@@ -27,16 +27,15 @@ class MyGroups extends Component
     {
         $currentYear = AcademicYearController::getYear();
 
-        $groups = DB::table('study_thread_subgroup_user')
-            ->select('groups.id', 'groups.group_name', 'groups.course', 'specialities.level_education_id', 'work_study_plans.teaching_form_id')
+        $listOfGroups = StudyThreadSubGroupUser::select('groups.id', 'groups.group_name', 'groups.course', 'specialities.level_education_id', 'work_study_plans.teaching_form_id')
             ->join('study_thread_subgroups', 'study_thread_subgroup_user.study_thread_subgroup_id', '=', 'study_thread_subgroups.id')
             ->join('study_threads', 'study_thread_subgroups.study_thread_id', '=', 'study_threads.id')
             ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
             ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
             ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
             ->join('specialities', 'work_study_plans.speciality_id', '=', 'specialities.id')
-            ->whereIn('study_thread_subgroup_user.user_id', $this->listUserId)
             ->where('study_threads.year', $currentYear)
+            ->whereIn('study_thread_subgroup_user.user_id', $this->listUserId)
             ->orderBy('specialities.level_education_id')
             ->orderBy('groups.course')
             ->distinct()
@@ -44,11 +43,11 @@ class MyGroups extends Component
 
         return view('livewire.teacher.my-groups', [
             'academicYear' => AcademicYearController::getAcademicYear(),
-            'groups' => $groups
+            'listOfGroups' => $listOfGroups
         ]);
     }
 
-    public function getCourseList($groupId)
+    public function redirectToCourseList($groupId)
     {
         return redirect()->route('teacher.course.list', ['groupId' => $groupId]);
     }

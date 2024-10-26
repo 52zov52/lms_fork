@@ -103,6 +103,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/course-list/{groupId}', function ($groupId) {
             return view('pages.teacher.course-list', compact('groupId'));
         })->name('teacher.course.list');
+
+        //Журнал
+        Route::get('/e-journal/{wspCoursesInSemesterId}/{groupId}', function ($wspCoursesInSemesterId, $groupId) {
+            return view('pages.teacher.e-journal', compact('wspCoursesInSemesterId'), compact('groupId'));
+        })->name('teacher.e.journal');
     });
 
     //Печать индивидуальных оценок студента по ИД

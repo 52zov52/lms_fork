@@ -21,6 +21,22 @@
     <!-- Styles -->
     @livewireStyles
     <link href="{{ asset('css/toastr.min.css') }}" rel="stylesheet">
+
+    <style>
+        @media screen and (min-width: 1024px) {
+            .w-admission-campaign {
+                width: calc(100vw - 105px);
+            }
+
+            .w-e-journal {
+                width: calc(100vw - 105px);
+            }
+        }
+
+        .h-e-journal {
+            height: calc(100vh - 230px);
+        }
+    </style>
 </head>
 
 <body>
@@ -118,7 +134,7 @@
             "closeButton": true,
             "progressBar": true
         }
-        
+
         document.addEventListener('livewire:init', () => {
             Livewire.on('show-toast', (event) => {
                 toastr[event.type](event.message)
