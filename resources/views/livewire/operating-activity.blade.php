@@ -284,7 +284,7 @@
                         <textarea wire:model="description" name="description" id="description-id" cols="5" rows="5" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" readonly></textarea>
                     </div>
                     <div>
-                        @if(!is_null($userFiles))
+                        @if(!is_null($userFiles) && count($userFiles) != 0)
                         <span class="font-semibold">Файл(ы): </span>
                         <ul>
                             @foreach ($userFiles as $userFile)
