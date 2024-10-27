@@ -1,4 +1,15 @@
 <div x-data="{ hovered: null }" class="flex flex-row flex-wrap">
+    @can('access-to-e-journal')
+    <a x-bind:class="{ 'hovered': hovered === 'e_journal' }" @mouseover="hovered = 'e_journal'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('teacher.my.groups') }}">
+        <div class="w-full md:w-[22rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
+            <div class="h-14 px-4 py-2 font-bold">Электронный журнал</div>
+            <div class="grow px-4 py-2 text-sm text-justify">В разделе представлена это цифровая версия журнала, в которой отмечаются пропуски, оценки, указываются темы занятий</div>
+            <div class="h-8 px-4 py-2">
+                <div x-bind:class="{ 'w-full': hovered === 'e_journal', 'w-6': hovered != 'e_journal' }" class="bg-gray-600 dark:bg-white border border-slate-400/20 rounded p-0.5 transition-all duration-500"></div>
+            </div>
+        </div>
+    </a>
+    @endcan
     @can('access-to-academic-workload')
     <a x-bind:class="{ 'hovered': hovered === 'academic_workload' }" @mouseover="hovered = 'academic_workload'" @mouseout="hovered = null" class="mt-2 ml-2" href="{{ route('academic.workload') }}">
         <div class="w-full md:w-[22rem;] h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">

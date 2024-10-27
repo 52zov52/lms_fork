@@ -190,18 +190,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.list-publications');
         })->name('list.publications');
 
-        Route::get('/my-groups', function () {
-            return view('pages.my-groups');
-        })->name('my.groups');
-
-        Route::get('/teacher-courses/{groupId}', function ($groupId) {
-            return view('pages.teacher-courses', compact('groupId'));
-        })->name('teacher.courses');
-
-        Route::get('/e-journal/{courseTeacherId}', function ($courseTeacherId) {
-            return view('pages.e-journal', compact('courseTeacherId'));
-        })->name('e.journal');
-
         Route::get('/print-current-assessment/{courseTeacherId}', [PrintCurrentAssessmentController::class, 'printCurrentAssessment'])->name('print.current.assessment');
         Route::get('/print-interim-assessment/{courseTeacherId}', [PrintInterimAssessmentController::class, 'printInterimAssessment'])->name('print.interim.assessment');
     });

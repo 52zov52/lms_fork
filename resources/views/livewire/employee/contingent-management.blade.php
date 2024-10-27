@@ -12,7 +12,8 @@
         </div>
     </a>
     @endcan
-    <a x-bind:class="{ 'hovered': hovered === 'bulletins' }" @mouseover="hovered = 'bulletins'" @mouseout="hovered = null" class="w-auto" href="#">
+    @can('access-to-student-grades')
+    <a x-bind:class="{ 'hovered': hovered === 'bulletins' }" @mouseover="hovered = 'bulletins'" @mouseout="hovered = null" class="w-auto" href="{{ route('student.grades') }}">
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Ведомости</div>
             <div class="grow px-4 py-2 text-sm text-justify">
@@ -23,6 +24,8 @@
             </div>
         </div>
     </a>
+    @endcan
+    @can('access-to-student-academic-leave-calendar')
     <a x-bind:class="{ 'hovered': hovered === 'student_academic_leave_calendar' }" @mouseover="hovered = 'student_academic_leave_calendar'" @mouseout="hovered = null" class="w-auto" href="{{ route('employee.student.academic.leave.calendar') }}">
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Календарь академических отпусков</div>
@@ -32,6 +35,7 @@
             </div>
         </div>
     </a>
+    @endcan
     @can('access-to-student-document-order-issuances')
     <a x-bind:class="{ 'hovered': hovered === 'student_document_order_issuances' }" @mouseover="hovered = 'student_document_order_issuances'" @mouseout="hovered = null" class="w-auto" href="{{ route('employee.student.document.order.issuances') }}">
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
