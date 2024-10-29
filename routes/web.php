@@ -115,18 +115,27 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     //Routes для роли Student
     Route::group(['prefix' => 'student'], function () {
+        //Мои дисциплины
         Route::get('/my-disciplines', function () {
             return view('pages.student.my-disciplines');
         })->name('student.my.disciplines');
 
+        //Моя успеваемость
         Route::get('/my-grades', function () {
             return view('pages.student.my-grades');
         })->name('student.my.grades');
 
+        //Моя посещаемость
+        Route::get('/my-attendance', function () {
+            return view('pages.student.my-attendance');
+        })->name('student.my.attendance');
+
+        //СОгласие на СПТ
         Route::get('/spt-consent-status', function () {
             return view('pages.student.spt-consent-status');
         })->name('student.spt.consent.status');
 
+        //Социальный паспорт
         Route::get('/social-passport', function () {
             return view('pages.student.social-passport');
         })->name('student.social.passport');

@@ -60,6 +60,14 @@
             <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Моя успеваемость</span>
         </div>
     </a>
+    <a href="{{ route('student.my.attendance') }}">
+        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('student.my.attendance')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <div class="w-8 h-8 flex items-center justify-center">
+                <i class="fa-solid fa-book-open fa-lg"></i>
+            </div>
+            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Моя успеваемость</span>
+        </div>
+    </a>
     <a href="{{ route('student.document.order.requests') }}">
         <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('student.document.order.requests')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <div class="w-8 h-8 flex items-center justify-center">
