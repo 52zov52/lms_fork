@@ -159,8 +159,8 @@ class OperatingActivity extends Component
         if ($this->isEdit) {
             $this->edit($id, $userId);
         } else {
-            $this->startDate = Carbon::now()->startOfWeek()->format('d.m.Y');
-            $this->endDate = Carbon::now()->endOfWeek()->format('d.m.Y');
+            $this->startDate = Carbon::now()->startOfWeek()->format('Y-m-d');
+            $this->endDate = Carbon::now()->endOfWeek()->format('Y-m-d');
         }
 
         $this->isCreatingAndEditingModalFormVisible = true;
@@ -246,7 +246,8 @@ class OperatingActivity extends Component
             'description' =>  $this->description,
             'status' => $this->status,
             'file_path' => null,
-            'user_id' => Auth::user()->id
+            'user_id' => Auth::user()->id,
+            'created_at' => Carbon::parse($this->endDate)->format('Y-m-d')
         ]);
 
         if (!empty($this->files)) {
@@ -294,8 +295,8 @@ class OperatingActivity extends Component
         $this->status = $operatingActivity->status;
         $this->file_path = $operatingActivity->file_path;
         $weekRange = Carbon::parse($operatingActivity->created_at);
-        $this->startDate = $weekRange->startOfWeek()->format('d.m.Y');
-        $this->endDate = $weekRange->endOfWeek()->format('d.m.Y');
+        $this->startDate = $weekRange->startOfWeek()->format('Y-m-d');
+        $this->endDate = $weekRange->endOfWeek()->format('Y-m-d');
 
         $operatingActivityFile = OperatingActivityFile::where('operating_activity_id', '=', $operatingActivity->id)->get();
 
@@ -329,6 +330,7 @@ class OperatingActivity extends Component
             $operatingActivity->task = $this->task;
             $operatingActivity->description = $this->description;
             $operatingActivity->status = $this->status;
+            $operatingActivity->created_at = Carbon::parse($this->endDate)->format('Y-m-d');
             $operatingActivity->update();
 
             if (!empty($this->files)) {
