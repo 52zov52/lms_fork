@@ -240,15 +240,15 @@ class OperatingActivity extends Component
             ]);
         }
 
-        $operatingActivity = ModelsOperatingActivity::create([
-            'activity_direction' => $this->activityDirection,
-            'task' => $this->task,
-            'description' =>  $this->description,
-            'status' => $this->status,
-            'file_path' => null,
-            'user_id' => Auth::user()->id,
-            'created_at' => Carbon::parse($this->endDate)->format('Y-m-d')
-        ]);
+        $operatingActivity = new ModelsOperatingActivity();
+        $operatingActivity->activity_direction = $this->activityDirection;
+        $operatingActivity->task = $this->task;
+        $operatingActivity->description = $this->description;
+        $operatingActivity->status = $this->status;
+        $operatingActivity->file_path = null;
+        $operatingActivity->user_id = Auth::user()->id;
+        $operatingActivity->created_at = Carbon::parse($this->endDate)->format('Y-m-d');
+        $operatingActivity->save();
 
         if (!empty($this->files)) {
             foreach ($this->files as $file) {
