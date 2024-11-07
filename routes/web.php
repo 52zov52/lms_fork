@@ -65,6 +65,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     //Routes для роли Employee
     Route::group(['prefix' => 'employee'], function () {
+        //Операционная деятельность
+        Route::get('/operating-activity', function () {
+            return view('pages.employee.operating-activity');
+        })->name('employee.operating.activity');
+
         //Управление контингентом
         Route::get('/contingent-management', function () {
             return view('pages.employee.contingent-management');
@@ -165,9 +170,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/print-admission-campaign-full-report', [PrintAdmissionCampaignController::class, 'printFullReport'])->name('print.admission.campaign.full.report');
 
     Route::group(['middleware' => ['permission:show-operating-activity-and-decisions-rectorate-and-council']], function () {
+        /*
         Route::get('/operating-activity', function () {
             return view('pages.operating-activity');
-        })->name('operating.activity');
+        })->name('operating.activity');*/
 
         Route::get('/decisions-rectorate', function () {
             return view('pages.decisions-rectorate');

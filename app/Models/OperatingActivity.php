@@ -13,10 +13,10 @@ class OperatingActivity extends Model
 
     protected $fillable = [
         'activity_direction',
-        'task',
         'description',
         'status',
-        'file_path',
-        'user_id'
+        'user_id',
+        'week_start_date',
+        'week_end_date'
     ];
 }

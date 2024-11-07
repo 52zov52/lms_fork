@@ -34,7 +34,7 @@
     }
 
     .btn-add {
-        @apply bg-white hover:bg-green-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-500 px-2 py-2 text-xs text-left text-green-500 hover:text-white font-bold;
+        @apply bg-white hover:bg-green-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-500 px-2 py-2 text-xs text-center text-green-500 hover:text-white font-bold;
     }
 
     .btn-add-center {
@@ -53,6 +53,10 @@
         @apply bg-white hover:bg-green-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-500 px-2 py-1 text-xs text-center text-green-500 hover:text-white font-bold;
     }
 
+    .btn-undo {
+        @apply bg-white hover:bg-gray-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-gray-500 px-2 py-1 text-xs text-center text-gray-500 hover:text-white font-bold;
+    }
+
     .btn-download {
         @apply bg-white hover:bg-sky-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-500 px-2 py-1 text-xs text-center text-sky-500 hover:text-white font-bold;
     }
@@ -63,6 +67,10 @@
 
     .btn-signature {
         @apply bg-white hover:bg-sky-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-500 px-2 py-1 text-xs text-center text-sky-500 hover:text-white font-bold;
+    }
+
+    .btn-description {
+        @apply bg-white hover:bg-indigo-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-indigo-500 px-2 py-1 text-xs text-center text-indigo-500 hover:text-white font-bold;
     }
 }
 
