@@ -328,7 +328,7 @@
                             <ul>
                                 @foreach ($storedFiles as $key => $value)
                                 <li>
-                                    <a href="{{ asset('public/storage/'. $value->file_path) }}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">{{ $value->filename }}</a>
+                                    <a href="{{ asset('storage/'. $value->file_path) }}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">{{ $value->filename }}</a>
                                     <button type="button" wire:click="removeFileFromStorage({{ $value->id }})" class="ml-2 text-red-500 underline">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
@@ -392,7 +392,7 @@
                         <ul>
                             @foreach ($storedFiles as $file)
                             <li>
-                                <a href="{{ asset('public/storage/'. $file->file_path) }}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">{{ $file->filename }}</a>
+                                <a href="{{ asset('storage/'. $file->file_path) }}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">{{ $file->filename }}</a>
                             </li>
                             @endforeach
                         </ul>
