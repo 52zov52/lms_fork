@@ -84,11 +84,6 @@ class SocialPassport extends Component
         return view('livewire.student.social-passport');
     }
 
-    public function callMethod($methodName, $param = null): void
-    {
-        $this->{$methodName}($param);
-    }
-
     public function save()
     {
         $socialPassport = ModelsSocialPassport::where('user_id', '=', Auth::user()->id)->first();

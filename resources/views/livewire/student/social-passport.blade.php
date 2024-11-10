@@ -15,12 +15,12 @@
         </div>
 
         @if($questionnaireStatus == 0)
-        <button onclick="showToast('save')" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-left text-blue-400 hover:text-white font-bold" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+        <button wire:click="save" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-left text-blue-400 hover:text-white font-bold" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
             <i class="fa-solid fa-floppy-disk fa-lg"></i>
             Сохранить
         </button>
         @elseif($questionnaireStatus == 1)
-        <button onclick="showToast('backToEdit')" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-left text-blue-400 hover:text-white font-bold">
+        <button wire:click="backToEdit" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-left text-blue-400 hover:text-white font-bold">
             <i class="fa-solid fa-rotate-left fa-lg"></i>
             Вернуть на редактирование
         </button>
