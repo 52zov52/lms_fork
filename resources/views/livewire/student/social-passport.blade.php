@@ -64,40 +64,40 @@
         </div>
         <div class="flex flex-col">
             <label class="font-semibold">С кем совместно проживаете</label>
-            <div class="flex flex-wrap flex-row lg:space-x-4">
-                <div class="py-2 mr-2">
-                    <label>
-                        <input wire:model="cohabitants" value="Мать" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Мать
+            <div class="flex flex-col md:flex-row md:space-x-4">
+                <div class="mr-2">
+                    <label for="cohabitants-1" class="flex space-x-1 items-center">
+                        <input wire:model="cohabitants" value="Мать" type="checkbox" id="cohabitants-1" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Мать
                     </label>
                 </div>
-                <div class="py-2 mr-2">
-                    <label>
-                        <input wire:model="cohabitants" value="Отец" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Отец
+                <div class="mr-2">
+                    <label for="cohabitants-2" class="flex space-x-1 items-center">
+                        <input wire:model="cohabitants" value="Отец" type="checkbox" id="cohabitants-2" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Отец
                     </label>
                 </div>
-                <div class="py-2 mr-2">
-                    <label>
-                        <input wire:model="cohabitants" value="Бабушка" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Бабушка
+                <div class="mr-2">
+                    <label for="cohabitants-3" class="flex space-x-1 items-center">
+                        <input wire:model="cohabitants" value="Бабушка" type="checkbox" id="cohabitants-3" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Бабушка
                     </label>
                 </div>
-                <div class="py-2 mr-2">
-                    <label>
-                        <input wire:model="cohabitants" value="Дедушка" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дедушка
+                <div class="mr-2">
+                    <label for="cohabitants-4" class="flex space-x-1 items-center">
+                        <input wire:model="cohabitants" value="Дедушка" type="checkbox" id="cohabitants-4" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дедушка
                     </label>
                 </div>
-                <div class="py-2 mr-2">
-                    <label>
-                        <input wire:model="cohabitants" value="Опекун" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Опекун
+                <div class="mr-2">
+                    <label for="cohabitants-5" class="flex space-x-1 items-center">
+                        <input wire:model="cohabitants" value="Опекун" type="checkbox" id="cohabitants-5" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Опекун
                     </label>
                 </div>
-                <div class="py-2 mr-2">
-                    <label>
-                        <input wire:model="cohabitants" value="Проживаю самостоятельно" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Проживаю самостоятельно
+                <div class="mr-2">
+                    <label for="cohabitants-6" class="flex space-x-1 items-center">
+                        <input wire:model="cohabitants" value="Проживаю самостоятельно" type="checkbox" id="cohabitants-6" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Проживаю самостоятельно
                     </label>
                 </div>
-                <div class="py-2 mr-2">
-                    <label>
-                        <input wire:model="cohabitants" value="Другое" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Другое
+                <div class="mr-2">
+                    <label for="cohabitants-7" class="flex space-x-1 items-center">
+                        <input wire:model="cohabitants" value="Другое" type="checkbox" id="cohabitants-7" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Другое
                     </label>
                 </div>
             </div>
@@ -205,46 +205,28 @@
         </div>
         <div class="flex flex-col">
             <label class="font-semibold">Относитесь ли вы к одной из перечисленных категорий</label>
-            <div class="flex flex-col md:flex-row md:space-x-2">
-                <div class="flex space-x-1 items-center">
-                    <label>
-                        <input wire:model="childCategories" value="Дети-инвалиды" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дети-инвалиды
+            <div class="flex flex-col md:flex-row md:space-x-4">
+                <div class="mr-2">
+                    <label for="child-categories-1" class="flex space-x-1 items-center">
+                        <input wire:model="childCategories" value="Дети-инвалиды" type="checkbox" id="child-categories-1" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дети-инвалиды
                     </label>
                 </div>
-                <div class="flex space-x-1 items-center">
-                    <label>
-                        <input wire:model="childCategories" value="Сироты" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Сироты
+                <div class="mr-2">
+                    <label for="child-categories-2" class="flex space-x-1 items-center">
+                        <input wire:model="childCategories" value="Сироты" type="checkbox" id="child-categories-2" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Сироты
                     </label>
                 </div>
-                <div class="flex space-x-1 items-center">
-                    <label>
-                        <input wire:model="childCategories" value="Дети под опекой" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дети под опекой
+                <div class="mr-2">
+                    <label for="child-categories-3" class="flex space-x-1 items-center">
+                        <input wire:model="childCategories" value="Дети под опекой" type="checkbox" id="child-categories-3" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дети под опекой
                     </label>
                 </div>
-                <div class="flex space-x-1 items-center">
-                    <label>
-                        <input wire:model="childCategories" value="Дети участников СВО" type="checkbox" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дети участников СВО
+                <div class="mr-2">
+                    <label for="child-categories-4" class="flex space-x-1 items-center">
+                        <input wire:model="childCategories" value="Дети участников СВО" type="checkbox" id="child-categories-4" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дети участников СВО
                     </label>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-@push('scripts')
-<script>
-    async function showToast(methodName, param = null) {
-        await @this.callMethod(methodName, param);
-
-        const toast = document.getElementById("toast");
-
-        if (toast.dataset.notificationType != '') {
-            toast.className = toast.className.replace(" translate-x-full opacity-0", " translate-x-0 opacity-100");
-
-            setTimeout(function() {
-                toast.className = toast.className.replace(" translate-x-0 opacity-100", " translate-x-full opacity-0");
-            }, 3500);
-        }
-    }
-</script>
-@endpush
