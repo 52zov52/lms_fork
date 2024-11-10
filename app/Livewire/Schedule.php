@@ -71,6 +71,6 @@ class Schedule extends Component
         $scheduleController = new ScheduleController();
         $scheduleController->uploadSchedule();
 
-        $this->dispatch('show-toast', message: 'Данные расписания обновлены', type: 'error');
+        $this->dispatch('show-toast', message: 'Данные расписания обновлены', type: 'success');
     }
 }
