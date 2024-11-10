@@ -109,11 +109,9 @@ class SocialPassport extends Component
             $socialPassport->user_signature = null;
             $socialPassport->save();
 
-            session()->flash('type', 'success');
-            session()->flash('message', 'Запись успешно обновлена!');
+            $this->dispatch('show-toast', message: 'Социальный паспорт доступен для редактирования!', type: 'success');
         } else {
-            session()->flash('type', 'error');
-            session()->flash('message', 'Ошибка обновления записи!');
+            $this->dispatch('show-toast', message: 'Произошла ошибка!', type: 'error');
         }
     }
 
@@ -168,8 +166,7 @@ class SocialPassport extends Component
             'user_signature' => SocialPassportController::getSignature(Auth::user()->id)
         ]);
 
-        session()->flash('type', 'success');
-        session()->flash('message', 'Запись успешно добавлена!');
+        $this->dispatch('show-toast', message: 'Данные в социальном паспорте успешно сохранены!', type: 'success');
     }
 
     private function update($id)
@@ -218,7 +215,6 @@ class SocialPassport extends Component
         $socialPassport->user_signature = SocialPassportController::getSignature(Auth::user()->id);
         $socialPassport->save();
 
-        session()->flash('type', 'success');
-        session()->flash('message', 'Запись успешно обновлена!');
+        $this->dispatch('show-toast', message: 'Данные в социальном паспорте успешно обновлены!', type: 'success');
     }
 }
