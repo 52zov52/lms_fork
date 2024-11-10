@@ -50,22 +50,17 @@ class Schedule extends Component
         ]);
     }
 
-    public function callMethod($methodName)
-    {
-        $this->{$methodName}();
-    }
-
     public function changeTeacher(): void
     {
         $this->teacher = $this->teacher;
     }
 
-    public function changeWeekRange(): void
+    public function changeWeek(): void
     {
-        $this->week = $this->splitWeekRange();
+        $this->week = $this->splitWeek();
     }
 
-    public function splitWeekRange(): string
+    public function splitWeek(): string
     {
         $data = explode('-', $this->weekRange);
         return $data[0];
@@ -76,7 +71,6 @@ class Schedule extends Component
         $scheduleController = new ScheduleController();
         $scheduleController->uploadSchedule();
 
-        session()->flash('type', 'success');
-        session()->flash('message', 'Данные расписания обновлены!');
+        $this->dispatch('show-toast', message: 'Данные расписания обновлены', type: 'error');
     }
 }

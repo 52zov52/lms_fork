@@ -72,6 +72,10 @@
     .btn-description {
         @apply bg-white hover:bg-indigo-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-indigo-500 px-2 py-1 text-xs text-center text-indigo-500 hover:text-white font-bold;
     }
+
+    .btn-blue {
+        @apply bg-white hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-500 px-2 py-1 text-xs text-center text-blue-500 hover:text-white font-bold;
+    }
 }
 
 [x-cloak] {
