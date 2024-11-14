@@ -145,6 +145,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.student.my-attendance');
         })->name('student.my.attendance');
 
+        //График пересдач академических задолженностей
+        Route::get('/academic-retake-schedule-list', function () {
+            return view('pages.student.academic-retake-schedule-list');
+        })->name('student.academic.retake.schedule.list');
+
         //Согласие на СПТ
         Route::get('/spt-consent-status', function () {
             return view('pages.student.spt-consent-status');
