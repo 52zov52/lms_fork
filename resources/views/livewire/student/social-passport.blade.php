@@ -1,7 +1,5 @@
 <div class="flex flex-col space-y-2">
 
-    <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
-
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-between">
         <div>
             Статус анкеты:

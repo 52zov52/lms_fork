@@ -3,5 +3,5 @@
         <h1>{{ __('Цифровой профиль преподавателя') }}</h1>
     </x-slot>
 
-    @livewire('digital-teacher-profile')
+    @livewire('teacher.teacher-digital-profile')
 </x-app-layout>

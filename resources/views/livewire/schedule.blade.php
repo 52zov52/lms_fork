@@ -19,7 +19,7 @@
             </div>
             <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
                 @can('update-schedule')
-                <button type="button" wire:click="uploadSchedule" class="w-auto md:w-40 btn-blue">
+                <button type="button" wire:click="uploadSchedule" class="w-auto md:w-44 btn-blue">
                     <span wire:loading.remove wire:target="uploadSchedule">
                         <i class="fa-solid fa-rotate"></i>
                         Обновить расписание

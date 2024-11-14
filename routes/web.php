@@ -99,6 +99,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     //Routes для роли Teacher
     Route::group(['prefix' => 'teacher'], function () {
+        //Цифровой профиль преподавателя
+        Route::get('/digital-profile', function () {
+            return view('pages.teacher.teacher-digital-profile');
+        })->name('teacher.digital.profile');
+
         //Мои учебные группы
         Route::get('/my-groups', function () {
             return view('pages.teacher.my-groups');
@@ -113,6 +118,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/e-journal/{wspCoursesInSemesterId}/{groupId}', function ($wspCoursesInSemesterId, $groupId) {
             return view('pages.teacher.e-journal', compact('wspCoursesInSemesterId'), compact('groupId'));
         })->name('teacher.e.journal');
+
+        //График пересдач академических задолженностей
+        Route::get('/academic-retake-schedule', function () {
+            return view('pages.teacher.academic-retake-schedule');
+        })->name('teacher.academic.retake.schedule');
     });
 
     //Печать индивидуальных оценок студента по ИД
@@ -135,7 +145,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.student.my-attendance');
         })->name('student.my.attendance');
 
-        //СОгласие на СПТ
+        //Согласие на СПТ
         Route::get('/spt-consent-status', function () {
             return view('pages.student.spt-consent-status');
         })->name('student.spt.consent.status');
