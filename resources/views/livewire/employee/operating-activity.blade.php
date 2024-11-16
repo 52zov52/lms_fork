@@ -86,11 +86,12 @@
                     </thead>
                     <tbody>
                         @foreach($operatingActivities as $operatingActivity)
-                        <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
+                        <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20
+                            {{ ($operatingActivity->activity_direction == 'Решение ректората') ? 'border-l-2 border-l-red-500 dark:border-l-red-500' : '' }}">
                             <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                             <td class="w-60 px-2 py-2">{{ $operatingActivity->activity_direction }}</td>
                             <td class="w-36 px-2 py-2 text-center">{{ $operatingActivity->fio }}</td>
-                            <td class="w-auto px-2 py-2 text-left text-justify">{{ Str::limit($operatingActivity->description, 255, ' ...') }}</td>
+                            <td class="w-auto px-2 py-2 text-justify">{{ Str::limit($operatingActivity->description, 255, ' ...') }}</td>
                             <td class="w-24 px-2 py-2 text-left">{{ $operatingActivity->week }}</td>
                             <td class="w-16 px-2 py-2 text-center">
                                 @if($operatingActivity->status == 1)
@@ -154,7 +155,8 @@
 
             <div class="lg:hidden flex flex-col space-y-2">
                 @foreach($operatingActivities as $operatingActivity)
-                <div class="flex flex-col space-y-2 bg-slate-200 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 p-4 text-xs">
+                <div class="flex flex-col space-y-2 bg-slate-200 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 p-4 text-xs
+                {{ ($operatingActivity->activity_direction == 'Решение ректората') ? 'border-l-2 border-l-red-500 dark:border-l-red-500' : '' }}">
                     <div class="flex flex-col">
                         <span class="font-semibold">Направление деятельности:</span>
                         <span>{{ $operatingActivity->activity_direction }}</span>

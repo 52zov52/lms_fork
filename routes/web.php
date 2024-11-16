@@ -101,7 +101,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::group(['prefix' => 'teacher'], function () {
         //Цифровой профиль преподавателя
         Route::get('/digital-profile', function () {
-            return view('pages.teacher.teacher-digital-profile');
+            return view('pages.teacher.digital-profile');
         })->name('teacher.digital.profile');
 
         //Мои учебные группы
