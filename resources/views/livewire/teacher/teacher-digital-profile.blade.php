@@ -49,9 +49,9 @@
     </a>
     <a x-bind:class="{ 'hovered': hovered === 'academic_retake_schedule' }" @mouseover="hovered = 'academic_retake_schedule'" @mouseout="hovered = null" class="w-auto" href="{{ route('teacher.academic.retake.schedule') }}">
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
-            <div class="h-14 px-4 py-2 font-bold">График пересдач академических задолженностей у студентов</div>
+            <div class="h-14 px-4 py-2 font-bold">График пересдач академических задолженностей студентов</div>
             <div class="grow px-4 py-2 text-sm text-justify">
-            В разделе указывается расписание пересдач для студентов, имеющих академические задолженности, с указанием аудиторий, дат и времени проведения комиссионных экзаменов
+            В разделе указывается расписание пересдач для студентов, имеющих академические задолженности, с указанием аудиторий, дат и времени проведения экзаменов
             </div>
             <div class="h-8 px-4 py-2">
                 <div x-bind:class="{ 'w-full': hovered === 'academic_retake_schedule', 'w-6': hovered != 'academic_retake_schedule' }" class="bg-gray-600 dark:bg-white border border-slate-400/20 rounded p-0.5 transition-all duration-500"></div>
