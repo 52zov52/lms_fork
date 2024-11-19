@@ -18,6 +18,15 @@
                 </select>
             </div>
             <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
+                <button type="button" wire:click="exportScheduleToIcs" class="w-auto md:w-44 btn-blue">
+                    <span wire:loading.remove wire:target="exportScheduleToIcs">
+                        <i class="fa-solid fa-rotate"></i>
+                        Экспорт расписания
+                    </span>
+                    <span wire:loading wire:target="exportScheduleToIcs">
+                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                    </span>
+                </button>
                 @can('update-schedule')
                 <button type="button" wire:click="uploadSchedule" class="w-auto md:w-44 btn-blue">
                     <span wire:loading.remove wire:target="uploadSchedule">
