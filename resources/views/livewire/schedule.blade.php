@@ -18,10 +18,10 @@
                 </select>
             </div>
             <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-                <button type="button" wire:click="exportScheduleToIcs" class="w-auto md:w-44 btn-blue">
+                <button type="button" wire:click="exportScheduleToIcs" class="w-auto md:w-48 btn-download">
                     <span wire:loading.remove wire:target="exportScheduleToIcs">
-                        <i class="fa-solid fa-rotate"></i>
-                        Экспорт расписания
+                        <i class="fa-solid fa-download"></i>
+                        Экспорт расписания в iCal
                     </span>
                     <span wire:loading wire:target="exportScheduleToIcs">
                         <i class="fa-solid fa-spinner fa-spin-pulse"></i>

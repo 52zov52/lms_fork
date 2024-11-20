@@ -90,11 +90,11 @@ class Schedule extends Component
                 $str = '';
                 $times = explode('-', $value['time']);
 
-                $content .= 'BEGIN:VEVENT\n' . PHP_EOL;
+                $content .= 'BEGIN:VEVENT' . PHP_EOL;
                 $content .= 'SUMMARY:' . $value['discipline'] . ' (' . $value['lesson_type'] . ')' . PHP_EOL;
-                $content .= 'DTSTART:' . $schedule['date'] . 'T' . $times[0] . 'Z' . PHP_EOL;
-                $content .= 'DTEND:' . $schedule['date'] . 'T' . $times[1] . 'Z' . PHP_EOL;
-                $content .= 'DTSTAMP:' . now()->format('Y-m-d') . 'T' . now()->format('H:i:s') . 'Z' . PHP_EOL;
+                $content .= 'DTSTART:' . Carbon::parse($schedule['date'])->format('Ymd') . 'T' . Carbon::parse($times[0])->format('His') . PHP_EOL;
+                $content .= 'DTEND:' . Carbon::parse($schedule['date'])->format('Ymd') . 'T' . Carbon::parse($times[1])->format('His') . PHP_EOL;
+                $content .= 'DTSTAMP:' . now()->format('Ymd') . 'T' . now()->format('His') . PHP_EOL;
                 $content .= 'LOCATION:ауд. ' . $value['lesson_place'] . PHP_EOL;
 
                 foreach ($value['data'] as $item) {
