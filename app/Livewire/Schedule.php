@@ -108,7 +108,7 @@ class Schedule extends Component
                 }
 
                 $content .= 'DESCRIPTION:' . $str . PHP_EOL;
-                $content .= 'UID:' . time() . PHP_EOL;
+                $content .= 'UID:' . uniqid('', true) . PHP_EOL;
                 $content .= 'ORGANIZER:ИУБиП' . PHP_EOL;
                 $content .= 'STATUS:CONFIRMED' . PHP_EOL;
                 $content .= 'PRIORITY:0' . PHP_EOL;
