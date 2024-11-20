@@ -155,10 +155,15 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.student.spt-consent-status');
         })->name('student.spt.consent.status');
 
-        //Социальный паспорт
+        //Социальный паспорт обучающегося
         Route::get('/social-passport', function () {
             return view('pages.student.social-passport');
         })->name('student.social.passport');
+
+        //Семейный статус обучающегося
+        Route::get('/family-status', function () {
+            return view('pages.student.family-status');
+        })->name('student.family.status');
     });
 
     Route::get('/upbringing-management', function () {
