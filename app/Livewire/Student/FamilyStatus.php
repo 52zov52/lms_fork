@@ -28,8 +28,8 @@ class FamilyStatus extends Component
         $previousMarriage4End = '',
         $previousMarriage5Start = '',
         $previousMarriage5End = '',
-        $isSpouseStudying = '',
-        $isSpouseInIubip = '',
+        $isSpouseStudying = false,
+        $isSpouseInIubip = false,
         $hasChildren = false,
         $child1BirthDate = '',
         $child2BirthDate = '',
@@ -42,32 +42,34 @@ class FamilyStatus extends Component
     {
         $studentFamilyStatus = StudentFamilyStatus::where('user_id', '=', Auth::user()->id)->first();
 
-        $this->id = $studentFamilyStatus->id;
-        $this->userId = $studentFamilyStatus->user_id;
-        $this->isMarried = $studentFamilyStatus->is_married;
-        $this->marriageDate = Carbon::parse($studentFamilyStatus->marriage_date)->formate('Y-m-d') ?? '';
-        $this->isDivorced = $studentFamilyStatus->is_divorced;
-        $this->divorceDate = Carbon::parse($studentFamilyStatus->divorce_date)->formate('Y-m-d') ?? '';
-        $this->isWidowed = $studentFamilyStatus->is_widowed;
-        $this->previousMarriage1Start = Carbon::parse($studentFamilyStatus->previous_marriage_1_start)->formate('Y-m-d') ?? '';
-        $this->previousMarriage1End = Carbon::parse($studentFamilyStatus->previous_marriage_1_end)->formate('Y-m-d') ?? '';
-        $this->previousMarriage2Start = Carbon::parse($studentFamilyStatus->previous_marriage_2_start)->formate('Y-m-d') ?? '';
-        $this->previousMarriage2End = Carbon::parse($studentFamilyStatus->previous_marriage_2_end)->formate('Y-m-d') ?? '';
-        $this->previousMarriage3Start = Carbon::parse($studentFamilyStatus->previous_marriage_3_start)->formate('Y-m-d') ?? '';
-        $this->previousMarriage3End = Carbon::parse($studentFamilyStatus->previous_marriage_3_end)->formate('Y-m-d') ?? '';
-        $this->previousMarriage4Start = Carbon::parse($studentFamilyStatus->previous_marriage_4_start)->formate('Y-m-d') ?? '';
-        $this->previousMarriage4End = Carbon::parse($studentFamilyStatus->previous_marriage_4_end)->formate('Y-m-d') ?? '';
-        $this->previousMarriage5Start = Carbon::parse($studentFamilyStatus->previous_marriage_5_start)->formate('Y-m-d') ?? '';
-        $this->previousMarriage5End = Carbon::parse($studentFamilyStatus->previous_marriage_5_end)->formate('Y-m-d') ?? '';
-        $this->isSpouseStudying = $studentFamilyStatus->is_spouse_studying;
-        $this->isSpouseInIubip = $studentFamilyStatus->is_spouse_in_iubip;
-        $this->hasChildren = $studentFamilyStatus->has_children;
-        $this->child1BirthDate = Carbon::parse($studentFamilyStatus->child_1_birth_date)->formate('Y-m-d') ?? '';
-        $this->child2BirthDate = Carbon::parse($studentFamilyStatus->child_2_birth_date)->formate('Y-m-d') ?? '';
-        $this->child3BirthDate = Carbon::parse($studentFamilyStatus->child_3_birth_date)->formate('Y-m-d') ?? '';
-        $this->child4BirthDate = Carbon::parse($studentFamilyStatus->child_4_birth_date)->formate('Y-m-d') ?? '';
-        $this->child5BirthDate = Carbon::parse($studentFamilyStatus->child_5_birth_date)->formate('Y-m-d') ?? '';
-        $this->isSingleParent = $studentFamilyStatus->is_single_parent;
+        if (!is_null($studentFamilyStatus)) {
+            $this->id = $studentFamilyStatus->id;
+            $this->userId = $studentFamilyStatus->user_id;
+            $this->isMarried = $studentFamilyStatus->is_married;
+            $this->marriageDate = (is_null($studentFamilyStatus->marriage_date)) ? null : Carbon::parse($studentFamilyStatus->marriage_date)->format('Y-m-d') ?? '';
+            $this->isDivorced = $studentFamilyStatus->is_divorced;
+            $this->divorceDate = (is_null($studentFamilyStatus->divorce_date)) ? null : Carbon::parse($studentFamilyStatus->divorce_date)->format('Y-m-d') ?? '';
+            $this->isWidowed = $studentFamilyStatus->is_widowed;
+            $this->previousMarriage1Start = (is_null($studentFamilyStatus->previous_marriage_1_start)) ? null : Carbon::parse($studentFamilyStatus->c)->format('Y-m-d') ?? '';
+            $this->previousMarriage1End = (is_null($studentFamilyStatus->previous_marriage_1_end)) ? null : Carbon::parse($studentFamilyStatus->previous_marriage_1_end)->format('Y-m-d') ?? '';
+            $this->previousMarriage2Start = (is_null($studentFamilyStatus->previous_marriage_2_start)) ? null : Carbon::parse($studentFamilyStatus->previous_marriage_2_start)->format('Y-m-d') ?? '';
+            $this->previousMarriage2End = (is_null($studentFamilyStatus->previous_marriage_2_end)) ? null : Carbon::parse($studentFamilyStatus->previous_marriage_2_end)->format('Y-m-d') ?? '';
+            $this->previousMarriage3Start = (is_null($studentFamilyStatus->previous_marriage_3_start)) ? null : Carbon::parse($studentFamilyStatus->previous_marriage_3_start)->format('Y-m-d') ?? '';
+            $this->previousMarriage3End = (is_null($studentFamilyStatus->previous_marriage_3_end)) ? null : Carbon::parse($studentFamilyStatus->previous_marriage_3_end)->format('Y-m-d') ?? '';
+            $this->previousMarriage4Start = (is_null($studentFamilyStatus->previous_marriage_4_start)) ? null : Carbon::parse($studentFamilyStatus->previous_marriage_4_start)->format('Y-m-d') ?? '';
+            $this->previousMarriage4End = (is_null($studentFamilyStatus->previous_marriage_4_end)) ? null : Carbon::parse($studentFamilyStatus->previous_marriage_4_end)->format('Y-m-d') ?? '';
+            $this->previousMarriage5Start = (is_null($studentFamilyStatus->previous_marriage_5_start)) ? null : Carbon::parse($studentFamilyStatus->previous_marriage_5_start)->format('Y-m-d') ?? '';
+            $this->previousMarriage5End = (is_null($studentFamilyStatus->previous_marriage_5_end)) ? null : Carbon::parse($studentFamilyStatus->previous_marriage_5_end)->format('Y-m-d') ?? '';
+            $this->isSpouseStudying = $studentFamilyStatus->is_spouse_studying;
+            $this->isSpouseInIubip = $studentFamilyStatus->is_spouse_in_iubip;
+            $this->hasChildren = $studentFamilyStatus->has_children;
+            $this->child1BirthDate = (is_null($studentFamilyStatus->child_1_birth_date)) ? null : Carbon::parse($studentFamilyStatus->child_1_birth_date)->format('Y-m-d') ?? '';
+            $this->child2BirthDate = (is_null($studentFamilyStatus->child_2_birth_date)) ? null : Carbon::parse($studentFamilyStatus->child_2_birth_date)->format('Y-m-d') ?? '';
+            $this->child3BirthDate = (is_null($studentFamilyStatus->child_3_birth_date)) ? null : Carbon::parse($studentFamilyStatus->child_3_birth_date)->format('Y-m-d') ?? '';
+            $this->child4BirthDate = (is_null($studentFamilyStatus->child_4_birth_date)) ? null : Carbon::parse($studentFamilyStatus->child_4_birth_date)->format('Y-m-d') ?? '';
+            $this->child5BirthDate = (is_null($studentFamilyStatus->child_5_birth_date)) ? null : Carbon::parse($studentFamilyStatus->child_5_birth_date)->format('Y-m-d') ?? '';
+            $this->isSingleParent = $studentFamilyStatus->is_single_parent;
+        }
 
         return view('livewire.student.family-status');
     }
@@ -85,34 +87,50 @@ class FamilyStatus extends Component
 
     private function store()
     {
-        StudentFamilyStatus::create([
-            'user_id' => Auth::user()->id,
-            'is_married' => $this->isMarried,
-            'marriage_date' => $this->marriageDate,
-            'is_divorced' => $this->isDivorced,
-            'divorce_date' => $this->divorceDate,
-            'is_widowed' => $this->isWidowed,
-            'previous_marriage_1_start' => $this->previousMarriage1Start,
-            'previous_marriage_1_end' => $this->previousMarriage1End,
-            'previous_marriage_2_start' => $this->previousMarriage2Start,
-            'previous_marriage_2_end' => $this->previousMarriage3End,
-            'previous_marriage_3_start' => $this->previousMarriage3Start,
-            'previous_marriage_3_end' => $this->previousMarriage3End,
-            'previous_marriage_4_start' => $this->previousMarriage4Start,
-            'previous_marriage_4_end' => $this->previousMarriage4End,
-            'previous_marriage_5_start' => $this->previousMarriage5Start,
-            'previous_marriage_5_end' => $this->previousMarriage5End,
-            'is_spouse_studying' => $this->isSpouseStudying,
-            'is_spouse_in_iubip' => $this->isSpouseInIubip,
-            'has_children' => $this->hasChildren,
-            'child_1_birth_date' => $this->child1BirthDate,
-            'child_2_birth_date' => $this->child2BirthDate,
-            'child_3_birth_date' => $this->child3BirthDate,
-            'child_4_birth_date' => $this->child4BirthDate,
-            'child_5_birth_date' => $this->child5BirthDate,
-            'is_single_parent' => $this->isSingleParent,
-            'user_signature' => $this->getSignature(Auth::user()->id)
-        ]);
+        $studentFamilyStatus = new StudentFamilyStatus();
+        $studentFamilyStatus->user_id = Auth::user()->id;
+        $studentFamilyStatus->is_married = $this->isMarried;
+
+        if ($this->isMarried) {
+            $this->validate([
+                'marriageDate' => 'required'
+            ]);
+
+            $studentFamilyStatus->marriage_date = Carbon::parse($this->marriageDate)->format('Y-m-d');
+        }
+
+        $studentFamilyStatus->is_divorced = $this->isDivorced;
+
+        if ($this->isDivorced) {
+            $this->validate([
+                'divorceDate' => 'required'
+            ]);
+
+            $studentFamilyStatus->divorce_date = Carbon::parse($this->divorceDate)->format('Y-m-d');
+        }
+
+        $studentFamilyStatus->is_widowed = $this->isWidowed;
+        $studentFamilyStatus->previous_marriage_1_start = (empty($this->previousMarriage1Start)) ? null : Carbon::parse($this->previousMarriage1Start)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_1_end = (empty($this->previousMarriage1End)) ? null : Carbon::parse($this->previousMarriage1End)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_2_start = (empty($this->previousMarriage2Start)) ? null : Carbon::parse($this->previousMarriage2Start)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_2_end = (empty($this->previousMarriage2End)) ? null : Carbon::parse($this->previousMarriage2End)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_3_start = (empty($this->previousMarriage3Start)) ? null : Carbon::parse($this->previousMarriage3Start)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_3_end = (empty($this->previousMarriage3End)) ? null : Carbon::parse($this->previousMarriage3End)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_4_start = (empty($this->previousMarriage4Start)) ? null : Carbon::parse($this->previousMarriage4Start)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_4_end = (empty($this->previousMarriage4End)) ? null : Carbon::parse($this->previousMarriage4End)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_5_start = (empty($this->previousMarriage5Start)) ? null : Carbon::parse($this->previousMarriage5Start)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_5_end = (empty($this->previousMarriage5End)) ? null : Carbon::parse($this->previousMarriage5End)->format('Y-m-d');
+        $studentFamilyStatus->is_spouse_studying = $this->isSpouseStudying;
+        $studentFamilyStatus->is_spouse_in_iubip = $this->isSpouseInIubip;
+        $studentFamilyStatus->has_children = $this->hasChildren;
+        $studentFamilyStatus->child_1_birth_date = (empty($this->child1BirthDate)) ? null : Carbon::parse($this->child1BirthDate)->format('Y-m-d');
+        $studentFamilyStatus->child_2_birth_date = (empty($this->child2BirthDate)) ? null : Carbon::parse($this->child2BirthDate)->format('Y-m-d');
+        $studentFamilyStatus->child_3_birth_date = (empty($this->child3BirthDate)) ? null : Carbon::parse($this->child3BirthDate)->format('Y-m-d');
+        $studentFamilyStatus->child_4_birth_date = (empty($this->child4BirthDate)) ? null : Carbon::parse($this->child4BirthDate)->format('Y-m-d');
+        $studentFamilyStatus->child_5_birth_date = (empty($this->child5BirthDate)) ? null : Carbon::parse($this->child5BirthDate)->format('Y-m-d');
+        $studentFamilyStatus->is_single_parent = $this->isSingleParent;
+        $studentFamilyStatus->user_signature = $this->getSignature(Auth::user()->id);
+        $studentFamilyStatus->save();
 
         $this->dispatch('show-toast', message: 'Данные успешно сохранены!', type: 'success');
     }
@@ -122,28 +140,44 @@ class FamilyStatus extends Component
         $studentFamilyStatus = StudentFamilyStatus::findOrFail($id);
         $studentFamilyStatus->user_id = Auth::user()->id;
         $studentFamilyStatus->is_married = $this->isMarried;
-        $studentFamilyStatus->marriage_date = $this->marriageDate;
+
+        if ($this->isMarried) {
+            $this->validate([
+                'marriageDate' => 'required'
+            ]);
+
+            $studentFamilyStatus->marriage_date = Carbon::parse($this->marriageDate)->format('Y-m-d');
+        }
+
         $studentFamilyStatus->is_divorced = $this->isDivorced;
-        $studentFamilyStatus->divorce_date = $this->divorceDate;
+
+        if ($this->isDivorced) {
+            $this->validate([
+                'divorceDate' => 'required'
+            ]);
+
+            $studentFamilyStatus->divorce_date = Carbon::parse($this->divorceDate)->format('Y-m-d');
+        }
+
         $studentFamilyStatus->is_widowed = $this->isWidowed;
-        $studentFamilyStatus->previous_marriage_1_start = $this->previousMarriage1Start;
-        $studentFamilyStatus->previous_marriage_1_end = $this->previousMarriage1End;
-        $studentFamilyStatus->previous_marriage_2_start = $this->previousMarriage2Start;
-        $studentFamilyStatus->previous_marriage_2_end = $this->previousMarriage3End;
-        $studentFamilyStatus->previous_marriage_3_start = $this->previousMarriage3Start;
-        $studentFamilyStatus->previous_marriage_3_end = $this->previousMarriage3End;
-        $studentFamilyStatus->previous_marriage_4_start = $this->previousMarriage4Start;
-        $studentFamilyStatus->previous_marriage_4_end = $this->previousMarriage4End;
-        $studentFamilyStatus->previous_marriage_5_start = $this->previousMarriage5Start;
-        $studentFamilyStatus->previous_marriage_5_end = $this->previousMarriage5End;
+        $studentFamilyStatus->previous_marriage_1_start = (empty($this->previousMarriage1Start)) ? null : Carbon::parse($this->previousMarriage1Start)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_1_end = (empty($this->previousMarriage1End)) ? null : Carbon::parse($this->previousMarriage1End)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_2_start = (empty($this->previousMarriage2Start)) ? null : Carbon::parse($this->previousMarriage2Start)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_2_end = (empty($this->previousMarriage2End)) ? null : Carbon::parse($this->previousMarriage2End)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_3_start = (empty($this->previousMarriage3Start)) ? null : Carbon::parse($this->previousMarriage3Start)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_3_end = (empty($this->previousMarriage3End)) ? null : Carbon::parse($this->previousMarriage3End)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_4_start = (empty($this->previousMarriage4Start)) ? null : Carbon::parse($this->previousMarriage4Start)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_4_end = (empty($this->previousMarriage4End)) ? null : Carbon::parse($this->previousMarriage4End)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_5_start = (empty($this->previousMarriage5Start)) ? null : Carbon::parse($this->previousMarriage5Start)->format('Y-m-d');
+        $studentFamilyStatus->previous_marriage_5_end = (empty($this->previousMarriage5End)) ? null : Carbon::parse($this->previousMarriage5End)->format('Y-m-d');
         $studentFamilyStatus->is_spouse_studying = $this->isSpouseStudying;
         $studentFamilyStatus->is_spouse_in_iubip = $this->isSpouseInIubip;
         $studentFamilyStatus->has_children = $this->hasChildren;
-        $studentFamilyStatus->child_1_birth_date = $this->child1BirthDate;
-        $studentFamilyStatus->child_2_birth_date = $this->child2BirthDate;
-        $studentFamilyStatus->child_3_birth_date = $this->child3BirthDate;
-        $studentFamilyStatus->child_4_birth_date = $this->child4BirthDate;
-        $studentFamilyStatus->child_5_birth_date = $this->child5BirthDate;
+        $studentFamilyStatus->child_1_birth_date = (empty($this->child1BirthDate)) ? null : Carbon::parse($this->child1BirthDate)->format('Y-m-d');
+        $studentFamilyStatus->child_2_birth_date = (empty($this->child2BirthDate)) ? null : Carbon::parse($this->child2BirthDate)->format('Y-m-d');
+        $studentFamilyStatus->child_3_birth_date = (empty($this->child3BirthDate)) ? null : Carbon::parse($this->child3BirthDate)->format('Y-m-d');
+        $studentFamilyStatus->child_4_birth_date = (empty($this->child4BirthDate)) ? null : Carbon::parse($this->child4BirthDate)->format('Y-m-d');
+        $studentFamilyStatus->child_5_birth_date = (empty($this->child5BirthDate)) ? null : Carbon::parse($this->child5BirthDate)->format('Y-m-d');
         $studentFamilyStatus->is_single_parent = $this->isSingleParent;
         $studentFamilyStatus->user_signature = $this->getSignature(Auth::user()->id);
         $studentFamilyStatus->update();

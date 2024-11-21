@@ -92,7 +92,10 @@
                     <div class="mb-4">
                         {{ $header }}
                     </div>
-                    {{ $slot }}
+                    <div>
+                        {{ $slot }}
+                    </div>
+                    <div class="py-2"></div>
                 </div>
             </main>
         </div>

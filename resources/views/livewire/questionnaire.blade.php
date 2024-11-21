@@ -14,7 +14,7 @@
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Анкета "Семейный статус обучающегося"</div>
             <div class="grow px-4 py-2 text-sm text-justify">
-                Анкета представляет собой индивидуальный профиль каждого обучающегося, содержащий информацию о его семейном положении, составе семьи, взаимоотношениях с родственниками, а также о любых значимых событиях и изменениях в семейной жизни
+                Анкета представляет собой индивидуальный профиль каждого обучающегося, содержащий информацию о его семейном положении, составе семьи, а также о любых изменениях в семейной жизни
             </div>
             <div class="h-8 px-4 py-2">
                 <div x-bind:class="{ 'w-full': hovered === 'family_status', 'w-6': hovered != 'family_status' }" class="bg-gray-600 dark:bg-white border border-slate-400/20 rounded p-0.5 transition-all duration-500"></div>
