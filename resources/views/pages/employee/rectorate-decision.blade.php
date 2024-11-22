@@ -3,5 +3,5 @@
         <h1>{{ __('Решения ректората') }}</h1>
     </x-slot>
 
-    @livewire('rectorate-decision')
+    @livewire('employee.rectorate-decision')
 </x-app-layout>

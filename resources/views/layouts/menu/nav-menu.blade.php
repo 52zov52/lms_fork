@@ -129,6 +129,14 @@
             <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Решение ректората</span>
         </div>
     </a>
+    <a href="{{ route('employee.rectorate.decision') }}">
+        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('employee.rectorate.decision')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <div class="w-8 h-8 flex items-center justify-center">
+                <i class="fa-solid fa-pen-nib fa-lg"></i>
+            </div>
+            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Решения ректората</span>
+        </div>
+    </a>
     <a href="{{ route('decisions.council') }}">
         <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('decisions.council')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <div class="w-8 h-8 flex items-center justify-center">

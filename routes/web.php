@@ -70,6 +70,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.employee.operating-activity');
         })->name('employee.operating.activity');
 
+        //Решения ректората
+        Route::get('/rectorate-decision', function () {
+            return view('pages.employee.rectorate-decision');
+        })->name('employee.rectorate.decision');
+
         //Управление контингентом
         Route::get('/contingent-management', function () {
             return view('pages.employee.contingent-management');
