@@ -4,6 +4,7 @@ namespace App\Livewire\Employee;
 
 use App\Models\OperatingActivity as ModelsOperatingActivity;
 use App\Models\OperatingActivityFile;
+use App\Models\RectorateAndCouncilDecision;
 use App\Models\UserActivityDirection;
 use App\Models\UserData;
 use Carbon\Carbon;
@@ -57,8 +58,8 @@ class OperatingActivity extends Component
         //Установка начальных значений
         $this->selectedYear = Carbon::now()->format('Y');
         $this->selectedMonth = Carbon::now()->format('m.Y');
-        
-        if(!Auth::user()->hasPermissionTo('rector')) {
+
+        if (!Auth::user()->hasPermissionTo('rector')) {
             $this->selectedUserId = Auth::user()->id;
         }
     }
@@ -273,6 +274,12 @@ class OperatingActivity extends Component
             }
         }
 
+        if ($this->activityDirection == 'Решение ректората') {
+            $rectorateDecision = RectorateAndCouncilDecision::where('operating_activity_id', '=', $this->id)->first();
+            $rectorateDecision->status = $this->status;
+            $rectorateDecision->update();
+        }
+
         $this->isCreateOrEditModalVisible = false;
         $this->dispatch('show-toast', message: 'Запись успешно обновлена!', type: 'success');
     }
@@ -287,6 +294,14 @@ class OperatingActivity extends Component
             foreach ($operatingActivityFile as $key => $value) {
                 unlink(storage_path('app/public/' . $value->file_path));
             }
+        }
+
+        if ($modelsOperatingActivity->activity_direction == 'Решение ректората') {
+            $rectorateDecision = RectorateAndCouncilDecision::where('operating_activity_id', '=', $id)->first();
+            $rectorateDecision->status = 1;
+            $rectorateDecision->operating_activity_id = null;
+            $rectorateDecision->executor_id = null;
+            $rectorateDecision->update();
         }
 
         $modelsOperatingActivity->delete();
@@ -335,6 +350,13 @@ class OperatingActivity extends Component
     public function confirm($id)
     {
         $modelsOperatingActivity = ModelsOperatingActivity::findOrFail($id);
+
+        if ($modelsOperatingActivity->activity_direction == 'Решение ректората') {
+            $rectorateDecision = RectorateAndCouncilDecision::where('operating_activity_id', '=', $id)->first();
+            $rectorateDecision->status = 3;
+            $rectorateDecision->update();
+        }
+
         $modelsOperatingActivity->status = 3;
         $modelsOperatingActivity->update();
 
@@ -344,10 +366,17 @@ class OperatingActivity extends Component
     public function undoConfirm($id)
     {
         $modelsOperatingActivity = ModelsOperatingActivity::findOrFail($id);
-        $modelsOperatingActivity->status = 2;
+
+        if ($modelsOperatingActivity->activity_direction == 'Решение ректората') {
+            $rectorateDecision = RectorateAndCouncilDecision::where('operating_activity_id', '=', $id)->first();
+            $rectorateDecision->status = 1;
+            $rectorateDecision->update();
+        }
+
+        $modelsOperatingActivity->status = 1;
         $modelsOperatingActivity->update();
 
-        $this->dispatch('show-toast', message: 'Подтверждение выполнения задачи успешно откланено!', type: 'success');
+        $this->dispatch('show-toast', message: 'Подтверждение выполнения задачи успешно отклонено!', type: 'success');
     }
 
     private function getListOfEmployees()

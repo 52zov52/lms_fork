@@ -198,11 +198,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         /*
         Route::get('/operating-activity', function () {
             return view('pages.operating-activity');
-        })->name('operating.activity');*/
+        })->name('operating.activity');
 
         Route::get('/decisions-rectorate', function () {
             return view('pages.decisions-rectorate');
-        })->name('decisions.rectorate');
+        })->name('decisions.rectorate');*/
 
         Route::get('/decisions-council', function () {
             return view('pages.decisions-council');

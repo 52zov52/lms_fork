@@ -89,10 +89,10 @@
             </header>
             <main class="grow overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300 p-4">
                 <div class="h-full flex flex-col space-y-2">
-                    <div class="mb-4">
+                    <div class="mb-4 flex flex-col space-y-4">
                         {{ $header }}
                     </div>
-                    <div>
+                    <div class="grow">
                         {{ $slot }}
                     </div>
                     <div class="py-2"></div>

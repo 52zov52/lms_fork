@@ -2,9 +2,12 @@
 
 namespace App\Livewire\Employee;
 
+use App\Models\OperatingActivity;
 use App\Models\RectorateAndCouncilDecision;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -16,9 +19,10 @@ class RectorateDecision extends Component
 
     public $isEdit = false;
 
-    public $selectedPosition = '';
+    public $selectedPosition = 0;
 
     //Переменные модели
+    public $id = 0;
     public $dateDecision = '';
     public $numberDecision = '';
     public $position = '';
@@ -97,7 +101,24 @@ class RectorateDecision extends Component
 
     public function render()
     {
-        $rectorateDecisions = RectorateAndCouncilDecision::paginate(50);
+        $rectorateDecisions = RectorateAndCouncilDecision::select(
+            'id',
+            DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"),
+            'position',
+            'task',
+            'due_date',
+            'status',
+            'operating_activity_id',
+            'executor_id'
+        )
+        ->where('category', '=', 1);
+
+        //Фильтр по должности исполнителя
+        if ($this->selectedPosition != 0) {
+            $rectorateDecisions = $rectorateDecisions->where('position', '=', $this->selectedPosition);
+        }
+
+        $rectorateDecisions = $rectorateDecisions->paginate(50);
 
         return view('livewire.employee.rectorate-decision', [
             'rectorateDecisions' => $rectorateDecisions
@@ -107,6 +128,7 @@ class RectorateDecision extends Component
     public function setPosition()
     {
         $this->selectedPosition = $this->selectedPosition;
+        $this->resetPage();
     }
 
     public function show()
@@ -120,6 +142,14 @@ class RectorateDecision extends Component
     public function edit($id)
     {
         $this->resetFields();
+
+        $rectorateDecision = RectorateAndCouncilDecision::findOrFail($id);
+        $this->id = $id;
+        $this->dateDecision = $rectorateDecision->date_decision;
+        $this->numberDecision = $rectorateDecision->number_decision;
+        $this->position = $rectorateDecision->position;
+        $this->task = $rectorateDecision->task;
+        $this->dueDate = $rectorateDecision->due_date;
 
         $this->isEdit = true;
         $this->isCreateOrEditModalVisible = true;
@@ -172,6 +202,7 @@ class RectorateDecision extends Component
         $this->dispatch('show-toast', message: 'Запись успешно обновлена!', type: 'success');
     }
 
+    #[On('destroy')]
     public function destroy($id)
     {
         $rectorateDecision = RectorateAndCouncilDecision::findOrFail($id);
@@ -180,8 +211,31 @@ class RectorateDecision extends Component
         $this->dispatch('show-toast', message: 'Запись успешно удалена!', type: 'success');
     }
 
+    #[On('submitReport')]
+    public function submitReport($id)
+    {
+        $rectorateDecision = RectorateAndCouncilDecision::findOrFail($id);
+
+        $operatingActivity = new OperatingActivity();
+        $operatingActivity->activity_direction = 'Решение ректората';
+        $operatingActivity->description = 'В соответствии с решением ректората от ' . Carbon::parse($rectorateDecision->date_decision)->format('d.m.Y') . ' №' . $rectorateDecision->number_decision . ' ...';
+        $operatingActivity->status = 2;
+        $operatingActivity->user_id = Auth::user()->id;
+        $operatingActivity->week_start_date = Carbon::parse(now())->startOfWeek()->format('Y-m-d');
+        $operatingActivity->week_end_date = Carbon::parse(now())->endOfWeek()->format('Y-m-d');
+        $operatingActivity->save();
+
+        $rectorateDecision->status = 2;
+        $rectorateDecision->operating_activity_id = $operatingActivity->id;
+        $rectorateDecision->executor_id = Auth::user()->id;
+        $rectorateDecision->update();
+
+        return redirect()->route('employee.operating.activity');
+    }
+
     private function resetFields()
     {
+        $this->id = 0;
         $this->dateDecision = '';
         $this->numberDecision = '';
         $this->position = '';

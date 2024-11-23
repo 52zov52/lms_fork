@@ -18,7 +18,7 @@
                 <span class="bg-sky-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">На утверждении</span>
                 <span class="bg-green-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">Выполнено</span>
             </div>
-            @if(!auth()->user()->can('rector'))
+            @can('create-edit-delete-decisions-rectorate-and-council')
             <button wire:click="show" class="w-auto md:w-36 btn-add">
                 <span wire:loading.remove wire:target="show">
                     <i class="fa-solid fa-circle-plus"></i>
@@ -28,7 +28,7 @@
                     <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                 </span>
             </button>
-            @endif
+            @endcan
         </div>
 
         <div wire:loading.remove wire:target="setPosition">
@@ -38,20 +38,24 @@
                     <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                         <tr class="border-b border-slate-400/20">
                             <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
-                            <th scope="col" class="w-60 px-2 py-2 text-left font-semibold">Должность исполнителя</th>
+                            <th scope="col" class="w-72 px-2 py-2 text-left font-semibold">Должность исполнителя</th>
                             <th scope="col" class="w-auto px-2 py-2 text-center font-semibold">Поручение</th>
+                            <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Дата и номер решения</th>
                             <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Срок исполнения (до)</th>
                             <th scope="col" class="w-16 px-2 py-2 font-semibold">Статус</th>
-                            <th scope="col" class="w-36 px-2 py-2 text-center font-semibold">Действия</th>
+                            @if(!auth()->user()->can('rector'))
+                            <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Действия</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($rectorateDecisions as $decision)
                         <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                             <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                            <td class="w-60 px-2 py-2 text-left">{{ $decision->position }}</td>
-                            <td class="w-auto px-2 py-2 text-center">{{ $decision->task }}</td>
-                            <td class="w-24 px-2 py-2 text-center">{{ $decision->due_date }}</td>
+                            <td class="w-72 px-2 py-2 text-left">{{ $decision->position }}</td>
+                            <td class="w-auto px-2 py-2 text-left">{{ $decision->task }}</td>
+                            <td class="w-32 px-2 py-2 text-center">{{ $decision->date_and_number_decision }}</td>
+                            <td class="w-24 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($decision->due_date)->format('d.m.Y') }}</td>
                             <td class="w-16 px-2 py-2 text-center">
                                 @if($decision->status == 1)
                                 <span class="text-orange-400 font-bold cursor-pointer">Р</span>
@@ -61,9 +65,14 @@
                                 <span class="text-green-400 font-bold cursor-pointer">В</span>
                                 @endif
                             </td>
-                            <td class="w-36 text-center">
+                            @if(!auth()->user()->can('rector'))
+                            <td class="w-32 text-center">
                                 <div class="flex flex-row flex-wrap items-center justify-center space-x-1">
-                                    @if($decision->status != 3)
+                                    @if($decision->status == 1 && (is_null($decision->operating_activity_id) && is_null($decision->executor_id)))
+                                    <button onclick="submitReport('{{ $decision->id }}')" class="w-9 btn-description" data-tippy-content="Предоставить отчет">
+                                        <i class="fa-solid fa-up-right-from-square"></i>
+                                    </button>
+                                    @can('create-edit-delete-decisions-rectorate-and-council')
                                     <button wire:click="edit({{ $decision->id }})" class="w-9 btn-edit" data-tippy-content="Редактировать">
                                         <span wire:loading.remove wire:target="edit({{ $decision->id }})">
                                             <i class="fa-solid fa-pen"></i>
@@ -75,9 +84,13 @@
                                     <button onclick="confirmDestroy('{{ $decision->id }}')" class="w-9 btn-destroy" title="" data-tippy-content="Удалить">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
+                                    @endcan
+                                    @else
+                                    -
                                     @endif
                                 </div>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>
@@ -133,12 +146,12 @@
                         @error('position') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                     </div>
                     <div class="flex flex-col">
-                        <label for="task" class="font-semibold">Описание задачи для исполнителя<span class="text-red-500">*</span></label>
+                        <label for="task" class="font-semibold">Описание поручения для исполнителя<span class="text-red-500">*</span></label>
                         <textarea wire:model="task" name="task" id="task" cols="5" rows="10" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
                         @error('task') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                     </div>
                     <div class="flex flex-col">
-                        <label for="due-date" class="font-semibold">Срок исполнения<span class="text-red-500">*</span></label>
+                        <label for="due-date" class="font-semibold">Срок исполнения (до)<span class="text-red-500">*</span></label>
                         <input wire:model="dueDate" type="date" id="due-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         @error('dueDate') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                     </div>
@@ -168,6 +181,14 @@
     function confirmDestroy(id) {
         if (confirm('Вы уверены, что хотите удалить данную запись?')) {
             Livewire.dispatch('destroy', {
+                id: id
+            })
+        }
+    }
+
+    function submitReport(id) {
+        if (confirm('Вы уверены, что хотите предоставить отчет?')) {
+            Livewire.dispatch('submitReport', {
                 id: id
             })
         }
