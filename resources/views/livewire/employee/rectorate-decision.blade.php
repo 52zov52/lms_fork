@@ -153,8 +153,8 @@
                         </div>
                     </div>
                     @endif
-                    @endforeach
                 </div>
+                @endforeach
             </div>
 
             <div class="mt-2">
