@@ -161,14 +161,14 @@
                 {{ $rectorateDecisions->links() }}
             </div>
             @else
-            <x-alert type="info" title="Информация" message="Решения ретората Университета отсутствуют" />
+            <x-alert type="info" title="Информация" message="Решения ретората Университета отсутствуют." />
             @endif
         </div>
         <!-- Preloader -->
         <div class="h-full" wire:loading wire:target="setPosition">
             <div class="h-full flex space-x-2 items-center justify-center text-sm md:text-lg">
                 <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-                <span>Пожалуйста, подождите, идет загрузка данных</span>
+                <span>Пожалуйста, подождите, идет загрузка данных.</span>
             </div>
         </div>
     </div>
