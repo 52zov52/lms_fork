@@ -68,9 +68,11 @@ class ConsultationSchedule extends Component
         '609'
     ];
 
+    public $listOfGroups = [];
+
     public function render()
     {
-        $listOfdisciplines = DB::table('group_study_thread_subgroup')
+        $listOfDisciplines = DB::table('group_study_thread_subgroup')
             ->join('study_thread_subgroups', 'group_study_thread_subgroup.study_thread_subgroup_id', '=', 'study_thread_subgroups.id')
             ->join('study_thread_subgroup_user', 'study_thread_subgroups.id', '=', 'study_thread_subgroup_user.study_thread_subgroup_id')
             ->join('study_threads', 'study_thread_subgroups.study_thread_id', '=', 'study_threads.id')
@@ -103,7 +105,7 @@ class ConsultationSchedule extends Component
             ->paginate(50);
 
         return view('livewire.teacher.consultation-schedule', [
-            'listOfdisciplines' => $listOfdisciplines,
+            'listOfDisciplines' => $listOfDisciplines,
             'listOfLessonTime' => $this->listOfLessonTime,
             'listOfRooms' => $this->listOfRooms,
             'consultationSchedules' => $consultationSchedules
@@ -112,17 +114,42 @@ class ConsultationSchedule extends Component
 
     public function setDisciplineId()
     {
+        $this->groups = [];
         $this->disciplineId = $this->disciplineId;
+        $this->listOfGroups = $this->getGroups();
+    }
+
+    private function getGroups()
+    {
+        return DB::table('group_study_thread_subgroup')
+            ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
+            ->join('study_thread_subgroups', 'group_study_thread_subgroup.study_thread_subgroup_id', '=', 'study_thread_subgroups.id')
+            ->join('study_threads', 'study_thread_subgroups.study_thread_id', '=', 'study_threads.id')
+            ->join('chair_discipline', 'study_threads.chair_discipline_id', '=', 'chair_discipline.id')
+            ->where('chair_discipline.discipline_id', '=', $this->disciplineId)
+            ->where('study_threads.year', '=', AcademicYearController::getYear())
+            ->where('study_threads.semester', '=', AcademicYearController::getHalfYear())
+            ->select(
+                'groups.id',
+                'groups.group_name',
+            )
+            ->distinct()
+            ->orderBy('groups.group_name')
+            ->get();
     }
 
     public function show()
     {
+        $this->resetFields();
+
         $this->isEdit = false;
         $this->isCreateOrEditModalVisible = true;
     }
 
     public function edit($id)
     {
+        $this->resetFields();
+
         $consultationSchedule = ModelsConsultationSchedule::findOrFail($id);
         $this->id = $id;
         $this->userId = $consultationSchedule->user_id;
@@ -143,10 +170,10 @@ class ConsultationSchedule extends Component
     {
         $this->validate([
             'disciplineId' => 'required|min:1',
-            'consultation_date' => 'required|date_format:Y-m-d',
-            'consultation_time' => 'required|string',
+            'consultationDate' => 'required|date_format:Y-m-d',
+            'consultationTime' => 'required|string',
             'room' => 'required|string',
-            'groups' => 'required|json',
+            'groups' => 'required|array',
             'description' => 'nullable|string|max:1500',
         ]);
 
@@ -156,7 +183,7 @@ class ConsultationSchedule extends Component
             'consultation_date' => Carbon::parse($this->consultationDate)->format('Y-m-d'),
             'consultation_time' => $this->consultationTime,
             'room' => $this->room,
-            'groups' => json_encode($this->groups),
+            'groups' => $this->groups,
             'academic_year' => AcademicYearController::getAcademicYear(),
             'half_year' => AcademicYearController::getHalfYear(),
             'description' => $this->description,
@@ -170,13 +197,13 @@ class ConsultationSchedule extends Component
     {
         $this->validate([
             'disciplineId' => 'required|min:1',
-            'consultation_date' => 'required|date_format:Y-m-d',
-            'consultation_time' => 'required|string',
+            'consultationDate' => 'required|date_format:Y-m-d',
+            'consultationTime' => 'required|string',
             'room' => 'required|string',
-            'groups' => 'required|json',
+            'groups' => 'required|array',
             'description' => 'nullable|string|max:1500',
         ]);
-        
+
         $consultationSchedule = ModelsConsultationSchedule::findOrFail($this->id);
         $consultationSchedule->discipline_id = $this->disciplineId;
         $consultationSchedule->consultation_date = Carbon::parse($this->consultationDate)->format('Y-m-d');
