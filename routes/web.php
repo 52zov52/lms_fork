@@ -124,10 +124,15 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.teacher.e-journal', compact('wspCoursesInSemesterId'), compact('groupId'));
         })->name('teacher.e.journal');
 
-        //График пересдач академических задолженностей
+        //График пересдач академических задолженностей у студентов
         Route::get('/academic-retake-schedule', function () {
             return view('pages.teacher.academic-retake-schedule');
         })->name('teacher.academic.retake.schedule');
+
+        //График консультаций студентов
+        Route::get('/consultation-schedule', function () {
+            return view('pages.teacher.consultation-schedule');
+        })->name('teacher.consultation.schedule');
     });
 
     //Печать индивидуальных оценок студента по ИД
