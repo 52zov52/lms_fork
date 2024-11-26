@@ -38,7 +38,7 @@
                             <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">ФИО</th>
                             <th scope="col" class="w-64 px-2 py-2 font-semibold">Группа</th>
                             <th scope="col" class="w-64 px-2 py-2 font-semibold">№ зачетки</th>
-                            <th scope="col" class="w-64 px-2 py-2 font-semibold">Статус</th>
+                            <th scope="col" class="w-24 px-2 py-2 font-semibold">Действия</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,7 +48,16 @@
                             <td class="w-auto px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
                             <td class="w-64 px-2 py-2 text-center">{{ $item->group_name }}</td>
                             <td class="w-64 px-2 py-2 text-center">{{ $item->ticket_number }}</td>
-                            <td class="w-64 px-2 py-2 text-center">{{ $item->state_name }}</td>
+                            <td class="w-24 px-2 py-2 text-center">
+                                <button wire:click="downloadIndividualStudentGrade({{ $item->user_id }})" class="w-9 btn-download" title="" data-tippy-content="Скачать индивидуальную ведомость">
+                                    <span wire:loading.remove wire:target="downloadIndividualStudentGrade({{ $item->user_id }})">
+                                        <i class="fa-solid fa-download"></i>
+                                    </span>
+                                    <span wire:loading wire:target="downloadIndividualStudentGrade({{ $item->user_id }})">
+                                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                    </span>
+                                </button>
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>

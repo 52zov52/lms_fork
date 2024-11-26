@@ -4,6 +4,7 @@ namespace App\Livewire\Employee;
 
 use App\Http\Controllers\Employee\ContingentController;
 use App\Http\Controllers\Report\ContingentReportController;
+use App\Http\Controllers\Report\IndividualStudentGradeController;
 use App\Models\Group;
 use Livewire\Component;
 use Illuminate\Support\Facades\Response;
@@ -61,5 +62,13 @@ class Contingent extends Component
         } else {
             $this->dispatch('show-toast', message: 'Невозможно сформировать отчет, т.к. не выбрана группа из списка!', type:'error');
         }
+    }
+
+    public function downloadIndividualStudentGrade($userId)
+    {
+        $individualStudentGradeController = new IndividualStudentGradeController();
+        $data = $individualStudentGradeController->print($userId);
+
+        return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }
 }
