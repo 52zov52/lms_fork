@@ -155,10 +155,20 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.student.my-attendance');
         })->name('student.my.attendance');
 
+        //Графики
+        Route::get('/academic-retake-and-consultation-schedule', function () {
+            return view('pages.student.academic-retake-and-consultation-schedule');
+        })->name('student.academic.retake.and.consultation.schedule');
+
         //График пересдач академических задолженностей
         Route::get('/academic-retake-schedule-list', function () {
             return view('pages.student.academic-retake-schedule-list');
         })->name('student.academic.retake.schedule.list');
+
+        //График пересдач академических задолженностей
+        Route::get('/my-consultation-schedule', function () {
+            return view('pages.student.my-consultation-schedule');
+        })->name('student.my-consultation.schedule');
 
         //Согласие на СПТ
         Route::get('/spt-consent-status', function () {
@@ -267,6 +277,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::get('/print-defense-ministry-form-10/{userId}', [PrintDefenseMinistryForm10Controller::class, 'print'])->name('print.defense.ministry.form.10');
 
+    /*
     //Удалить
     Route::group(['middleware' => 'permission:access-to-data-on-students-academic-leaves'], function () {
         Route::get('/academic-leave-calendar', function () {
@@ -283,6 +294,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/personal-records-check-sheet/{user_id}/{group_id}', function ($user_id, $group_id) {
         return view('pages.academic-leave.personal-records-check-sheet', ['user_id' => $user_id, 'group_id' => $group_id]);
     })->name('personal.records.check.sheet');
+    */
 
     Route::get('/form-z01/{user_id}/{group_id}', function ($user_id, $group_id) {
         return view('pages.academic-leave.form-z01', ['user_id' => $user_id, 'group_id' => $group_id]);

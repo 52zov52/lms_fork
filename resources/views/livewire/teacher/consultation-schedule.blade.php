@@ -13,10 +13,112 @@
         </div>
 
         @if(!is_null($consultationSchedules) && count($consultationSchedules) != 0)
+        <div class="hidden lg:block border rounded border-slate-400/20">
+            <table class="w-full text-xs md:text-sm">
+                <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
+                    <tr class="border-b border-slate-400/20">
+                        <th scope="col" class="w-12 px-2 py-2 font-semibold">№ пп</th>
+                        <th scope="col" class="w-auto px-2 py-2 font-semibold">Дисциплина/практика</th>
+                        <th scope="col" class="w-24 px-2 py-2 font-semibold">Дата</th>
+                        <th scope="col" class="w-24 px-2 py-2 font-semibold">Время</th>
+                        <th scope="col" class="w-32 px-2 py-2 font-semibold">Аудитория</th>
+                        <th scope="col" class="w-40 px-2 py-2 font-semibold">Группы</th>
+                        <th scope="col" class="w-64 px-2 py-2 font-semibold">Комментарий</th>
+                        <th scope="col" class="w-24 px-2 py-2 font-semibold ">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($consultationSchedules as $consultation)
+                    <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
+                        <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
+                        <td class="w-auto px-2 py-2 text-left">{{ $consultation->name }}</td>
+                        <td class="w-24 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($consultation->consultation_date)->format('d.m.Y') }}</td>
+                        <td class="w-24 px-2 py-2 text-center">{{ $consultation->consultation_time }}</td>
+                        <td class="w-32 px-2 py-2 text-center">{{ $consultation->room }}</td>
+                        <td class="w-40 px-2 py-2 text-center">
+                            @foreach($consultation->groups as $group)
+                            {{ $group['group_name'] }}
+                            @endforeach
+                        </td>
+                        <td class="w-64 px-2 py-2 text-left">{{ $consultation->description }}</td>
+                        <td class="w-24 px-2 py-2 text-center">
+                            <div class="flex flex-row items-center justify-center space-x-1">
+                                <button wire:click="edit({{ $consultation->id }})" class="w-9 btn-edit" data-tippy-content="Редактировать">
+                                    <span wire:loading.remove wire:target="edit({{ $consultation->id }})">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </span>
+                                    <span wire:loading wire:target="edit({{ $consultation->id }})">
+                                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                    </span>
+                                </button>
+                                <button onclick="confirmDestroy('{{ $consultation->id }}')" class="w-9 btn-destroy" title="" data-tippy-content="Удалить">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <div class="lg:hidden flex flex-col space-y-2">
+            @foreach($consultationSchedules as $consultation)
+            <div class="flex flex-col space-y-2 bg-slate-200 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 p-4 text-xs">
+                <div class="flex flex-col">
+                    <span class="font-semibold">Дисциплина/практика:</span>
+                    <span>{{ $consultation->name }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Дата консультации:</span>
+                    <span>{{ \Carbon\Carbon::parse($consultation->consultation_date)->format('d.m.Y') }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Время консультации:</span>
+                    <span>{{ $consultation->consultation_time }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Аудитория:</span>
+                    <span>{{ $consultation->room }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Группы:</span>
+                    <span>
+                        @foreach($consultation->groups as $group)
+                        {{ $group['group_name'] }}
+                        @endforeach
+                    </span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Комментарий:</span>
+                    <span>{{ $consultation->description }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-semibold">Действия:</span>
+                    <div class="flex flex-row space-x-2">
+                        <button wire:click="edit({{ $consultation->id }})" class="w-auto grow btn-edit" data-tippy-content="Редактировать">
+                            <span wire:loading.remove wire:target="edit({{ $consultation->id }})">
+                                <i class="fa-solid fa-pen"></i>
+                            </span>
+                            <span wire:loading wire:target="edit({{ $consultation->id }})">
+                                <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                            </span>
+                        </button>
+                        <button onclick="confirmDestroy('{{ $consultation->id }}')" class="w-auto grow btn-destroy" title="" data-tippy-content="Удалить">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <div class="mt-2">
+            {{ $consultationSchedules->links() }}
+        </div>
         @else
         <x-alert type="info" title="Информация" message="График консультаций еще не заполен. Для добавления новой записи нажмите на кнопку «Добавить запись»" />
         @endif
-
     </div>
 
     <!-- Modal dialog to create or edit record -->
@@ -40,15 +142,18 @@
                         @error('disciplineId') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                     </div>
                     <div class="flex flex-col">
-                        <div class="flex flex-row">
+                        <div class="flex flex-row" wire:loading.remove wire:target="setDisciplineId">
                             @foreach($listOfGroups as $key => $value)
                             <div class="mr-2">
                                 <label for="group-{{ $value->id }}" class="flex space-x-1 items-center">
-                                    <input wire:model="groups" value="{{ $value->id }}" type="checkbox" id="group-{{ $value->id }}" class="mr-1">{{ $value->group_name }}
+                                    <input wire:model="groups" value="{{ json_encode(['id' => $value->id, 'group_name' => $value->group_name]) }}" type="checkbox" id="group-{{ $value->id }}" class="mr-1">{{ $value->group_name }}
                                 </label>
                             </div>
                             @endforeach
                         </div>
+                        <span wire:loading wire:target="setDisciplineId">
+                            <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                        </span>
                         @error('groups') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                     </div>
                     <div class="flex flex-col">

@@ -98,8 +98,6 @@ class ConsultationSchedule extends Component
                 'consultation_schedules.consultation_time',
                 'consultation_schedules.room',
                 'consultation_schedules.groups',
-                'consultation_schedules.academic_year',
-                'consultation_schedules.half_year',
                 'consultation_schedules.description'
             )
             ->paginate(50);
@@ -114,7 +112,9 @@ class ConsultationSchedule extends Component
 
     public function setDisciplineId()
     {
+        $this->listOfGroups = [];
         $this->groups = [];
+
         $this->disciplineId = $this->disciplineId;
         $this->listOfGroups = $this->getGroups();
     }
@@ -157,10 +157,16 @@ class ConsultationSchedule extends Component
         $this->consultationDate = $consultationSchedule->consultation_date;
         $this->consultationTime = $consultationSchedule->consultation_time;
         $this->room = $consultationSchedule->room;
-        $this->groups = json_decode($consultationSchedule->groups);
+
+        foreach ($consultationSchedule->groups as $item) {
+            $this->groups[] = json_encode(['id' => $item['id'], 'group_name' => $item['group_name']]);
+        }
+
         $this->academicYear = $consultationSchedule->academic_year;
         $this->halfYear = $consultationSchedule->half_year;
         $this->description = $consultationSchedule->description;
+
+        $this->listOfGroups = $this->getGroups();
 
         $this->isEdit = true;
         $this->isCreateOrEditModalVisible = true;
@@ -177,20 +183,28 @@ class ConsultationSchedule extends Component
             'description' => 'nullable|string|max:1500',
         ]);
 
-        ModelsConsultationSchedule::create([
-            'user_id' => Auth::user()->id,
-            'discipline_id' => $this->disciplineId,
-            'consultation_date' => Carbon::parse($this->consultationDate)->format('Y-m-d'),
-            'consultation_time' => $this->consultationTime,
-            'room' => $this->room,
-            'groups' => $this->groups,
-            'academic_year' => AcademicYearController::getAcademicYear(),
-            'half_year' => AcademicYearController::getHalfYear(),
-            'description' => $this->description,
-        ]);
+        $conflict = $this->checkConsultationScheduleConflict(Carbon::parse($this->consultationDate)->format('Y-m-d'), $this->consultationTime, $this->room, $this->academicYear, $this->halfYear);
 
-        $this->isCreateOrEditModalVisible = false;
-        $this->dispatch('show-toast', message: 'Запись успешно добавлена!', type: 'success');
+        if (count($conflict) != 0) {
+            $this->dispatch('show-toast', message: 'На указанные вами дату, время и аудиторию уже назначена консультация. Пожалуйста, укажите другие значения.', type: 'error');
+        } else {
+            $this->groups = $this->decodeJsonToArray($this->groups);
+
+            ModelsConsultationSchedule::create([
+                'user_id' => Auth::user()->id,
+                'discipline_id' => $this->disciplineId,
+                'consultation_date' => Carbon::parse($this->consultationDate)->format('Y-m-d'),
+                'consultation_time' => $this->consultationTime,
+                'room' => $this->room,
+                'groups' => $this->groups,
+                'academic_year' => AcademicYearController::getAcademicYear(),
+                'half_year' => AcademicYearController::getHalfYear(),
+                'description' => $this->description,
+            ]);
+
+            $this->isCreateOrEditModalVisible = false;
+            $this->dispatch('show-toast', message: 'Запись успешно добавлена!', type: 'success');
+        }
     }
 
     public function update()
@@ -204,17 +218,25 @@ class ConsultationSchedule extends Component
             'description' => 'nullable|string|max:1500',
         ]);
 
-        $consultationSchedule = ModelsConsultationSchedule::findOrFail($this->id);
-        $consultationSchedule->discipline_id = $this->disciplineId;
-        $consultationSchedule->consultation_date = Carbon::parse($this->consultationDate)->format('Y-m-d');
-        $consultationSchedule->consultation_time = $this->consultationTime;
-        $consultationSchedule->room = $this->room;
-        $consultationSchedule->groups = json_encode($this->groups);
-        $consultationSchedule->description = $this->description;
-        $consultationSchedule->update();
+        $conflict = $this->checkConsultationScheduleConflict(Carbon::parse($this->consultationDate)->format('Y-m-d'), $this->consultationTime, $this->room, $this->academicYear, $this->halfYear);
 
-        $this->isCreateOrEditModalVisible = false;
-        $this->dispatch('show-toast', message: 'Запись успешно обновлена!', type: 'success');
+        if (count($conflict) != 0) {
+            $this->dispatch('show-toast', message: 'На указанные вами дату, время и аудиторию уже назначена консультация. Пожалуйста, укажите другие значения.', type: 'error');
+        } else {
+            $this->groups = $this->decodeJsonToArray($this->groups);
+
+            $consultationSchedule = ModelsConsultationSchedule::findOrFail($this->id);
+            $consultationSchedule->discipline_id = $this->disciplineId;
+            $consultationSchedule->consultation_date = Carbon::parse($this->consultationDate)->format('Y-m-d');
+            $consultationSchedule->consultation_time = $this->consultationTime;
+            $consultationSchedule->room = $this->room;
+            $consultationSchedule->groups = $this->groups;
+            $consultationSchedule->description = $this->description;
+            $consultationSchedule->update();
+
+            $this->isCreateOrEditModalVisible = false;
+            $this->dispatch('show-toast', message: 'Запись успешно обновлена!', type: 'success');
+        }
     }
 
     #[On('destroy')]
@@ -224,6 +246,23 @@ class ConsultationSchedule extends Component
         $consultationSchedule->delete();
 
         $this->dispatch('show-toast', message: 'Запись успешно удалена!', type: 'success');
+    }
+
+    private function decodeJsonToArray($json)
+    {
+        return array_map(function ($item) {
+            return json_decode($item);
+        }, $json);
+    }
+
+    private function checkConsultationScheduleConflict($consultationDate, $consultationTime, $room, $academicYear, $halfYear)
+    {
+        return ModelsConsultationSchedule::where('consultation_date', '=', Carbon::parse($consultationDate)->format('Y-m-d'))
+            ->where('consultation_time', '=', $consultationTime)
+            ->where('room', '=', $room)
+            ->where('academic_year', '=', $academicYear)
+            ->where('half_year', '=', $halfYear)
+            ->get();
     }
 
     private function resetFields()
@@ -238,6 +277,8 @@ class ConsultationSchedule extends Component
         $this->academicYear = 0;
         $this->halfYear = 0;
         $this->description = '';
+
+        $this->listOfGroups = [];
 
         $this->resetErrorBag();
         $this->resetValidation();
