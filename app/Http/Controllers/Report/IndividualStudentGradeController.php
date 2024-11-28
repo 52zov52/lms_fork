@@ -38,7 +38,7 @@ class IndividualStudentGradeController extends Controller
                 'disciplines.name as discipline_name',
                 'work_study_plan_courses_in_semesters.semester_number',
                 'control_types.name as control_name',
-                'student_grades.grade'
+                DB::raw("CASE WHEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1) IS NOT NULL THEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1) ELSE student_grades.grade END as grade")
             )
             ->orderBy('work_study_plan_courses_in_semesters.semester_number')
             ->get()->toArray();
