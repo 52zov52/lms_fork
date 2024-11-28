@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\StudentGrades;
 use App\Models\StudentRetakeBulletin;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class SyncStudentGrades extends Command
@@ -28,6 +29,8 @@ class SyncStudentGrades extends Command
      */
     public function handle()
     {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
         StudentGrades::truncate();
 
         $filePath = Storage::disk('public')->path('student_grades/student_grades_data.txt');
@@ -99,6 +102,8 @@ class SyncStudentGrades extends Command
         }
 
         fclose($file);
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
         $this->info('Successfully sync student retake bulletin.');
     }
