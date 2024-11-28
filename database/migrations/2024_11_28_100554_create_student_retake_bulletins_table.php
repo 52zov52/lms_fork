@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('retake_bulletins', function (Blueprint $table) {
+        Schema::create('student_retake_bulletins', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(StudentGrades::class)
                 ->constrained()
@@ -24,7 +24,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->datetime('opening_date');
             $table->datetime('closing_date');
-            $table->integer('pay_number')->nullable();
+            $table->string('pay_number', 50)->nullable();
             $table->date('pay_date')->nullable();
             $table->integer('grade')->nullable();
             $table->unsignedBigInteger('teacher_id');
@@ -40,6 +40,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('retake_bulletins');
+        Schema::dropIfExists('student_retake_bulletins');
     }
 };

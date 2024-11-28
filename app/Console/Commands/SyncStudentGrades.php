@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\StudentGrades;
+use App\Models\StudentRetakeBulletin;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
@@ -31,12 +32,12 @@ class SyncStudentGrades extends Command
 
         $filePath = Storage::disk('public')->path('student_grades/student_grades_data.txt');
         $file = fopen($filePath, 'r');
-        while(!feof($file)) {
+        while (!feof($file)) {
             $line = fgets($file);
             if (trim($line) === '') {
                 continue;
             }
-            
+
             $values = explode('|', $line);
             StudentGrades::create([
                 'bulletin_id' => $values[0],
@@ -70,5 +71,35 @@ class SyncStudentGrades extends Command
         fclose($file);
 
         $this->info('Successfully sync student grades.');
+
+        StudentRetakeBulletin::truncate();
+
+        $filePath = Storage::disk('public')->path('student_grades/student_retake_bulletins_data.txt');
+        $file = fopen($filePath, 'r');
+        while (!feof($file)) {
+            $line = fgets($file);
+            if (trim($line) === '') {
+                continue;
+            }
+
+            $values = explode('|', $line);
+            StudentRetakeBulletin::create([
+                'student_grades_id' => $values[0],
+                'retake_bulletin_number' => $values[1],
+                'type_bulletin_id' => $values[2],
+                'opening_date' => $values[3],
+                'closing_date' => $values[4],
+                'pay_number' => ($values[5] == "None" ? null : $values[5]),
+                'pay_date' => ($values[6] == "None" ? null : $values[6]),
+                'grade' => ($values[7] == "None" ? null : $values[7]),
+                'teacher_id' => $values[8],
+                'description' => ($values[9] == "None" ? null : $values[9]),
+                'external_id' => $values[10],
+            ]);
+        }
+
+        fclose($file);
+
+        $this->info('Successfully sync student retake bulletin.');
     }
 }
