@@ -9,6 +9,7 @@ use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\Report\ContingentReportController;
+use App\Http\Controllers\Report\GroupStudentGradeController;
 use App\Http\Controllers\Report\IndividualStudentGradeController;
 use App\Http\Controllers\Report\SptController;
 use App\Http\Controllers\Reports\PrintAdmissionCampaignController;
@@ -136,7 +137,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     });
 
     //Печать индивидуальных оценок студента по ИД
-    Route::get('/individual-student-grade-report/{userId}', [IndividualStudentGradeController::class, 'print'])->name('individual.student.grade.report');
+    Route::get('/group-student-grade-report', [GroupStudentGradeController::class, 'print'])->name('group.student.grade.report');
 
     //Routes для роли Student
     Route::group(['prefix' => 'student'], function () {

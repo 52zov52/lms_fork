@@ -18,6 +18,14 @@
                         <i class="fa-solid fa-spinner fa-spin-pulse"></i> Идет загрузка
                     </span>
                 </button>
+                <button wire:click="downloadGroupStudentGrade" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-2 text-xs text-left text-sky-400 hover:text-white font-bold">
+                    <span wire:loading.remove wire:target="downloadGroupStudentGrade">
+                        <i class="fa-solid fa-download"></i> Скачать групповую сводку успеваемости
+                    </span>
+                    <span wire:loading wire:target="downloadGroupStudentGrade">
+                        <i class="fa-solid fa-spinner fa-spin-pulse"></i> Идет загрузка
+                    </span>
+                </button>
             </div>
         </div>
 
