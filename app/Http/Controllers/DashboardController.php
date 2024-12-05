@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 class DashboardController extends Controller
 {
     public $additionalInfoAboutUser = '';
+    public $scheduleEventCount = 0;
+    public $schedulesEvents = null;
 
     public function index()
     {
@@ -20,21 +22,35 @@ class DashboardController extends Controller
                 ->first();
 
             $this->additionalInfoAboutUser = $groupStudent->group_name;
+
+            $this->scheduleEventCount = Schedule::where('group', 'like', '%' . $groupStudent->group_name . '%')
+                ->where('date', '>=', now()->format('Y-m-d'))
+                ->count();
+
+            $this->schedulesEvents = Schedule::where('group', 'like', '%' . $groupStudent->group_name . '%')
+                ->where('date', '>=', now()->format('Y-m-d'))
+                ->where('time', '>=', now()->format('H:i'))
+                ->first();
+        } else {
+            $fio = Auth::user()->userData->last_name;
+
+            $this->scheduleEventCount = Schedule::where('teacher', 'like', '%' . $fio . '%')
+                ->where('date', '>=', now()->format('Y-m-d'))
+                ->count();
+
+            $this->schedulesEvents = Schedule::where('teacher', 'like', '%' . $fio . '%')
+                ->where('date', '>=', now()->format('Y-m-d'))
+                ->where('time', '>=', now()->format('H:i'))
+                ->first();
         }
 
-        $fio = Auth::user()->userData->last_name;
+        $eventCount = $this->scheduleEventCount;
+        if (!is_null($this->schedulesEvents)) {
+            $event = 'Занятие по дис.: ' . $this->schedulesEvents->discipline . ' время: ' . $this->schedulesEvents->time;
+        } else {
+            $event = '-';
+        }
 
-        $scheduleEventCount = Schedule::where('teacher', 'like', '%' . $fio . '%')
-            ->where('date', '>=', now()->format('Y-m-d'))
-            ->count();
-
-        $schedulesEvents = Schedule::where('teacher', 'like', '%' . $fio . '%')
-            ->where('date', '>=', now()->format('Y-m-d'))
-            ->where('time', '>=', now()->format('H:i'))
-            ->first();
-
-        $eventCount = $scheduleEventCount;
-        $event = 'Занятие по дис.: ' . $schedulesEvents->discipline . ' время: ' . $schedulesEvents->time;
 
         return view('dashboard', [
             'additionalInfoAboutUser' => $this->additionalInfoAboutUser,
