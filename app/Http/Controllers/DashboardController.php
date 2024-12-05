@@ -32,7 +32,7 @@ class DashboardController extends Controller
                 ->where('time', '>=', now()->format('H:i'))
                 ->first();
         } else {
-            if (!Auth::user()->can('rector')) {
+            if(Auth::user()->id != 2190) {
                 $fio = Auth::user()->userData->last_name;
 
                 $this->scheduleEventCount = Schedule::where('teacher', 'like', '%' . $fio . '%')
