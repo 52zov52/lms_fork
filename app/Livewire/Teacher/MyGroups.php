@@ -3,14 +3,16 @@
 namespace App\Livewire\Teacher;
 
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\Report\ContingentReportController;
 use App\Models\ActiveUser;
 use App\Models\StudyThreadSubGroupUser;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Response;
 use Livewire\Component;
 
 class MyGroups extends Component
 {
-    protected $listUserId = array();
+    public $listUserId = array();
 
     public function mount()
     {
@@ -45,6 +47,14 @@ class MyGroups extends Component
             'academicYear' => AcademicYearController::getAcademicYear(),
             'listOfGroups' => $listOfGroups
         ]);
+    }
+
+    public function downloadListOfStudents($groupId)
+    {
+        $contingentReportController = new ContingentReportController();
+        $data = $contingentReportController->downloadListOfStudents($groupId);
+
+        return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }
 
     public function redirectToCourseList($groupId)

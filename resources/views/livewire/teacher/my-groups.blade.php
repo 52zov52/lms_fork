@@ -14,7 +14,7 @@
                         <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Форма обучения</th>
                         <th scope="col" class="w-20 px-2 py-2 text-center font-semibold">Курс</th>
                         <th scope="col" class="sticky right-[80px] w-auto bg-slate-200 dark:bg-slate-700 px-2 py-2 text-left font-semibold">Группа</th>
-                        <th scope="col" class="sticky right-0 w-20 bg-slate-200 dark:bg-slate-700 px-2 py-2 text-right font-semibold">Действия</th>
+                        <th scope="col" class="sticky right-0 w-24 bg-slate-200 dark:bg-slate-700 px-2 py-2 text-right font-semibold">Действия</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -23,34 +23,44 @@
                         <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
                         <td class="w-24 px-2 py-2 text-center">
                             @if($value->level_education_id == 6 || $value->level_education_id == 7)
-                                <span>ВО</span>
+                            <span>ВО</span>
                             @elseif($value->level_education_id == 2)
-                                <span>СПО</span>
+                            <span>СПО</span>
                             @else
-                                <span>-</span>
+                            <span>-</span>
                             @endif
                         </td>
                         <td class="w-40 px-2 py-2 text-center">
                             @if($value->teaching_form_id == 1)
-                                <span>Очная</span>
+                            <span>Очная</span>
                             @elseif($value->teaching_form_id == 2)
-                                <span>Заочная</span>
+                            <span>Заочная</span>
                             @elseif($value->teaching_form_id == 3)
-                                <span>Заочная форма (ускоренное обучение)</span>
+                            <span>Заочная форма (ускоренное обучение)</span>
                             @elseif($value->teaching_form_id == 6)
-                                <span>Очно-заочная</span>
+                            <span>Очно-заочная</span>
                             @elseif($value->teaching_form_id == 7)
-                                <span>Очная (ускоренное обучение)</span>
+                            <span>Очная (ускоренное обучение)</span>
                             @else
-                                <span>-</span>
+                            <span>-</span>
                             @endif
                         </td>
                         <td class="w-20 px-2 py-2 text-center">{{ $value->course }}</td>
                         <td class="sticky right-[80px] w-auto bg-white dark:bg-slate-800 px-2 py-2">{{ $value->group_name }}</td>
-                        <td class="sticky right-0 w-20 bg-white dark:bg-slate-800 px-2 py-2 text-center">
-                            <button wire:click="redirectToCourseList({{ $value->id }})" class="w-9 btn-course-list" data-tippy-content="Список дисциплин группы">
-                                <i class="fa-solid fa-rectangle-list"></i>
-                            </button>
+                        <td class="sticky right-0 w-24 bg-white dark:bg-slate-800 px-2 py-2 text-center">
+                            <div class="flex flex-row items-center justify-center space-x-1">
+                                <button wire:click="downloadListOfStudents({{ $value->id }})" class="h-8 w-9 btn-download" data-tippy-content="Скачать список студентов">
+                                    <span wire:loading.remove wire:target="downloadListOfStudents({{ $value->id }})">
+                                        <i class="fa-solid fa-download"></i>
+                                    </span>
+                                    <span wire:loading wire:target="downloadListOfStudents({{ $value->id }})">
+                                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                    </span>
+                                </button>
+                                <button wire:click="redirectToCourseList({{ $value->id }})" class="h-8 w-9 btn-course-list" data-tippy-content="Список дисциплин группы">
+                                    <i class="fa-solid fa-rectangle-list"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
