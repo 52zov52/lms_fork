@@ -32,16 +32,18 @@ class DashboardController extends Controller
                 ->where('time', '>=', now()->format('H:i'))
                 ->first();
         } else {
-            $fio = Auth::user()->userData->last_name;
+            if(Auth::user()->id != 2190) {
+                $fio = Auth::user()->userData->last_name;
 
-            $this->scheduleEventCount = Schedule::where('teacher', 'like', '%' . $fio . '%')
-                ->where('date', '>=', now()->format('Y-m-d'))
-                ->count();
-
-            $this->schedulesEvents = Schedule::where('teacher', 'like', '%' . $fio . '%')
-                ->where('date', '>=', now()->format('Y-m-d'))
-                ->where('time', '>=', now()->format('H:i'))
-                ->first();
+                $this->scheduleEventCount = Schedule::where('teacher', 'like', '%' . $fio . '%')
+                    ->where('date', '>=', now()->format('Y-m-d'))
+                    ->count();
+    
+                $this->schedulesEvents = Schedule::where('teacher', 'like', '%' . $fio . '%')
+                    ->where('date', '>=', now()->format('Y-m-d'))
+                    ->where('time', '>=', now()->format('H:i'))
+                    ->first();
+            }
         }
 
         $eventCount = $this->scheduleEventCount;
