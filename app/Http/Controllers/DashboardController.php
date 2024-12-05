@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GroupStudent;
+use App\Models\Schedule;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -19,9 +20,26 @@ class DashboardController extends Controller
                 ->first();
 
             $this->additionalInfoAboutUser = $groupStudent->group_name;
-        } else {
         }
 
-        return view('dashboard', ['additionalInfoAboutUser' => $this->additionalInfoAboutUser]);
+        $fio = Auth::user()->userData->last_name;
+
+        $scheduleEventCount = Schedule::where('teacher', 'like', '%' . $fio . '%')
+            ->where('date', '>=', now()->format('Y-m-d'))
+            ->count();
+
+        $schedulesEvents = Schedule::where('teacher', 'like', '%' . $fio . '%')
+            ->where('date', '>=', now()->format('Y-m-d'))
+            ->where('time', '>=', now()->format('H:i'))
+            ->first();
+
+        $eventCount = $scheduleEventCount;
+        $event = 'Занятие по дис.: ' . $schedulesEvents->discipline . ' время: ' . $schedulesEvents->time;
+
+        return view('dashboard', [
+            'additionalInfoAboutUser' => $this->additionalInfoAboutUser,
+            'eventCount' => $eventCount,
+            'event' => $event
+        ]);
     }
 }
