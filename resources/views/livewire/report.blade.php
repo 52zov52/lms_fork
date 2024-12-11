@@ -28,6 +28,7 @@
         <li><a wire:click="generateContingentReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента в разрезе уровней и форм обучения</a></li>
         <li><a wire:click="generateContingentByAgeAndGenderReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней и форм обучения</a></li>
         <li><a wire:click="generateContingentByAgeAndGenderWithoutTeachingFromReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней обучения</a></li>
+        <li><a wire:click="downloadListOfForeignStudents" href="#" class="text-blue-500 hover:underline">Отчет по иностранным обучающимся в разрезе страны, ФИО, группу, курса, формы обучения</a></li>
     </ul>
     @endcan
     @can('access-to-spt')

@@ -55,7 +55,31 @@ class ContingentController extends Controller
             ->where('student_ticket_numbers.ticket_number', '=', $ticketNumber)
             ->get();
     }
-    
+
+    public function getForeignStudents(): object
+    {
+        return GroupStudent::join('users_data', 'group_student.user_id', '=', 'users_data.user_id')
+            ->join('countries', 'users_data.citizenship', '=', 'countries.id')
+            ->join('groups', 'group_student.group_id', '=', 'groups.id')
+            ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
+            ->join('teaching_forms', 'work_study_plans.teaching_form_id', '=', 'teaching_forms.id')
+            ->join('specialities', 'work_study_plans.speciality_id', '=', 'specialities.id')
+            ->whereIn('group_student.group_id', $this->getGroupIds())
+            ->whereNotIn('countries.id', [4, 155])
+            ->select(
+                'users_data.id',
+                'countries.country_name',
+                DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
+                DB::raw("(SELECT ticket_number FROM student_ticket_numbers WHERE user_id = group_student.user_id ORDER BY id DESC LIMIT 1) as ticket_number"),
+                'groups.group_name',
+                'groups.course',
+                'teaching_forms.teaching_form_name',
+                DB::raw("CONCAT(specialities.specialty_code, ' ', specialities.speciality_name) as sp"),
+            )
+            ->orderBy('groups.course')
+            ->get();
+    }
+
     private function extractGroupIds($listGroupId): array
     {
         return array_map(function ($item) {

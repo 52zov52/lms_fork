@@ -2,7 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Http\Controllers\Report\ContingentReportController;
 use App\Http\Controllers\ScheduleController;
+use Illuminate\Support\Facades\Response;
 use Livewire\Component;
 
 class Report extends Component
@@ -126,6 +128,14 @@ class Report extends Component
     public function generateContingentByAgeAndGenderWithoutTeachingFromReport()
     {
         return redirect()->route('generate.contingent.by.age.and.gender.without.teaching.from.report');
+    }
+
+    public function downloadListOfForeignStudents()
+    {
+        $contingentReportController = new ContingentReportController();
+        $data = $contingentReportController->downloadListOfForeignStudents();
+
+        return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }
 
     /**
