@@ -15,11 +15,16 @@ class StudentDocumentOrderIssuance extends Model
         'last_name',
         'first_name',
         'middle_name',
+        'last_name_genitive',
+        'first_name_genitive',
+        'middle_name_genitive',
         'last_name_dative',
         'first_name_dative',
         'middle_name_dative',
+        'birthday',
         'sex',
         'course',
+        'level_education_name',
         'teaching_form_name',
         'speciality_name',
         'specialty_code',
@@ -30,6 +35,8 @@ class StudentDocumentOrderIssuance extends Model
         'check_in_duration',
         'employment_place',
         'is_budget',
-        'confirmiter_id'
+        'confirmiter_id',
+        'signer_position',
+        'signer_fio'
     ];
 }

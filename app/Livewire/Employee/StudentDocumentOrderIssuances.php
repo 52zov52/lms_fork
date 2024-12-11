@@ -23,11 +23,18 @@ class StudentDocumentOrderIssuances extends Component
 
     public int $selectedDocumentType = 0;
     public int $selectedStatus = 0;
+    public string $signer = '';
+
+    public $listOfSigners = [
+        'Проректор по УиНР' => 'Е.В. Шпилевская',
+        'Академический директор' => 'ФИО',
+    ];
 
     public $listOfDocumentTypes = [
         1 => 'Справка о статусе студента',
         2 => 'Справка о статусе студента (для транспортных карт) - только для студентов колледжа',
-        3 => 'Справка-вызов только для студентов очно-заочной и заочной форм обучения'
+        3 => 'Справка-вызов только для студентов очно-заочной и заочной форм обучения',
+        4 => 'Характеристика'
     ];
 
     public $listOfStatuses = [
@@ -41,11 +48,16 @@ class StudentDocumentOrderIssuances extends Component
         $lastName = '',
         $firstName = '',
         $middleName = '',
+        $lastNameGenitive = '',
+        $firstNameGenitive = '',
+        $middleNameGenitive = '',
         $lastNameDative = '',
         $firstNameDative = '',
         $middleNameDative = '',
+        $birthday = '',
         $sex = '',
         $course = 0,
+        $levelEducationName = '',
         $teachingFormName = '',
         $specialityName = '',
         $specialtyCode = '',
@@ -109,6 +121,9 @@ class StudentDocumentOrderIssuances extends Component
 
     public function edit($studentDocumentOrderRequestId, $requesterId, $documentType)
     {
+        $this->resetErrorBag();
+        $this->resetValidation();
+
         try {
             $this->studentDocumentOrderRequestId = $studentDocumentOrderRequestId;
             $this->documentType = $documentType;
@@ -118,9 +133,13 @@ class StudentDocumentOrderIssuances extends Component
                     'last_name',
                     'first_name',
                     'middle_name',
+                    'last_name_genitive',
+                    'first_name_genitive',
+                    'middle_name_genitive',
                     'last_name_dative',
                     'first_name_dative',
                     'middle_name_dative',
+                    'birthday',
                     'sex'
                 )
                 ->first();
@@ -129,6 +148,7 @@ class StudentDocumentOrderIssuances extends Component
                 ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
                 ->join('teaching_forms', 'work_study_plans.teaching_form_id', '=', 'teaching_forms.id')
                 ->join('specialities',  'work_study_plans.speciality_id', '=', 'specialities.id')
+                ->join('level_educations',  'specialities.level_education_id', '=', 'level_educations.id')
                 ->where('group_student.user_id', '=', $requesterId)
                 ->select(
                     'groups.group_name',
@@ -138,7 +158,7 @@ class StudentDocumentOrderIssuances extends Component
                     'teaching_forms.teaching_form_name',
                     'specialities.specialty_code',
                     'specialities.speciality_name',
-                    'specialities.level_education_id'
+                    'level_educations.level_name'
                 )
                 ->orderBy('group_student.id', 'desc')
                 ->first();
@@ -171,11 +191,16 @@ class StudentDocumentOrderIssuances extends Component
             $this->lastName = $userData->last_name;
             $this->firstName = $userData->first_name;
             $this->middleName = $userData->middle_name;
+            $this->lastNameGenitive = $userData->last_name_genitive;
+            $this->firstNameGenitive = $userData->first_name_genitive;
+            $this->middleNameGenitive = $userData->middle_name_genitive;
             $this->lastNameDative = $userData->last_name_dative;
             $this->firstNameDative = $userData->first_name_dative;
             $this->middleNameDative = $userData->middle_name_dative;
+            $this->birthday = Carbon::parse($userData->birthday)->format('Y-m-d');
             $this->sex = ($userData->sex) ? 'жен.' : 'муж.';
             $this->course = $groupStudent->course;
+            $this->levelEducationName = $groupStudent->level_name;
             $this->teachingFormName = $groupStudent->teaching_form_name;
             $this->specialtyCode = $groupStudent->specialty_code;
             $this->specialityName = $groupStudent->speciality_name;
@@ -217,15 +242,20 @@ class StudentDocumentOrderIssuances extends Component
                 'lastName' => 'required|string|max:50',
                 'firstName' => 'required|string|max:50',
                 'middleName' => 'required|string|max:50',
+                'lastNameGenitive' => 'required|string|max:50',
+                'firstNameGenitive' => 'required|string|max:50',
+                'middleNameGenitive' => 'required|string|max:50',
                 'lastNameDative' => 'required|string|max:50',
                 'firstNameDative' => 'required|string|max:50',
                 'middleNameDative' => 'required|string|max:50',
+                'birthday' => 'required',
                 'course' => 'required|numeric|min:1',
                 'teachingFormName' => 'required|string|max:255',
                 'specialityName' => 'required|string|max:255',
                 'specialtyCode' => 'required|string|max:255',
                 'order' => 'required|string|max:255',
                 'trainingPeriod' => 'required|string|max:255',
+                'signer' => 'required'
             ]);
         } else {
             $this->validate([
@@ -233,9 +263,13 @@ class StudentDocumentOrderIssuances extends Component
                 'lastName' => 'required|string|max:50',
                 'firstName' => 'required|string|max:50',
                 'middleName' => 'required|string|max:50',
+                'lastNameGenitive' => 'required|string|max:50',
+                'firstNameGenitive' => 'required|string|max:50',
+                'middleNameGenitive' => 'required|string|max:50',
                 'lastNameDative' => 'required|string|max:50',
                 'firstNameDative' => 'required|string|max:50',
                 'middleNameDative' => 'required|string|max:50',
+                'birthday' => 'required',
                 'course' => 'required|numeric|min:1',
                 'teachingFormName' => 'required|string|max:255',
                 'specialityName' => 'required|string|max:255',
@@ -245,7 +279,8 @@ class StudentDocumentOrderIssuances extends Component
                 'checkInDate' => 'required',
                 'checkOutDate' => 'required',
                 'checkInDuration' => 'required|numeric|min:1',
-                'employmentPlace' => 'required|string|max:1000'
+                'employmentPlace' => 'required|string|max:1000',
+                'signer' => 'required'
             ]);
         }
 
@@ -254,11 +289,16 @@ class StudentDocumentOrderIssuances extends Component
         $studentDocumentOrderIssuance->last_name = $this->lastName;
         $studentDocumentOrderIssuance->first_name = $this->firstName;
         $studentDocumentOrderIssuance->middle_name = $this->middleName;
+        $studentDocumentOrderIssuance->last_name_genitive = $this->lastNameGenitive;
+        $studentDocumentOrderIssuance->first_name_genitive = $this->firstNameGenitive;
+        $studentDocumentOrderIssuance->middle_name_genitive = $this->middleNameGenitive;
         $studentDocumentOrderIssuance->last_name_dative = $this->lastNameDative;
         $studentDocumentOrderIssuance->first_name_dative = $this->firstNameDative;
         $studentDocumentOrderIssuance->middle_name_dative = $this->middleNameDative;
+        $studentDocumentOrderIssuance->birthday = Carbon::parse($this->birthday)->format('Y-m-d');
         $studentDocumentOrderIssuance->sex = ($this->sex == 'муж.') ? 0 : 1;
         $studentDocumentOrderIssuance->course = $this->course;
+        $studentDocumentOrderIssuance->level_education_name = $this->levelEducationName;
         $studentDocumentOrderIssuance->teaching_form_name = $this->teachingFormName;
         $studentDocumentOrderIssuance->speciality_name = $this->specialityName;
         $studentDocumentOrderIssuance->specialty_code = $this->specialtyCode;
@@ -274,6 +314,11 @@ class StudentDocumentOrderIssuances extends Component
 
         $studentDocumentOrderIssuance->is_budget = $this->isBudget;
         $studentDocumentOrderIssuance->confirmiter_id = Auth::user()->id;
+
+        $signerData = explode('|', $this->signer);
+        $studentDocumentOrderIssuance->signer_position = $signerData[0];
+        $studentDocumentOrderIssuance->signer_fio = $signerData[1];
+
         $studentDocumentOrderIssuance->update();
 
         $studentDocumentOrderRequest = StudentDocumentOrderRequest::findOrFail($this->studentDocumentOrderRequestId);

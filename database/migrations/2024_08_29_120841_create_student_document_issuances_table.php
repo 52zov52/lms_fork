@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\StudentDocumentOrderRequest;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -25,11 +24,16 @@ return new class extends Migration
             $table->string('last_name', 50)->nullable();
             $table->string('first_name', 50)->nullable();
             $table->string('middle_name', 50)->nullable();
+            $table->string('last_name_genitive', 50)->nullable();
+            $table->string('first_name_genitive', 50)->nullable();
+            $table->string('middle_name_genitive', 50)->nullable();
             $table->string('last_name_dative', 50)->nullable();
             $table->string('first_name_dative', 50)->nullable();
             $table->string('middle_name_dative', 50)->nullable();
+            $table->date('birthday')->nullable();
             $table->integer('sex')->nullable();
             $table->integer('course')->nullable();
+            $table->string('level_education_name', 50)->nullable();
             $table->string('teaching_form_name', 50)->nullable();
             $table->string('speciality_name', 100)->nullable();
             $table->string('specialty_code', 50)->nullable();
@@ -43,6 +47,9 @@ return new class extends Migration
 
             $table->unsignedBigInteger('confirmiter_id')->nullable();
             $table->foreign('confirmiter_id')->references('id')->on('users')->onDelete('cascade');
+
+            $table->string('signer_position')->nullable();
+            $table->string('signer_fio')->nullable();
 
             $table->timestamps();
         });

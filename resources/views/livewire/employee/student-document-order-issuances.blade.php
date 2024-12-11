@@ -53,8 +53,10 @@
                                 {{ __('Справка о статусе студента') }}
                                 @elseif($value->document_type == 2)
                                 {{ __('Справка о статусе студента (для транспортных карт)') }}
-                                @else
+                                @elseif($value->document_type == 3)
                                 {{ __('Справка-вызов') }}
+                                @else
+                                {{ __('Характеристика') }}
                                 @endif
                             </td>
                             <td class="w-16 px-2 py-2 text-center">
@@ -71,9 +73,11 @@
                             <td class="w-40 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->created_at)->format('d.m.Y') }}</td>
                             <td class="w-28 px-2 py-2 text-center">
                                 <div class="flex flex-row items-center justify-center space-x-1">
+                                    @if(is_null($value->confirmiter_id))
                                     <button wire:click="edit({{ $value->student_document_order_request_id }}, {{ $value->requester_id }}, {{ $value->document_type }})" class="w-9 btn-check" data-tippy-content="Подтверждение заявки">
                                         <i class="fa-solid fa-check"></i>
                                     </button>
+                                    @else
                                     <button wire:click="downloadStudentDocument({{ $value->student_document_order_request_id }})" class="w-9 btn-download" data-tippy-content="Скачать заказанный документ" @if(is_null($value->confirmiter_id)) disabled @endif>
                                         <span wire:loading.remove wire:target="downloadStudentDocument({{ $value->student_document_order_request_id }})">
                                             <i class="fa-solid fa-download"></i>
@@ -82,6 +86,7 @@
                                             <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                                         </span>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -107,8 +112,10 @@
                         <span>{{ __('Справка о статусе студента') }}</span>
                         @elseif($value->document_type == 2)
                         <span>{{ __('Справка о статусе студента (для транспортных карт)') }}</span>
-                        @else
+                        @elseif($value->document_type == 3)
                         <span>{{ __('Справка-вызов') }}</span>
+                        @else
+                        <span>{{ __('Характеристика') }}</span>
                         @endif
                     </div>
                     <div class="flex flex-col">
@@ -136,9 +143,11 @@
                     <div class="flex flex-col">
                         <span class="font-semibold">Действия:</span>
                         <div class="flex flex-row space-x-2">
+                            @if(is_null($value->confirmiter_id))
                             <button wire:click="edit({{ $value->student_document_order_request_id }}, {{ $value->requester_id }}, {{ $value->document_type }})" class="w-auto grow btn-check" data-tippy-content="Подтверждение заявки">
                                 <i class="fa-solid fa-check"></i>
                             </button>
+                            @else
                             <button wire:click="downloadStudentDocument({{ $value->student_document_order_request_id }})" class="w-auto grow btn-download" data-tippy-content="Скачать заказанный документ" @if(is_null($value->confirmiter_id)) disabled @endif>
                                 <span wire:loading.remove wire:target="downloadStudentDocument({{ $value->student_document_order_request_id }})">
                                     <i class="fa-solid fa-download"></i>
@@ -147,12 +156,13 @@
                                     <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                                 </span>
                             </button>
+                            @endif
                         </div>
                     </div>
                 </div>
                 @endforeach
             </div>
-            
+
             <div class="mt-2">
                 {{ $studentDocumentOrderIssuances->links() }}
             </div>
@@ -170,7 +180,7 @@
     </div>
 
     <!-- Modal dialog to confirm student document order -->
-    <x-dialog-modal wire:model="isShowModalDialog">
+    <x-dialog-modal wire:model="isShowModalDialog" maxWidth="4xl">
         <form>
             @csrf
             <x-slot name="title">
@@ -203,6 +213,23 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                         <div class="flex flex-col">
+                            <label for="last-name-genitive" class="font-semibold">Фамилия (Р. п.)<span class="text-red-400">*</span></label>
+                            <input wire:model="lastNameGenitive" type="text" name="lastNameGenitive" id="last-name-genitive" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('lastNameGenitive') <span class="text-red-500">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="first-name-genitive" class="font-semibold">Имя (Р. п.)<span class="text-red-400">*</span></label>
+                            <input wire:model="firstNameGenitive" type="text" name="firstNameGenitive" id="first-name-genitive" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('firstNameGenitive') <span class="text-red-500">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="middle-name-genitive" class="font-semibold">Отчество (Р. п.)</label>
+                            <input wire:model="middleNameGenitive" type="text" name="middleNameGenitive" id="middle-name-genitive" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('middleNameGenitive') <span class="text-red-500">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div class="flex flex-col">
                             <label for="last-name-dative" class="font-semibold">Фамилия (Д. п.)<span class="text-red-400">*</span></label>
                             <input wire:model="lastNameDative" type="text" name="lastNameDative" id="last-name-dative" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             @error('lastNameDative') <span class="text-red-500">{{ $message }}</span> @enderror
@@ -218,7 +245,12 @@
                             @error('middleNameDative') <span class="text-red-500">{{ $message }}</span> @enderror
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                        <div class="flex flex-col">
+                            <label for="birthday" class="font-semibold">Дата рождения<span class="text-red-400">*</span></label>
+                            <input wire:model="birthday" type="date" name="birthday" id="birthday" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            @error('birthday') <span class="text-red-500">{{ $message }}</span> @enderror
+                        </div>
                         <div class="flex flex-col">
                             <label for="course" class="font-semibold">Курс<span class="text-red-400">*</span></label>
                             <input wire:model="course" type="text" name="course" id="course" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
@@ -287,6 +319,16 @@
                             <input wire:model="isBudget" type="checkbox" name="isBudget" id="is-budget" class="mr-1">
                             Обучается на бюджете
                         </label>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="signer" class="font-semibold">Выберите должность сотрудника, который будет подписывать документ<span class="text-red-500">*</span></label>
+                        <select wire:model="signer" name="signer" id="signer" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="">Выберите должность сотрудника</option>
+                            @foreach($listOfSigners as $key => $value)
+                            <option value="{{ $key }}|{{ $value }}">{{ $key }}</option>
+                            @endforeach
+                        </select>
+                        @error('signer') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
                     <span class="text-red-500">*Поля обязательные для заполнения</span>
                 </div>
