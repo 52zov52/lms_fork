@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Report;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Employee\ContingentController;
+use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -91,14 +92,19 @@ class ContingentReportController extends Controller
         $sheet->setCellValue('A' . $offset, '№ пп');
         $sheet->setCellValue('B' . $offset, 'Страна');
         $sheet->setCellValue('C' . $offset, 'ФИО');
-        $sheet->setCellValue('D' . $offset, '№ зачетки');
-        $sheet->setCellValue('E' . $offset, 'Группа');
-        $sheet->setCellValue('F' . $offset, 'Курс');
-        $sheet->setCellValue('G' . $offset, 'Форма обучения');
-        $sheet->setCellValue('H' . $offset, 'Направление подготовки');
+        $sheet->setCellValue('D' . $offset, 'Дата рождения');
+        $sheet->setCellValue('E' . $offset, 'Серия паспорта');
+        $sheet->setCellValue('F' . $offset, 'Номер паспорта');
+        $sheet->setCellValue('G' . $offset, 'Кем выдан паспорт');
+        $sheet->setCellValue('H' . $offset, 'Дата выдачи паспорта');
+        $sheet->setCellValue('I' . $offset, '№ зачетки');
+        $sheet->setCellValue('J' . $offset, 'Группа');
+        $sheet->setCellValue('K' . $offset, 'Курс');
+        $sheet->setCellValue('L' . $offset, 'Форма обучения');
+        $sheet->setCellValue('M' . $offset, 'Направление подготовки');
 
-        $sheet->getStyle('A' . $offset . ':H' . $offset)->getFont()->setBold(true);
-        $sheet->getStyle('A' . $offset . ':H' . $offset)
+        $sheet->getStyle('A' . $offset . ':M' . $offset)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $offset . ':M' . $offset)
             ->applyFromArray(array('alignment' => [
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
@@ -110,17 +116,22 @@ class ContingentReportController extends Controller
             $sheet->setCellValue('A' . $offset, $increment);
             $sheet->setCellValue('B' . $offset, $listOfForeignStudents[$i]->country_name);
             $sheet->setCellValue('C' . $offset, $listOfForeignStudents[$i]->fio);
-            $sheet->setCellValue('D' . $offset, $listOfForeignStudents[$i]->ticket_number);
-            $sheet->setCellValue('E' . $offset, $listOfForeignStudents[$i]->group_name);
-            $sheet->setCellValue('F' . $offset, $listOfForeignStudents[$i]->course);
-            $sheet->setCellValue('G' . $offset, $listOfForeignStudents[$i]->teaching_form_name);
-            $sheet->setCellValue('H' . $offset, $listOfForeignStudents[$i]->sp);
+            $sheet->setCellValue('D' . $offset, Carbon::parse($listOfForeignStudents[$i]->birthday)->format('d.m.Y'));
+            $sheet->setCellValue('E' . $offset, $listOfForeignStudents[$i]->passport_series);
+            $sheet->setCellValue('F' . $offset, $listOfForeignStudents[$i]->passport_number);
+            $sheet->setCellValue('G' . $offset, $listOfForeignStudents[$i]->passport_issuing_authority);
+            $sheet->setCellValue('H' . $offset, Carbon::parse($listOfForeignStudents[$i]->passport_issue_date)->format('d.m.Y'));
+            $sheet->setCellValue('I' . $offset, $listOfForeignStudents[$i]->ticket_number);
+            $sheet->setCellValue('J' . $offset, $listOfForeignStudents[$i]->group_name);
+            $sheet->setCellValue('K' . $offset, $listOfForeignStudents[$i]->course);
+            $sheet->setCellValue('L' . $offset, $listOfForeignStudents[$i]->teaching_form_name);
+            $sheet->setCellValue('M' . $offset, $listOfForeignStudents[$i]->sp);
 
             $offset++;
             $increment++;
         }
 
-        $sheet->getStyle('A1:H' . $offset)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('A1:M' . $offset)->getAlignment()->setWrapText(true);
 
         //Выравнивание текста по центру в первом столбце
         $sheet->getStyle('A1:A' . ($offset - 1))
@@ -129,32 +140,20 @@ class ContingentReportController extends Controller
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
             ]));
 
-        $sheet->getStyle('D1:D' . ($offset - 1))
+        $sheet->getStyle('D1:F' . ($offset - 1))
             ->applyFromArray(array('alignment' => [
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
             ]));
 
-        $sheet->getStyle('E1:E' . ($offset - 1))
-            ->applyFromArray(array('alignment' => [
-                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
-            ]));
-
-        $sheet->getStyle('F1:F' . ($offset - 1))
-            ->applyFromArray(array('alignment' => [
-                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
-            ]));
-
-        $sheet->getStyle('G1:G' . ($offset - 1))
+        $sheet->getStyle('H1:L' . ($offset - 1))
             ->applyFromArray(array('alignment' => [
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
             ]));
 
         //Стиль для рамки
-        $sheet->getStyle('A1:H' . ($offset - 1))
+        $sheet->getStyle('A1:M' . ($offset - 1))
             ->getBorders()
             ->getAllBorders()
             ->applyFromArray(array(
@@ -166,11 +165,16 @@ class ContingentReportController extends Controller
         $sheet->getColumnDimension('A')->setWidth(10);
         $sheet->getColumnDimension('B')->setWidth(35);
         $sheet->getColumnDimension('C')->setWidth(35);
-        $sheet->getColumnDimension('D')->setWidth(15);
-        $sheet->getColumnDimension('E')->setWidth(15);
-        $sheet->getColumnDimension('F')->setWidth(15);
-        $sheet->getColumnDimension('G')->setWidth(15);
-        $sheet->getColumnDimension('H')->setWidth(35);
+        $sheet->getColumnDimension('D')->setWidth(10);
+        $sheet->getColumnDimension('E')->setWidth(10);
+        $sheet->getColumnDimension('F')->setWidth(10);
+        $sheet->getColumnDimension('G')->setWidth(35);
+        $sheet->getColumnDimension('H')->setWidth(10);
+        $sheet->getColumnDimension('I')->setWidth(10);
+        $sheet->getColumnDimension('J')->setWidth(15);
+        $sheet->getColumnDimension('K')->setWidth(10);
+        $sheet->getColumnDimension('L')->setWidth(15);
+        $sheet->getColumnDimension('M')->setWidth(35);
 
         $writer = new Xlsx($spreadsheet);
 
