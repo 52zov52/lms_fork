@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\StudentExamRetakeProtocol;
 use App\Models\StudentGrades;
 use App\Models\StudentRetakeBulletin;
 use Illuminate\Console\Command;
@@ -31,6 +32,7 @@ class SyncStudentGrades extends Command
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
+        /*
         StudentGrades::truncate();
 
         $filePath = Storage::disk('public')->path('student_grades/student_grades_data.txt');
@@ -103,8 +105,33 @@ class SyncStudentGrades extends Command
 
         fclose($file);
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
-
         $this->info('Successfully sync student retake bulletin.');
+*/
+        StudentExamRetakeProtocol::truncate();
+
+        $filePath = Storage::disk('public')->path('student_grades/student_exam_retake_protocols_data.txt');
+        $file = fopen($filePath, 'r');
+
+        while (!feof($file)) {
+            $line = fgets($file);
+            if (trim($line) === '') {
+                continue;
+            }
+
+            $values = explode('|', $line);
+            StudentExamRetakeProtocol::create([
+                'user_id' => $values[0],
+                'work_study_plan_course_control_types_in_semesters_id' => $values[1],
+                'grade' => ($values[2] == "None" ? null : $values[2]),
+                'type_protocol' => $values[3],
+                'external_id' => $values[4],
+                'created_at' => $values[5],
+                'updated_at' => trim($values[6]),
+            ]);
+        }
+
+        fclose($file);
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 }
