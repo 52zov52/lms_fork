@@ -32,7 +32,6 @@ class SyncStudentGrades extends Command
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
-        /*
         StudentGrades::truncate();
 
         $filePath = Storage::disk('public')->path('student_grades/student_grades_data.txt');
@@ -106,7 +105,7 @@ class SyncStudentGrades extends Command
         fclose($file);
 
         $this->info('Successfully sync student retake bulletin.');
-*/
+
         StudentExamRetakeProtocol::truncate();
 
         $filePath = Storage::disk('public')->path('student_grades/student_exam_retake_protocols_data.txt');
@@ -131,6 +130,8 @@ class SyncStudentGrades extends Command
         }
 
         fclose($file);
+
+        $this->info('Successfully sync student exam retake protocols.');
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }

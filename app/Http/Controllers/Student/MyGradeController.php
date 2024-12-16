@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\GroupStudent;
+use App\Models\StudentExamRetakeProtocol;
 use App\Models\StudentGrades;
 use Illuminate\Support\Facades\DB;
 
@@ -32,17 +33,44 @@ class MyGradeController extends Controller
             ->where('student_grades.user_id', '=', $userId)
             ->where('work_study_plans.id', '=', $groupStudent->work_study_plan_id)
             ->select(
-                'student_grades.id',
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
                 'disciplines.name as discipline_name',
                 'work_study_plan_courses_in_semesters.semester_number',
                 'control_types.name as control_name',
-                DB::raw("CASE WHEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1) IS NOT NULL THEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1) ELSE student_grades.grade END as grade")
+                DB::raw("CASE WHEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1) IS NOT NULL 
+                    THEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1) 
+                    WHEN (SELECT grade FROM student_exam_retake_protocols WHERE student_exam_retake_protocols.user_id = student_grades.user_id 
+                            AND student_exam_retake_protocols.work_study_plan_course_control_types_in_semesters_id = bulletins.work_study_plan_course_control_types_in_semesters_id ORDER BY id DESC LIMIT 1) IS NOT NULL
+                    THEN (SELECT grade FROM student_exam_retake_protocols WHERE student_exam_retake_protocols.user_id = student_grades.user_id 
+                            AND student_exam_retake_protocols.work_study_plan_course_control_types_in_semesters_id = bulletins.work_study_plan_course_control_types_in_semesters_id ORDER BY id DESC LIMIT 1)
+                    ELSE student_grades.grade END as grade")
             )
             ->orderBy('work_study_plan_courses_in_semesters.semester_number')
             ->get()->toArray();
 
-        return $this->getStudentGradesBySemester($studentGrades);
+        $studentExamRetakeProtocol = StudentExamRetakeProtocol::join('users_data', 'student_exam_retake_protocols.user_id', '=', 'users_data.user_id')
+            ->join('work_study_plan_course_control_types_in_semesters', 'student_exam_retake_protocols.work_study_plan_course_control_types_in_semesters_id', '=', 'work_study_plan_course_control_types_in_semesters.id')
+            ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
+            ->join('work_study_plan_courses_in_semesters', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
+            ->join('work_study_plans', 'work_study_plan_courses.work_study_plan_id', '=', 'work_study_plans.id')
+            ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
+            ->where('student_exam_retake_protocols.user_id', '=', $userId)
+            ->where('work_study_plans.id', '=', $groupStudent->work_study_plan_id)
+            ->select(
+                DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
+                'disciplines.name as discipline_name',
+                'work_study_plan_courses_in_semesters.semester_number',
+                'control_types.name as control_name',
+                'student_exam_retake_protocols.grade'
+            )
+            ->orderBy('work_study_plan_courses_in_semesters.semester_number')
+            ->get()->toArray();
+
+        $mergedArray = array_merge($studentGrades, $studentExamRetakeProtocol);
+        $uniqueArray = array_map("unserialize", array_unique(array_map("serialize", $mergedArray)));
+
+        return $this->getStudentGradesBySemester($uniqueArray);
     }
 
     private function getStudentGradesBySemester($studentGrades): array
