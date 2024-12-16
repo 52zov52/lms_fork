@@ -4,6 +4,7 @@ namespace App\Livewire\Teacher;
 
 use App\Http\Controllers\AcademicYearController;
 use App\Models\ConsultationSchedule as ModelsConsultationSchedule;
+use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -185,8 +186,8 @@ class ConsultationSchedule extends Component
 
         $conflict = $this->checkConsultationScheduleConflict(Carbon::parse($this->consultationDate)->format('Y-m-d'), $this->consultationTime, $this->room, $this->academicYear, $this->halfYear);
 
-        if (count($conflict) != 0) {
-            $this->dispatch('show-toast', message: 'На указанные вами дату, время и аудиторию уже назначена консультация. Пожалуйста, укажите другие значения.', type: 'error');
+        if (!$conflict) {
+            $this->dispatch('show-toast', message: 'На указанные вами дату, время и аудиторию уже назначена консультация или есть занятие по расписанию. Пожалуйста, укажите другие значения.', type: 'error');
         } else {
             $this->groups = $this->decodeJsonToArray($this->groups);
 
@@ -220,8 +221,8 @@ class ConsultationSchedule extends Component
 
         $conflict = $this->checkConsultationScheduleConflict(Carbon::parse($this->consultationDate)->format('Y-m-d'), $this->consultationTime, $this->room, $this->academicYear, $this->halfYear);
 
-        if (count($conflict) != 0) {
-            $this->dispatch('show-toast', message: 'На указанные вами дату, время и аудиторию уже назначена консультация. Пожалуйста, укажите другие значения.', type: 'error');
+        if (!$conflict) {
+            $this->dispatch('show-toast', message: 'На указанные вами дату, время и аудиторию уже назначена консультация или есть занятие по расписанию. Пожалуйста, укажите другие значения.', type: 'error');
         } else {
             $this->groups = $this->decodeJsonToArray($this->groups);
 
@@ -255,14 +256,21 @@ class ConsultationSchedule extends Component
         }, $json);
     }
 
-    private function checkConsultationScheduleConflict($consultationDate, $consultationTime, $room, $academicYear, $halfYear)
+    private function checkConsultationScheduleConflict($consultationDate, $consultationTime, $room, $academicYear, $halfYear): bool
     {
-        return ModelsConsultationSchedule::where('consultation_date', '=', Carbon::parse($consultationDate)->format('Y-m-d'))
+        $consultationSchedule = ModelsConsultationSchedule::where('consultation_date', '=', Carbon::parse($consultationDate)->format('Y-m-d'))
             ->where('consultation_time', '=', $consultationTime)
             ->where('room', '=', $room)
             ->where('academic_year', '=', $academicYear)
             ->where('half_year', '=', $halfYear)
             ->get();
+
+        $schedule = Schedule::where('date', '=', Carbon::parse($consultationDate)->format('Y-m-d'))
+            ->where('time', '=', $consultationTime)
+            ->where('lesson_place', 'like', '%' . $room . '%')
+            ->get();
+
+        return (count($consultationSchedule) == 0 && count($schedule) == 0) ? true : false;
     }
 
     private function resetFields()
