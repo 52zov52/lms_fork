@@ -14,13 +14,24 @@ class StudentDocumentOrderReportController extends Controller
 {
     public function downloadStudentDocument($studentDocumentOrderRequestId)
     {
-        $spo = '';
+        $edu_level = '';
 
         $studentDocumentOrderRequest = StudentDocumentOrderRequest::where('id', '=', $studentDocumentOrderRequestId)->first();
         $studentDocumentOrderIssuance = StudentDocumentOrderIssuance::where('student_document_order_request_id', '=', $studentDocumentOrderRequestId)->first();
 
-        if ($studentDocumentOrderIssuance->level_education_name == 'Среднее профессиональное') {
-            $spo = 'Колледжа рационального обучения ЧОУ ВО ЮУ (ИУБиП)';
+        switch ($studentDocumentOrderIssuance->level_education_name) {
+            case 'Среднее профессиональное':
+                $edu_level = 'колледжа рационального обучения';
+                break;
+            case 'Бакалавриат':
+                $edu_level = 'бакалавриата';
+                break;
+            case 'Магистратура':
+                $edu_level = 'магистратуры';
+                break;
+            default:
+                $edu_level = '';
+                break;
         }
 
         $confirmiter = UserData::select('last_name', 'first_name', 'middle_name')
@@ -56,7 +67,7 @@ class StudentDocumentOrderReportController extends Controller
             $templateProcessor->setValue('first_name_genitive', $studentDocumentOrderIssuance->first_name_genitive);
             $templateProcessor->setValue('middle_name_genitive', $studentDocumentOrderIssuance->middle_name_genitive);
             $templateProcessor->setValue('birthday', Carbon::parse($studentDocumentOrderIssuance->birthday)->format('d.m.Y'));
-            $templateProcessor->setValue('spo', $spo);
+            $templateProcessor->setValue('edu_level', $edu_level);
             $templateProcessor->setValue('sp', $studentDocumentOrderIssuance->specialty_code . ' - ' . $studentDocumentOrderIssuance->speciality_name);
             $templateProcessor->setValue('orders', $studentDocumentOrderIssuance->orders);
             $templateProcessor->setValue('training_period',  $studentDocumentOrderIssuance->training_period);
@@ -70,7 +81,8 @@ class StudentDocumentOrderReportController extends Controller
 
         //Справка об обучении
         if ($studentDocumentOrderRequest->document_type == 1 || $studentDocumentOrderRequest->document_type == 2) {
-            $templateProcessor->setValue('spo', $spo);
+            $templateProcessor->setValue('birthday', Carbon::parse($studentDocumentOrderIssuance->birthday)->format('d.m.Y'));
+            $templateProcessor->setValue('edu_level', $edu_level);
             $templateProcessor->setValue('sex', ($studentDocumentOrderIssuance->sex) ? 'она' : 'он');
             $templateProcessor->setValue('sp', $studentDocumentOrderIssuance->specialty_code . ' - ' . $studentDocumentOrderIssuance->speciality_name);
             $templateProcessor->setValue('orders', $studentDocumentOrderIssuance->orders);
