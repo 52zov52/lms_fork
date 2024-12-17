@@ -19,6 +19,9 @@ class RectorateDecision extends Component
 
     public $isEdit = false;
 
+    public $selectedYear = 0;
+    public $selectedMonth = 0;
+    public $selectedDueDate = 0;
     public $selectedPosition = 0;
 
     //Переменные модели
@@ -33,6 +36,10 @@ class RectorateDecision extends Component
     public $operatingActivityId = 0;
     public $executorId = 0;
     public $userId = 0;
+
+    public $listOfYears = [];
+    public $listOfMonths = [];
+    public $listOfDueDates = [];
 
     public $listOfPositions = [
         'Проректор по учебной и научной работе',
@@ -99,9 +106,49 @@ class RectorateDecision extends Component
         'Директор колледжа туризма и гостеприимства'
     ];
 
+    public function mount()
+    {
+        //Установка начальных значений
+        $this->selectedYear = Carbon::now()->format('Y');
+        $this->selectedMonth = Carbon::now()->format('m.Y');
+    }
+
     public function render()
     {
-        $rectorateDecisions = RectorateAndCouncilDecision::select(
+        //Получение списков
+        $this->listOfYears = RectorateAndCouncilDecision::where('category', '=', 1)
+            ->select(DB::raw("DATE_FORMAT(due_date, '%Y') as year"))
+            ->distinct()
+            ->get();
+
+        $this->listOfMonths = RectorateAndCouncilDecision::where('category', '=', 1)
+            ->where('due_date', 'like', $this->selectedYear . '%')
+            ->select(DB::raw("DATE_FORMAT(due_date, '%m.%Y') as month"))
+            ->orderBy('month', 'ASC')
+            ->distinct()
+            ->get();
+
+        $this->listOfDueDates = RectorateAndCouncilDecision::where('category', '=', 1)
+            ->where('due_date', 'like', $this->selectedYear . '%')
+            ->where('due_date', 'like', Carbon::createFromFormat('m.Y', $this->selectedMonth)->format('Y-m') . '%')
+            ->select(DB::raw("DATE_FORMAT(due_date, '%d.%m.%Y') as due_date"))
+            ->orderBy('due_date', 'ASC')
+            ->distinct()
+            ->get();
+
+        $rectorateDecisions = RectorateAndCouncilDecision::where('category', '=', 1);
+
+        //Фильтр по сроку исполнения
+        if ($this->selectedDueDate != 0) {
+            $rectorateDecisions = $rectorateDecisions->where('due_date', '=', Carbon::parse($this->selectedDueDate)->format('Y-m-d'));
+        }
+
+        //Фильтр по должности исполнителя
+        if ($this->selectedPosition != 0) {
+            $rectorateDecisions = $rectorateDecisions->where('position', '=', $this->selectedPosition);
+        }
+
+        $rectorateDecisions = $rectorateDecisions->select(
             'id',
             DB::raw("CONCAT(DATE_FORMAT(date_decision, '%d.%m.%Y'),' №',number_decision) AS date_and_number_decision"),
             'position',
@@ -111,18 +158,33 @@ class RectorateDecision extends Component
             'operating_activity_id',
             'executor_id'
         )
-        ->where('category', '=', 1);
-
-        //Фильтр по должности исполнителя
-        if ($this->selectedPosition != 0) {
-            $rectorateDecisions = $rectorateDecisions->where('position', '=', $this->selectedPosition);
-        }
-
-        $rectorateDecisions = $rectorateDecisions->paginate(50);
+            ->orderBy('due_date', 'DESC')
+            ->paginate(50);
 
         return view('livewire.employee.rectorate-decision', [
             'rectorateDecisions' => $rectorateDecisions
         ]);
+    }
+
+    public function setYear()
+    {
+        $this->selectedYear = $this->selectedYear;
+        $this->selectedMonth = 0;
+        $this->selectedDueDate = 0;
+        $this->resetPage();
+    }
+
+    public function setMonth()
+    {
+        $this->selectedMonth = $this->selectedMonth;
+        $this->selectedDueDate = 0;
+        $this->resetPage();
+    }
+
+    public function setDueDate()
+    {
+        $this->selectedDueDate = $this->selectedDueDate;
+        $this->resetPage();
     }
 
     public function setPosition()

@@ -1,6 +1,44 @@
 <div class="h-full">
     <div class="h-full flex flex-col space-y-2">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div class="flex flex-col space-y-1">
+                <label for="selected-year" class="text-xs">Год</label>
+                <select wire:model="selectedYear" wire:change="setYear" name="selectedYear" id="selected-year" class="w-full md:w-auto form-select">
+                    <option value="0">Выберите год из списка</option>
+                    @foreach($listOfYears as $value)
+                    <option value="{{ $value->year }}">{{ $value->year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex flex-col space-y-1">
+                <label for="selected-month" class="text-xs">
+                    Месяц
+                    <span wire:loading wire:target="setYear">
+                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                    </span>
+                </label>
+                <select wire:model="selectedMonth" wire:change="setMonth" name="selectedMonth" id="selected-month" class="w-full md:w-auto form-select">
+                    <option value="0">Выберите месяц из списка</option>
+                    @foreach($listOfMonths as $value)
+                    <option value="{{ $value->month }}">{{ $value->month }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex flex-col space-y-1">
+                <label for="selected-due-date" class="text-xs">
+                    Срок исполнения
+                    <span wire:loading wire:target="setMonth">
+                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                    </span>
+                </label>
+                <select wire:model="selectedDueDate" wire:change="setDueDate" name="selectedDueDate" id="selected-due-date" class="w-full md:w-auto form-select">
+                    <option value="0">Выберите срок исполнения из списка</option>
+                    @foreach($listOfDueDates as $value)
+                    <option value="{{ $value->due_date }}">{{ $value->due_date }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="flex flex-col space-y-1">
                 <label for="selected-position" class="text-xs">Должность исполнителя</label>
                 <select wire:model="selectedPosition" wire:change="setPosition" name="selectedPosition" id="selected-position" class="w-full md:w-auto form-select">
@@ -31,7 +69,7 @@
             @endcan
         </div>
 
-        <div wire:loading.remove wire:target="setPosition">
+        <div wire:loading.remove wire:target="setDueDate, setPosition">
             @if(!is_null($rectorateDecisions) && count($rectorateDecisions) != 0)
             <div class="hidden lg:block border rounded border-slate-400/20">
                 <table class="w-full text-xs lg:text-sm">
@@ -43,9 +81,9 @@
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Дата и номер решения</th>
                             <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Срок исполнения (до)</th>
                             <th scope="col" class="w-16 px-2 py-2 font-semibold">Статус</th>
-                            @if(!auth()->user()->can('rector'))
+                            @can('create-edit-delete-decisions-rectorate-and-council')
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Действия</th>
-                            @endif
+                            @endcan
                         </tr>
                     </thead>
                     <tbody>
@@ -65,32 +103,21 @@
                                 <span class="text-green-400 font-bold cursor-pointer">В</span>
                                 @endif
                             </td>
-                            @if(!auth()->user()->can('rector'))
+                            @can('create-edit-delete-decisions-rectorate-and-council')
                             <td class="w-32 text-center">
-                                <div class="flex flex-row flex-wrap items-center justify-center space-x-1">
-                                    @if($decision->status == 1 && (is_null($decision->operating_activity_id) && is_null($decision->executor_id)))
-                                    <button onclick="submitReport('{{ $decision->id }}')" class="w-9 btn-description" data-tippy-content="Предоставить отчет">
-                                        <i class="fa-solid fa-up-right-from-square"></i>
-                                    </button>
-                                    @can('create-edit-delete-decisions-rectorate-and-council')
-                                    <button wire:click="edit({{ $decision->id }})" class="w-9 btn-edit" data-tippy-content="Редактировать">
-                                        <span wire:loading.remove wire:target="edit({{ $decision->id }})">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </span>
-                                        <span wire:loading wire:target="edit({{ $decision->id }})">
-                                            <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-                                        </span>
-                                    </button>
-                                    <button onclick="confirmDestroy('{{ $decision->id }}')" class="w-9 btn-destroy" title="" data-tippy-content="Удалить">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                    @endcan
-                                    @else
-                                    -
-                                    @endif
-                                </div>
+                                <button wire:click="edit({{ $decision->id }})" class="w-9 btn-edit" data-tippy-content="Редактировать">
+                                    <span wire:loading.remove wire:target="edit({{ $decision->id }})">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </span>
+                                    <span wire:loading wire:target="edit({{ $decision->id }})">
+                                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                    </span>
+                                </button>
+                                <button onclick="confirmDestroy('{{ $decision->id }}')" class="w-9 btn-destroy" title="" data-tippy-content="Удалить">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
                             </td>
-                            @endif
+                            @endcan
                         </tr>
                         @endforeach
                     </tbody>
@@ -126,33 +153,24 @@
                         <span class="text-green-400 font-semibold">Выполнена</span>
                         @endif
                     </div>
-                    @if(!auth()->user()->can('rector'))
+                    @can('create-edit-delete-decisions-rectorate-and-council')
                     <div class="flex flex-col">
                         <span class="font-semibold">Действия:</span>
                         <div class="flex flex-row space-x-2">
-                            @if($decision->status == 1 && (is_null($decision->operating_activity_id) && is_null($decision->executor_id)))
-                            <button onclick="submitReport('{{ $decision->id }}')" class="w-auto grow btn-description" data-tippy-content="Предоставить отчет">
-                                <i class="fa-solid fa-up-right-from-square"></i>
-                            </button>
-                            @can('create-edit-delete-decisions-rectorate-and-council')
                             <button wire:click="edit({{ $decision->id }})" class="w-auto grow btn-edit" data-tippy-content="Редактировать">
-                                <span wire:loading.remove wire:target="edit({{ $decision->id }})">
-                                    <i class="fa-solid fa-pen"></i>
-                                </span>
-                                <span wire:loading wire:target="edit({{ $decision->id }})">
-                                    <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-                                </span>
+                            <span wire:loading.remove wire:target="edit({{ $decision->id }})">
+                                <i class="fa-solid fa-pen"></i>
+                            </span>
+                            <span wire:loading wire:target="edit({{ $decision->id }})">
+                                <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                            </span>
                             </button>
                             <button onclick="confirmDestroy('{{ $decision->id }}')" class="w-auto grow btn-destroy" title="" data-tippy-content="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
-                            @endcan
-                            @else
-                            -
-                            @endif
                         </div>
                     </div>
-                    @endif
+                    @endcan
                 </div>
                 @endforeach
             </div>
@@ -165,7 +183,7 @@
             @endif
         </div>
         <!-- Preloader -->
-        <div class="h-full" wire:loading wire:target="setPosition">
+        <div class="h-full" wire:loading wire:target="setDueDate, setPosition">
             <div class="h-full flex space-x-2 items-center justify-center text-sm md:text-lg">
                 <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                 <span>Пожалуйста, подождите, идет загрузка данных.</span>
