@@ -37,6 +37,12 @@
         <li><a wire:click="generateSptReport" href="#" class="text-blue-500 hover:underline">Список студентов с указанием статусов подтверждения согласия на СПТ</a></li>
     </ul>
     @endcan
+    @can('access-to-e-journal')
+    <h2 class="mt-2 font-semibold">Электронный журнал:</h2>
+    <ul class="list-disc px-4">
+        <li><a wire:click="showEJournalModal" href="#" class="text-blue-500 hover:underline">Электронный журнал</a></li>
+    </ul>
+    @endcan
 
     <!-- Modal dialog schedule by teacher -->
     <x-dialog-modal wire:model="isTeacherModalVisible">
@@ -122,6 +128,52 @@
                     {{ __('Закрыть') }}
                 </button>
                 <button wire:click.prevent="generateLoadRoomsReport" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                    {{ __('Сформировать отчет') }}
+                </button>
+            </x-slot>
+        </form>
+    </x-dialog-modal>
+
+    <!-- Modal dialog e-journal -->
+    <x-dialog-modal wire:model="isEJournalModalVisible">
+        <form>
+            @csrf
+            <x-slot name="title">
+                Форма выбора критериев отчета
+            </x-slot>
+
+            <x-slot name="content">
+                <div class="w-full flex flex-col space-y-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <select wire:model="selectedAcademicYear" wire:change="setAcademicYear" class="w-full border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="0">Выберите учебный год из списка</option>
+                            @foreach($listOfAcademicYear as $academicYear)
+                            <option value="{{ $academicYear->academic_year }}">{{ $academicYear->academic_year }}</option>
+                            @endforeach
+                        </select>
+                        <select wire:model="selectedHalfYear" wire:change="setHalfYear" class="w-full border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="0">Выберите полугодие из списка</option>
+                            @foreach($listOfHalfYear as $halfYear )
+                            <option value="{{ $halfYear }}">{{ $halfYear }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @if(count($listOfDiscipline) != 0)
+                    <select wire:model="selectedDiscipline" wire:change="setDiscipline" class="w-full border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <option value="0">Выберите дисциплину из списка</option>
+                        @foreach($listOfDiscipline as $discipline)
+                        <option value="{{ $discipline->name }}">{{ $discipline->work_study_plan_courses_in_semester_id }}{{ $discipline->name }}</option>
+                        @endforeach
+                    </select>
+                    @endif
+                </div>
+            </x-slot>
+
+            <x-slot name="footer">
+                <button wire:click="$toggle('isEJournalModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
+                    {{ __('Закрыть') }}
+                </button>
+                <button wire:click.prevent="downloadEJournalReport" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
                     {{ __('Сформировать отчет') }}
                 </button>
             </x-slot>

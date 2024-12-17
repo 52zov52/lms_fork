@@ -4,24 +4,38 @@ namespace App\Livewire;
 
 use App\Http\Controllers\Report\ContingentReportController;
 use App\Http\Controllers\ScheduleController;
+use App\Models\EJournal;
 use Illuminate\Support\Facades\Response;
 use Livewire\Component;
 
 class Report extends Component
 {
-    public bool $isTeacherModalVisible = false, $isGroupModalVisible = false, $isRoomsModalVisible = false;
+    public bool $isTeacherModalVisible = false, $isGroupModalVisible = false, $isRoomsModalVisible = false, $isEJournalModalVisible = false;
     public $teachers = [], $groups = [], $weeksRange = [];
     public string $fio = "", $group = "", $week = "";
 
+    public $selectedAcademicYear = 0;
+    public $selectedHalfYear = 0;
+    public $selectedDiscipline = 0;
+    public $selectedGroup = 0;
+
+    public $listOfAcademicYear = [];
+    public $listOfHalfYear = array(1, 2);
+    public $listOfDiscipline = [];
+    public $listOfGroups = [];
+
     public function render()
     {
+        if (count($this->listOfAcademicYear) == 0) {
+            $this->listOfAcademicYear = EJournal::select('academic_year')->distinct()->get();
+        }
+
         return view('livewire.report');
     }
 
     public function teacherModalVisible(): void
     {
-        if(count($this->teachers) == 0)
-        {
+        if (count($this->teachers) == 0) {
             $scheduleController = new ScheduleController();
             $this->teachers = $scheduleController->getTeachers();
         }
@@ -31,8 +45,7 @@ class Report extends Component
 
     public function groupModalVisible(): void
     {
-        if(count($this->groups) == 0)
-        {
+        if (count($this->groups) == 0) {
             $scheduleController = new ScheduleController();
             $this->groups = $scheduleController->getGroups();
         }
@@ -42,13 +55,48 @@ class Report extends Component
 
     public function roomsModalVisible(): void
     {
-        if(count($this->weeksRange) == 0)
-        {
+        if (count($this->weeksRange) == 0) {
             $scheduleController = new ScheduleController();
             $this->weeksRange = $scheduleController->getWeeksRange();
         }
-        
+
         $this->isRoomsModalVisible = true;
+    }
+
+    public function showEJournalModal()
+    {
+        $this->isEJournalModalVisible = true;
+    }
+
+    public function setAcademicYear()
+    {
+        $this->selectedAcademicYear = $this->selectedAcademicYear;
+    }
+
+    public function setHalfYear()
+    {
+        $this->selectedHalfYear = $this->selectedHalfYear;
+        $this->listOfDiscipline = EJournal::join('work_study_plan_courses_in_semesters', 'e_journals.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
+            ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
+            ->where('academic_year', '=', $this->selectedAcademicYear)
+            ->where('half_year', '=', $this->selectedHalfYear)
+            ->select(
+                'e_journals.work_study_plan_courses_in_semester_id',
+                'disciplines.name'
+            )
+            ->distinct()
+            ->get();
+    }
+
+    public function setDiscipline()
+    {
+        $this->selectedDiscipline = $this->selectedDiscipline;
+    }
+
+    public function setGroup()
+    {
+        $this->selectedGroup = $this->selectedGroup;
     }
 
     public function printApplicantAverageScore()
@@ -137,6 +185,8 @@ class Report extends Component
 
         return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }
+
+    public function downloadEJournalReport() {}
 
     /**
      * @return \Illuminate\Http\RedirectResponse
