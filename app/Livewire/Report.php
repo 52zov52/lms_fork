@@ -30,6 +30,33 @@ class Report extends Component
             $this->listOfAcademicYear = EJournal::select('academic_year')->distinct()->get();
         }
 
+        if (count($this->listOfGroups) == 0) {
+            $this->listOfGroups = EJournal::join('groups', 'e_journals.group_id', '=', 'groups.id')
+                ->where('academic_year', '=', $this->selectedAcademicYear)
+                ->where('half_year', '=', $this->selectedHalfYear)
+                ->select(
+                    'e_journals.group_id',
+                    'groups.group_name'
+                )
+                ->distinct()
+                ->get();
+        }
+
+        if (count($this->listOfDiscipline) == 0 && $this->selectedGroup != 0) {
+            $this->listOfDiscipline = EJournal::join('work_study_plan_courses_in_semesters', 'e_journals.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
+                ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
+                ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
+                ->where('e_journals.academic_year', '=', $this->selectedAcademicYear)
+                ->where('e_journals.half_year', '=', $this->selectedHalfYear)
+                ->where('e_journals.group_id', '=', $this->selectedGroup)
+                ->select(
+                    'e_journals.work_study_plan_courses_in_semester_id',
+                    'disciplines.name'
+                )
+                ->distinct()
+                ->get();
+        }
+
         return view('livewire.report');
     }
 
@@ -71,32 +98,27 @@ class Report extends Component
     public function setAcademicYear()
     {
         $this->selectedAcademicYear = $this->selectedAcademicYear;
+        $this->selectedHalfYear = 0;
+        $this->selectedGroup = 0;
+        $this->selectedDiscipline = 0;
     }
 
     public function setHalfYear()
     {
         $this->selectedHalfYear = $this->selectedHalfYear;
-        $this->listOfDiscipline = EJournal::join('work_study_plan_courses_in_semesters', 'e_journals.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
-            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
-            ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
-            ->where('academic_year', '=', $this->selectedAcademicYear)
-            ->where('half_year', '=', $this->selectedHalfYear)
-            ->select(
-                'e_journals.work_study_plan_courses_in_semester_id',
-                'disciplines.name'
-            )
-            ->distinct()
-            ->get();
-    }
-
-    public function setDiscipline()
-    {
-        $this->selectedDiscipline = $this->selectedDiscipline;
+        $this->selectedGroup = 0;
+        $this->selectedDiscipline = 0;
     }
 
     public function setGroup()
     {
         $this->selectedGroup = $this->selectedGroup;
+        $this->selectedDiscipline = 0;
+    }
+
+    public function setDiscipline()
+    {
+        $this->selectedDiscipline = $this->selectedDiscipline;
     }
 
     public function printApplicantAverageScore()
@@ -186,7 +208,17 @@ class Report extends Component
         return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }
 
-    public function downloadEJournalReport() {}
+    public function downloadEJournalReport()
+    {
+        if ($this->selectedAcademicYear == 0 || $this->selectedHalfYear == 0 || $this->selectedGroup == 0 || $this->selectedDiscipline == 0) {
+            $this->dispatch('show-toast', message: 'Не выбрано одно или несколько обязательных полей!', type: 'error');
+        } else {
+            $contingentReportController = new ContingentReportController();
+            $data = $contingentReportController->downloadEJournalReport($this->selectedAcademicYear, $this->selectedHalfYear, $this->selectedGroup, $this->selectedDiscipline);
+
+            return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
+        }
+    }
 
     /**
      * @return \Illuminate\Http\RedirectResponse

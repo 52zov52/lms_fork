@@ -158,14 +158,18 @@
                             @endforeach
                         </select>
                     </div>
-                    @if(count($listOfDiscipline) != 0)
+                    <select wire:model="selectedGroup" wire:change="setGroup" class="w-full border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <option value="0">Выберите группу из списка</option>
+                        @foreach($listOfGroups as $group)
+                        <option value="{{ $group->group_id }}">{{ $group->group_name }}</option>
+                        @endforeach
+                    </select>
                     <select wire:model="selectedDiscipline" wire:change="setDiscipline" class="w-full border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         <option value="0">Выберите дисциплину из списка</option>
                         @foreach($listOfDiscipline as $discipline)
-                        <option value="{{ $discipline->name }}">{{ $discipline->work_study_plan_courses_in_semester_id }}{{ $discipline->name }}</option>
+                        <option value="{{ $discipline->work_study_plan_courses_in_semester_id }}">{{ $discipline->name }}</option>
                         @endforeach
                     </select>
-                    @endif
                 </div>
             </x-slot>
 
