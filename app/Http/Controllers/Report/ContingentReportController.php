@@ -221,8 +221,8 @@ class ContingentReportController extends Controller
             ->select(
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
                 DB::raw("SUM(CASE WHEN e_journals.status = 1 THEN 1 ELSE 0 END) as was_present"),
-                DB::raw("(SUM(e_journals.status) - SUM(CASE WHEN e_journals.status = 1 THEN 1 ELSE 0 END)) as was_absent"),
-                DB::raw("SUM(e_journals.status) as total")
+                DB::raw("(COUNT(e_journals.status) - SUM(CASE WHEN e_journals.status = 1 THEN 1 ELSE 0 END)) as was_absent"),
+                DB::raw("COUNT(e_journals.status) as total")
             )
             ->groupBy('fio')
             ->get();
