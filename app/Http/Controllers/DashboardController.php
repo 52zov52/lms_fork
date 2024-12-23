@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GroupStudent;
 use App\Models\Schedule;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -29,7 +30,6 @@ class DashboardController extends Controller
 
             $this->schedulesEvents = Schedule::where('group', 'like', '%' . $groupStudent->group_name . '%')
                 ->where('date', '>=', now()->format('Y-m-d'))
-                ->where('time', '>=', now()->format('H:i'))
                 ->first();
         } else {
             if(Auth::user()->id != 2190) {
@@ -41,14 +41,13 @@ class DashboardController extends Controller
     
                 $this->schedulesEvents = Schedule::where('teacher', 'like', '%' . $fio . '%')
                     ->where('date', '>=', now()->format('Y-m-d'))
-                    ->where('time', '>=', now()->format('H:i'))
                     ->first();
             }
         }
 
         $eventCount = $this->scheduleEventCount;
         if (!is_null($this->schedulesEvents)) {
-            $event = 'Занятие по дис.: ' . $this->schedulesEvents->discipline . ' время: ' . $this->schedulesEvents->time;
+            $event = 'Расписание: ' . $this->schedulesEvents->discipline . ' дата: ' . Carbon::parse($this->schedulesEvents->date)->format('d.m.Y') . ' время: ' . $this->schedulesEvents->time;
         } else {
             $event = '-';
         }
