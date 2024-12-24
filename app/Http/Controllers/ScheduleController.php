@@ -32,10 +32,11 @@ class ScheduleController extends Controller
     /**
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getTeachersByLastName($lastName): object
+    public function getTeachersByLastName($fio, $alternative_fio): object
     {
         return Schedule::select('teacher')
-            ->where('teacher', 'like', '%' . $lastName . '%')
+            ->where('teacher', '=', $fio)
+            ->orWhere('teacher', '=', $alternative_fio)
             ->distinct()
             ->orderBy('teacher', 'ASC')
             ->get();
@@ -91,6 +92,8 @@ class ScheduleController extends Controller
         while ($record = $table->nextRecord()) {
             $classTime = array_search($record->get('LES'), array_column($schedule, 'number'));
             $groups = explode(',', $record->get('GROUP'));
+            $teacher = preg_replace('/\s+/', ' ', $record->get('NAME'));
+            $teacher = trim($teacher);
             foreach ($groups as $group) {
                 Schedule::create([
                     'group' => $group,
@@ -103,7 +106,7 @@ class ScheduleController extends Controller
                     'lesson_place' => $record->get('AUD'),
                     'discipline' => $record->get('SUBJECT'),
                     'lesson_type' => $record->get('SUBJ_TYPE'),
-                    'teacher' => $record->get('NAME'),
+                    'teacher' => $teacher,
                     'chair' => $record->get('CAFEDRA')
                 ]);
             }

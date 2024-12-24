@@ -6,6 +6,7 @@ use App\Models\GroupStudent;
 use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -15,6 +16,9 @@ class DashboardController extends Controller
 
     public function index()
     {
+        $currentDate = now()->format('Y-m-d');
+        $currentTime = now()->format('H:i');
+
         if (Auth::user()->hasRole('Student')) {
             $groupStudent = GroupStudent::join('groups', 'group_student.group_id', '=', 'groups.id')
                 ->where('group_student.user_id', '=', Auth::user()->id)
@@ -25,24 +29,42 @@ class DashboardController extends Controller
             $this->additionalInfoAboutUser = $groupStudent->group_name;
 
             $this->scheduleEventCount = Schedule::where('group', 'like', '%' . $groupStudent->group_name . '%')
-                ->where('date', '>=', now()->format('Y-m-d'))
-                ->count();
+                ->where('date', '>=', $currentDate)
+                ->select(DB::raw('COUNT(DISTINCT date, time) as count'))
+                ->first()->count;
 
-            $this->schedulesEvents = Schedule::where('group', 'like', '%' . $groupStudent->group_name . '%')
-                ->where('date', '>=', now()->format('Y-m-d'))
-                ->first();
+            $querySchedulesEvents = Schedule::where('group', 'like', '%' . $groupStudent->group_name . '%')
+                ->where('date', '>=', $currentDate);
+            $querySchedulesEvents->when($currentDate === $querySchedulesEvents->first()->date, function ($querySchedulesEvents) use ($currentTime) {
+                $querySchedulesEvents->where(function ($querySchedulesEvents) use ($currentTime) {
+                    $querySchedulesEvents->whereRaw('SUBSTRING_INDEX(time, "-", 1) >= ?', [$currentTime]);
+                });
+            });
+
+            $this->schedulesEvents = $querySchedulesEvents->first();
         } else {
-            if(Auth::user()->id != 2190) {
-                $fio = Auth::user()->userData->last_name;
+            $fio = Auth::user()->userData->last_name . ' ' . mb_substr(Auth::user()->userData->first_name, 0, 1) . '.' . mb_substr(Auth::user()->userData->middle_name, 0, 1) . '.';
+            $alternative_fio = Auth::user()->userData->last_name . '1 ' . mb_substr(Auth::user()->userData->first_name, 0, 1) . '.' . mb_substr(Auth::user()->userData->middle_name, 0, 1) . '.';
 
-                $this->scheduleEventCount = Schedule::where('teacher', 'like', '%' . $fio . '%')
-                    ->where('date', '>=', now()->format('Y-m-d'))
-                    ->count();
-    
-                $this->schedulesEvents = Schedule::where('teacher', 'like', '%' . $fio . '%')
-                    ->where('date', '>=', now()->format('Y-m-d'))
-                    ->first();
-            }
+            $this->scheduleEventCount = Schedule::where(function ($query) use ($fio, $alternative_fio) {
+                $query->where('teacher', $fio)
+                    ->orWhere('teacher', $alternative_fio);
+            })->where('date', '>=', $currentDate)
+                ->select(DB::raw('COUNT(DISTINCT date, time) as count'))
+                ->first()->count;
+
+            $querySchedulesEvents = Schedule::where(function ($query) use ($fio, $alternative_fio) {
+                $query->where('teacher', $fio)
+                    ->orWhere('teacher', $alternative_fio);
+            })->where('date', '>=', $currentDate);
+
+            $querySchedulesEvents->when($currentDate === $querySchedulesEvents->first()->date, function ($querySchedulesEvents) use ($currentTime) {
+                $querySchedulesEvents->where(function ($querySchedulesEvents) use ($currentTime) {
+                    $querySchedulesEvents->whereRaw('SUBSTRING_INDEX(time, "-", 1) >= ?', [$currentTime]);
+                });
+            });
+
+            $this->schedulesEvents = $querySchedulesEvents->first();
         }
 
         $eventCount = $this->scheduleEventCount;

@@ -19,8 +19,11 @@ class Schedule extends Component
     {
         $scheduleController = new ScheduleController();
 
-        if (Auth::user()->hasRole('Teacher'))
-            $this->teachers = $scheduleController->getTeachersByLastName(Auth::user()->userData->last_name);
+        if (Auth::user()->hasRole('Teacher')) {
+            $fio = Auth::user()->userData->last_name . ' ' . mb_substr(Auth::user()->userData->first_name, 0, 1) . '.' . mb_substr(Auth::user()->userData->middle_name, 0, 1) . '.';
+            $alternative_fio = Auth::user()->userData->last_name . '1 ' . mb_substr(Auth::user()->userData->first_name, 0, 1) . '.' . mb_substr(Auth::user()->userData->middle_name, 0, 1) . '.';
+            $this->teachers = $scheduleController->getTeachersByLastName($fio, $alternative_fio);
+        }
 
         $this->weeksRange = $scheduleController->getWeeksRange();
         $lastUpdateDate = $scheduleController->getlastUpdate();
