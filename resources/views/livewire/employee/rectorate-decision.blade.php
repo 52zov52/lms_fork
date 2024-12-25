@@ -82,7 +82,7 @@
                             <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Срок исполнения (до)</th>
                             <th scope="col" class="w-16 px-2 py-2 font-semibold">Статус</th>
                             @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
-                            <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Действия</th>
+                            <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Действия</th>
                             @endcan
                         </tr>
                     </thead>
@@ -104,7 +104,7 @@
                                 @endif
                             </td>
                             @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
-                            <td class="w-32 text-center">
+                            <td class="w-24 text-center">
                                 @can('create-edit-delete-decisions-rectorate-and-council')
                                 <button wire:click="edit({{ $decision->id }})" class="w-9 btn-edit" data-tippy-content="Редактировать">
                                     <span wire:loading.remove wire:target="edit({{ $decision->id }})">
