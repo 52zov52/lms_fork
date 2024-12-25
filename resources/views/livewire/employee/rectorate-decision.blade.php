@@ -81,7 +81,7 @@
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Дата и номер решения</th>
                             <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Срок исполнения (до)</th>
                             <th scope="col" class="w-16 px-2 py-2 font-semibold">Статус</th>
-                            @can('create-edit-delete-decisions-rectorate-and-council')
+                            @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Действия</th>
                             @endcan
                         </tr>
@@ -103,8 +103,9 @@
                                 <span class="text-green-400 font-bold cursor-pointer">В</span>
                                 @endif
                             </td>
-                            @can('create-edit-delete-decisions-rectorate-and-council')
+                            @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
                             <td class="w-32 text-center">
+                                @can('create-edit-delete-decisions-rectorate-and-council')
                                 <button wire:click="edit({{ $decision->id }})" class="w-9 btn-edit" data-tippy-content="Редактировать">
                                     <span wire:loading.remove wire:target="edit({{ $decision->id }})">
                                         <i class="fa-solid fa-pen"></i>
@@ -116,6 +117,25 @@
                                 <button onclick="confirmDestroy('{{ $decision->id }}')" class="w-9 btn-destroy" title="" data-tippy-content="Удалить">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
+                                @endcan
+                                @can('confirm-decisions-rectorate-and-council')
+                                <button wire:click="confirm({{ $decision->id }})" class="w-9 btn-check" data-tippy-content="Подтверждение">
+                                    <span wire:loading.remove wire:target="confirm({{ $decision->id }})">
+                                        <i class="fa-solid fa-check"></i>
+                                    </span>
+                                    <span wire:loading wire:target="confirm({{ $decision->id }})">
+                                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                    </span>
+                                </button>
+                                <button wire:click="undoConfirm({{ $decision->id }})" class="w-9 btn-undo" data-tippy-content="Отменить подтверждение">
+                                    <span wire:loading.remove wire:target="undoConfirm({{ $decision->id }})">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </span>
+                                    <span wire:loading wire:target="undoConfirm({{ $decision->id }})">
+                                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                    </span>
+                                </button>
+                                @endcan
                             </td>
                             @endcan
                         </tr>
@@ -153,21 +173,41 @@
                         <span class="text-green-400 font-semibold">Выполнена</span>
                         @endif
                     </div>
-                    @can('create-edit-delete-decisions-rectorate-and-council')
+                    @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
                     <div class="flex flex-col">
                         <span class="font-semibold">Действия:</span>
                         <div class="flex flex-row space-x-2">
+                            @can('create-edit-delete-decisions-rectorate-and-council')
                             <button wire:click="edit({{ $decision->id }})" class="w-auto grow btn-edit" data-tippy-content="Редактировать">
-                            <span wire:loading.remove wire:target="edit({{ $decision->id }})">
-                                <i class="fa-solid fa-pen"></i>
-                            </span>
-                            <span wire:loading wire:target="edit({{ $decision->id }})">
-                                <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-                            </span>
+                                <span wire:loading.remove wire:target="edit({{ $decision->id }})">
+                                    <i class="fa-solid fa-pen"></i>
+                                </span>
+                                <span wire:loading wire:target="edit({{ $decision->id }})">
+                                    <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                </span>
                             </button>
                             <button onclick="confirmDestroy('{{ $decision->id }}')" class="w-auto grow btn-destroy" title="" data-tippy-content="Удалить">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
+                            @endcan
+                            @can('confirm-decisions-rectorate-and-council')
+                            <button wire:click="confirm({{ $decision->id }})" class="w-auto grow btn-check" data-tippy-content="Подтверждение">
+                                <span wire:loading.remove wire:target="confirm({{ $decision->id }})">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                                <span wire:loading wire:target="confirm({{ $decision->id }})">
+                                    <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                </span>
+                            </button>
+                            <button wire:click="undoConfirm({{ $decision->id }})" class="w-auto grow btn-undo" data-tippy-content="Отменить подтверждение">
+                                <span wire:loading.remove wire:target="undoConfirm({{ $decision->id }})">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </span>
+                                <span wire:loading wire:target="undoConfirm({{ $decision->id }})">
+                                    <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                </span>
+                            </button>
+                            @endcan
                         </div>
                     </div>
                     @endcan

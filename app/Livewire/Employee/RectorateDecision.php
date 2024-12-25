@@ -295,6 +295,24 @@ class RectorateDecision extends Component
         return redirect()->route('employee.operating.activity');
     }
 
+    public function confirm($id)
+    {
+        $rectorateDecision = RectorateAndCouncilDecision::findOrFail($id);
+        $rectorateDecision->status = 3;
+        $rectorateDecision->update();
+
+        $this->dispatch('show-toast', message: 'Выполнение поставленной задачи успешно подтверждено!', type: 'success');
+    }
+
+    public function undoConfirm($id)
+    {
+        $rectorateDecision = RectorateAndCouncilDecision::findOrFail($id);
+        $rectorateDecision->status = 1;
+        $rectorateDecision->update();
+
+        $this->dispatch('show-toast', message: 'Подтверждение выполнения задачи успешно отклонено!', type: 'success');
+    }
+
     private function resetFields()
     {
         $this->id = 0;
