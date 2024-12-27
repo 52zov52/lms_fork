@@ -307,7 +307,7 @@
                             <label for="file" class="font-semibold">Файл</label>
                             <input wire:model="files" type="file" name="file" id="file-{{ $rand }}" multiple class="ml-1 w-full">
                         </div>
-                        <span class="text-xs font-semibold">доступные типы файлов: *.pdf, *.doc, *.docx, *.xls, *.xlsx, *.jpg, *.bmp, *.png</span>
+                        <span class="text-xs font-semibold">доступные типы файлов: *.pdf, *.doc, *.docx, *.xls, *.xlsx, *.jpg, *.bmp, *.png, *.zip</span>
                         <span class="text-xs font-semibold">максимальный объем файла: 3 МБ</span>
                         <div wire:loading wire:target="files" class="text-green-500 font-semibold">Идет загрузка файла ...</div>
                         @error('files') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
