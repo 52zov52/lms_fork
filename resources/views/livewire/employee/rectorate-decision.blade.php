@@ -257,7 +257,7 @@
                         <label for="position" class="font-semibold">Должность исполнителя<span class="text-red-500">*</span></label>
                         <select wire:model="position" name="position" id="position" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             <option value="0">Выберите должность исполнителя из списка</option>
-                            @foreach($listOfPositions as $value)
+                            @foreach($listOfPositions as $key => $value)
                             <option value="{{ $value }}">{{ $value }}</option>
                             @endforeach
                         </select>

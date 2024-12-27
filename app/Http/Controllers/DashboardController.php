@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\GroupStudent;
+use App\Models\RectorateAndCouncilDecision;
 use App\Models\Schedule;
+use App\Models\UpbringingEvent;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -50,6 +52,22 @@ class DashboardController extends Controller
                 $this->schedulesEvents = null;
             }
         } else {
+
+            /*
+            $rectorateDecisionEvent = RectorateAndCouncilDecision::where('category', '=', 1),
+                ->where('executor_id', '=', Auth::user()->id)
+                ->where('due_date', '>=', Carbon::now()->format('Y-m-d'))
+                ->where('due_date', '<=', Carbon::now()->addDays(2)->format('Y-m-d'))
+                ->orderBy('due_date')
+                ->get();
+
+            $upbringingEvent = UpbringingEvent::where('user_id', '=', Auth::user()->id)
+                ->where('date', '>=', Carbon::now()->format('Y-m-d'))
+                ->where('date', '<=', Carbon::now()->addDays(2)->format('Y-m-d'))
+                ->orderBy('date')
+                ->get();
+            */
+
             $fio = Auth::user()->userData->last_name . ' ' . mb_substr(Auth::user()->userData->first_name, 0, 1) . '.' . mb_substr(Auth::user()->userData->middle_name, 0, 1) . '.';
             $alternative_fio = Auth::user()->userData->last_name . '1 ' . mb_substr(Auth::user()->userData->first_name, 0, 1) . '.' . mb_substr(Auth::user()->userData->middle_name, 0, 1) . '.';
 
