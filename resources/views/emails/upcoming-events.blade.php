@@ -26,11 +26,14 @@
             background-color: #fafafa;
         }
 
-        table, th, td {
+        table,
+        th,
+        td {
             border: 1px solid black;
             border-collapse: collapse;
             padding: 0.25rem;
         }
+
         th {
             font-weight: 600;
         }
@@ -39,7 +42,28 @@
 
 <body>
     <div style="margin: 0.25rem;">
-        {{ $data }}
+        <table style="width: 100%;" border="1">
+            <body>
+                <tr>
+                    <th>Событие (задача)</th>
+                    <th>Срок исполнения до</th>
+                    <th>Статус</th>
+                </tr>
+                @if(count($rectorateDecisionEvents) == 0)
+                <tr>
+                    <td colspan="3">Комментарий: отсутствуют</td>
+                </tr>
+                @else
+                @foreach($rectorateDecisionEvents as $rectorateDecisionEvent)
+                <tr>
+                    <td>{{ $rectorateDecisionEvent->task }}</td>
+                    <td>{{ \Carbon\Carbon::parse($rectorateDecisionEvent->due_date)->format('d.m.Y') }}</td>
+                    <td>{{ ($rectorateDecisionEvent->due_date == \Carbon\Carbon::now()->format('Y-m-d')) ? 'Сегодня' : 'Ближайшие дни' }}</td>
+                </tr>
+                @endforeach
+                @endif
+            </body>
+        </table>
     </div>
 </body>
 
