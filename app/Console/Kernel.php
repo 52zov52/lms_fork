@@ -30,6 +30,9 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('app:sync-student-grades')
             ->dailyAt('05:00');
+
+        $schedule->command('app:send-daily-events')
+            ->dailyAt('09:00');
     }
 
     /**
