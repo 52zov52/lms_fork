@@ -44,7 +44,7 @@ class DashboardController extends Controller
             $querySchedulesEvents = Schedule::where('group', 'like', '%' . $groupStudent->group_name . '%')
                 ->where('date', '>=', $currentDate);
 
-            $firstSchedulesEvent = $querySchedulesEvents->first();
+            $firstSchedulesEvent = $querySchedulesEvents->orderBy('date', 'asc')->first();
 
             if ($firstSchedulesEvent) {
                 $querySchedulesEvents->when($currentDate === $querySchedulesEvents->first()->date, function ($querySchedulesEvents) use ($currentTime) {
@@ -80,11 +80,11 @@ class DashboardController extends Controller
                 ->count();
 
             $querySchedulesEvents = Schedule::where(function ($query) use ($fio, $alternative_fio) {
-                $query->where('teacher', $fio)
-                    ->orWhere('teacher', $alternative_fio);
+                $query->where('teacher', 'like', $fio)
+                    ->orWhere('teacher', 'like', $alternative_fio);
             })->where('date', '>=', $currentDate);
 
-            $firstSchedulesEvent = $querySchedulesEvents->first();
+            $firstSchedulesEvent = $querySchedulesEvents->orderBy('date', 'asc')->first();
 
             if ($firstSchedulesEvent) {
                 $querySchedulesEvents->when($currentDate === $firstSchedulesEvent->date, function ($querySchedulesEvents) use ($currentTime) {
@@ -102,13 +102,13 @@ class DashboardController extends Controller
                 ->where('executor_id', '=', Auth::user()->id)
                 ->where('due_date', '>=', Carbon::now()->format('Y-m-d'))
                 ->select('task', 'due_date')
-                ->orderBy('due_date')
+                ->orderBy('due_date', 'asc')
                 ->first();
 
             $this->upbringingEvents = UpbringingEvent::where('user_id', '=', Auth::user()->id)
                 ->where('date', '>=', Carbon::now()->format('Y-m-d'))
                 ->select('name', 'date')
-                ->orderBy('date')
+                ->orderBy('date', 'asc')
                 ->first();
         }
 
