@@ -267,6 +267,7 @@ class RectorateDecision extends Component
         $rectorateDecision->task = $this->task;
         $rectorateDecision->due_date = Carbon::parse($this->dueDate)->format('Y-m-d');
         $rectorateDecision->executor_id = $this->executorId;
+        $rectorateDecision->user_id = Auth::user()->id;
         $rectorateDecision->update();
 
         $this->isCreateOrEditModalVisible = false;

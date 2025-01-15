@@ -17,7 +17,7 @@
                     <div class="w-full h-full flex items-center justify-center">{{ $eventCount }}</div>
                 </div>
                 <div class="flex flex-col space-y-1">
-                    <p class="font-semibold text-white">Предстоящие события</p>
+                    <p class="font-semibold text-white"><a href="{{ route('upcoming.event') }}" class="hover:underline">Предстоящие события</a></p>
                     <p class="text-xs text-white">{{ $event }}</p>
                 </div>
             </div>

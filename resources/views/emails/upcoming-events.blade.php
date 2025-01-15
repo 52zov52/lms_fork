@@ -49,18 +49,37 @@
                     <th>Срок исполнения до</th>
                     <th>Статус</th>
                 </tr>
+                <tr>
+                    <td colspan="3">Решения ректората</td>
+                </tr>
                 @if(count($rectorateDecisionEvents) == 0)
                 <tr>
-                    <td colspan="3">Комментарий: отсутствуют</td>
+                    <td colspan="3">Комментарий: задачи отсутствуют</td>
                 </tr>
                 @else
-                @foreach($rectorateDecisionEvents as $rectorateDecisionEvent)
+                    @foreach($rectorateDecisionEvents as $rectorateDecisionEvent)
+                    <tr>
+                        <td>{{ $rectorateDecisionEvent->task }}</td>
+                        <td>{{ \Carbon\Carbon::parse($rectorateDecisionEvent->due_date)->format('d.m.Y') }}</td>
+                        <td>{{ ($rectorateDecisionEvent->due_date == \Carbon\Carbon::now()->format('Y-m-d')) ? 'Сегодня' : 'Ближайшие дни' }}</td>
+                    </tr>
+                    @endforeach
+                @endif
                 <tr>
-                    <td>{{ $rectorateDecisionEvent->task }}</td>
-                    <td>{{ \Carbon\Carbon::parse($rectorateDecisionEvent->due_date)->format('d.m.Y') }}</td>
-                    <td>{{ ($rectorateDecisionEvent->due_date == \Carbon\Carbon::now()->format('Y-m-d')) ? 'Сегодня' : 'Ближайшие дни' }}</td>
+                    <td colspan="3">Воспитательная работа</td>
                 </tr>
-                @endforeach
+                @if(count($upbringingEvents) == 0)
+                <tr>
+                    <td colspan="3">Комментарий: события отсутствуют</td>
+                </tr>
+                @else
+                    @foreach($upbringingEvents as $upbringingEvent)
+                    <tr>
+                        <td>{{ $upbringingEvent->name }}</td>
+                        <td>{{ \Carbon\Carbon::parse($upbringingEvent->date)->format('d.m.Y') }}</td>
+                        <td>{{ ($upbringingEvent->date == \Carbon\Carbon::now()->format('Y-m-d')) ? 'Сегодня' : 'Ближайшие дни' }}</td>
+                    </tr>
+                    @endforeach
                 @endif
             </body>
         </table>

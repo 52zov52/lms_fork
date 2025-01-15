@@ -50,6 +50,10 @@ Route::get('/qr-code-document-verifications/{verificationCode}', function ($veri
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    Route::get('/upcoming-events', function() {
+        return view('pages.upcoming-events');
+    })->name('upcoming.event');
+
     Route::get('/elibrary', function () {
         return view('pages.elibrary');
     })->name('elibrary');

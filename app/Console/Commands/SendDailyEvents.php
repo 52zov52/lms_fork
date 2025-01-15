@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\RectorateAndCouncilDecision;
+use App\Models\UpbringingEvent;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -34,15 +35,24 @@ class SendDailyEvents extends Command
         foreach ($users as $key => $value) {
             $emailTo = $value->email;
 
-            $rectorateDecisionEvents = RectorateAndCouncilDecision::where('executor_id', $value->id)
+            $rectorateDecisionEvents = RectorateAndCouncilDecision::where('category', '=', 1)
+                ->where('executor_id', $value->id)
                 ->where('due_date', '>=', Carbon::now()->format('Y-m-d'))
-                ->where('due_date', '<=', Carbon::now()->addDays(2)->format('Y-m-d'))
+                ->where('due_date', '<=', Carbon::now()->addDays(3)->format('Y-m-d'))
                 ->select('task', 'due_date')
                 ->orderBy('due_date')
                 ->get();
 
+            $upbringingEvents = UpbringingEvent::where('user_id', $value->id)
+                ->where('date', '>=', Carbon::now()->format('Y-m-d'))
+                ->where('date', '<=', Carbon::now()->addDays(3)->format('Y-m-d'))
+                ->select('name', 'date')
+                ->orderBy('date')
+                ->get();
+
             Mail::send('emails.upcoming-events', [
-                'rectorateDecisionEvents' => $rectorateDecisionEvents
+                'rectorateDecisionEvents' => $rectorateDecisionEvents,
+                'upbringingEvents' => $upbringingEvents
             ], function ($message) use ($emailTo) {
                 $message->from('iubip@mg-lab.ru', 'ЧОУ ВО ЮУ (ИУБиП)');
                 $message->to($emailTo)->subject('ИУБиП список ближайших мероприятий на ' . Carbon::now()->format('d.m.Y'));
