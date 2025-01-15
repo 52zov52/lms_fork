@@ -42,11 +42,9 @@ class EJournal extends Component
     ];
 
     public $listOfStatuses = [
-        1 => '.',
+        1 => 'П',
         2 => 'Н',
         3 => 'НУ',
-        4 => '0',
-        5 => '1',
         6 => '2',
         7 => '3',
         8 => '4',
