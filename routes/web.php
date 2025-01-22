@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleReportController;
 use App\Http\Controllers\Student\SptConsentStatusController;
 use App\Http\Controllers\StudyPlanController;
+use App\Livewire\Employee\OperatingActivity;
 
 /*
 |--------------------------------------------------------------------------

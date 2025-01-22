@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\OperatingActivity;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -22,11 +21,7 @@ return new class extends Migration
             $table->date('due_date');
             $table->integer('status')->default(1);
             $table->integer('category')->default(1);
-
-            $table->foreignIdFor(OperatingActivity::class)
-                ->nullable()
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->json('operating_activity_id')->nullable();
 
             $table->unsignedBigInteger('executor_id')->nullable();
             $table->foreign('executor_id')

@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Employee;
 
+use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
 use App\Models\OperatingActivity;
 use App\Models\RectorateAndCouncilDecision;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -289,7 +291,7 @@ class RectorateDecision extends Component
         $rectorateDecision = RectorateAndCouncilDecision::findOrFail($id);
 
         $operatingActivity = new OperatingActivity();
-        $operatingActivity->activity_direction = 'Решение ректората';
+        $operatingActivity->activity_direction = 'Исполнение решений ректората';
         $operatingActivity->description = 'В соответствии с решением ректората от ' . Carbon::parse($rectorateDecision->date_decision)->format('d.m.Y') . ' №' . $rectorateDecision->number_decision . ' ...';
         $operatingActivity->status = 2;
         $operatingActivity->user_id = Auth::user()->id;
@@ -298,8 +300,22 @@ class RectorateDecision extends Component
         $operatingActivity->save();
 
         $rectorateDecision->status = 2;
-        $rectorateDecision->operating_activity_id = $operatingActivity->id;
-        $rectorateDecision->executor_id = Auth::user()->id;
+
+        $operatingActivityIds = [];
+
+        if (!is_null($rectorateDecision->operating_activity_id)) {
+            $jsonData = json_decode($rectorateDecision->operating_activity_id, true);
+
+            foreach ($jsonData as $value) {
+                $operatingActivityIds[] = (int)$value;
+            }
+
+            $operatingActivityIds[] = $operatingActivity->id;
+        } else {
+            $operatingActivityIds[] = $operatingActivity->id;
+        }
+
+        $rectorateDecision->operating_activity_id = json_encode($operatingActivityIds);
         $rectorateDecision->update();
 
         return redirect()->route('employee.operating.activity');
@@ -321,6 +337,19 @@ class RectorateDecision extends Component
         $rectorateDecision->update();
 
         $this->dispatch('show-toast', message: 'Подтверждение выполнения задачи успешно отклонено!', type: 'success');
+    }
+
+    public function downloadReport()
+    {
+        if ($this->selectedDueDate == 0) {
+            $this->dispatch('show-toast', message: 'Для формирования отчета необходимо выбрать срок исполнения!', type: 'error');
+        } else {
+            $rectorateDecisions = RectorateAndCouncilDecision::where('due_date', '=', Carbon::parse($this->selectedDueDate)->format('Y-m-d'))->get();
+            $report = new PrintDecisionsRectorateAndCouncilController();
+            $data = $report->downloadReport($rectorateDecisions);
+
+            return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
+        }
     }
 
     function findValueByKey($array, $position)

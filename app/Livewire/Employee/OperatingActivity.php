@@ -296,11 +296,17 @@ class OperatingActivity extends Component
             }
         }
 
-        if ($modelsOperatingActivity->activity_direction == 'Решение ректората') {
-            $rectorateDecision = RectorateAndCouncilDecision::where('operating_activity_id', '=', $id)->first();
+        if ($modelsOperatingActivity->activity_direction == 'Исполнение решений ректората') {
+            $rawData = DB::select("SELECT * FROM rectorate_and_council_decisions WHERE JSON_CONTAINS(operating_activity_id, '{$id}') LIMIT 1");
+            $rectorateDecision = RectorateAndCouncilDecision::findOrFail($rawData[0]->id);
+
+            $operatingActivityIds = json_decode($rectorateDecision->operating_activity_id, true);
+            $collection = collect($operatingActivityIds);
+            $filteredCollection = $collection->diff([$id]);
+            $filteredArray = $filteredCollection->values()->all();
+
             $rectorateDecision->status = 1;
-            $rectorateDecision->operating_activity_id = null;
-            $rectorateDecision->executor_id = null;
+            $rectorateDecision->operating_activity_id = json_encode($filteredArray);
             $rectorateDecision->update();
         }
 
@@ -351,8 +357,9 @@ class OperatingActivity extends Component
     {
         $modelsOperatingActivity = ModelsOperatingActivity::findOrFail($id);
 
-        if ($modelsOperatingActivity->activity_direction == 'Решение ректората') {
-            $rectorateDecision = RectorateAndCouncilDecision::where('operating_activity_id', '=', $id)->first();
+        if ($modelsOperatingActivity->activity_direction == 'Исполнение решений ректората') {
+            $rawData = DB::select("SELECT * FROM rectorate_and_council_decisions WHERE JSON_CONTAINS(operating_activity_id, '{$id}') LIMIT 1");
+            $rectorateDecision = RectorateAndCouncilDecision::findOrFail($rawData[0]->id);
             $rectorateDecision->status = 3;
             $rectorateDecision->update();
         }
@@ -367,8 +374,9 @@ class OperatingActivity extends Component
     {
         $modelsOperatingActivity = ModelsOperatingActivity::findOrFail($id);
 
-        if ($modelsOperatingActivity->activity_direction == 'Решение ректората') {
-            $rectorateDecision = RectorateAndCouncilDecision::where('operating_activity_id', '=', $id)->first();
+        if ($modelsOperatingActivity->activity_direction == 'Исполнение решений ректората') {
+            $rawData = DB::select("SELECT * FROM rectorate_and_council_decisions WHERE JSON_CONTAINS(operating_activity_id, '{$id}') LIMIT 1");
+            $rectorateDecision = RectorateAndCouncilDecision::findOrFail($rawData[0]->id);
             $rectorateDecision->status = 1;
             $rectorateDecision->update();
         }

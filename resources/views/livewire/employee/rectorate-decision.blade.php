@@ -56,17 +56,28 @@
                 <span class="bg-sky-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">На утверждении</span>
                 <span class="bg-green-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">Выполнено</span>
             </div>
-            @can('create-edit-delete-decisions-rectorate-and-council')
-            <button wire:click="show" class="w-auto md:w-36 btn-add">
-                <span wire:loading.remove wire:target="show">
-                    <i class="fa-solid fa-circle-plus"></i>
-                    Добавить запись
-                </span>
-                <span wire:loading wire:target="show">
-                    <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-                </span>
-            </button>
-            @endcan
+            <div class="flex flex-row space-x-2">
+                @can('create-edit-delete-decisions-rectorate-and-council')
+                <button wire:click="show" class="w-auto md:w-36 btn-add">
+                    <span wire:loading.remove wire:target="show">
+                        <i class="fa-solid fa-circle-plus"></i>
+                        Добавить запись
+                    </span>
+                    <span wire:loading wire:target="show">
+                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                    </span>
+                </button>
+                @endcan
+                <button wire:click="downloadReport" class="w-auto md:w-36 btn-download">
+                    <span wire:loading.remove wire:target="downloadReport">
+                        <i class="fa-solid fa-download"></i>
+                        Скачать отчет
+                    </span>
+                    <span wire:loading wire:target="downloadReport">
+                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                    </span>
+                </button>
+            </div>
         </div>
 
         <div wire:loading.remove wire:target="setDueDate, setPosition">
@@ -81,9 +92,7 @@
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Дата и номер решения</th>
                             <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Срок исполнения (до)</th>
                             <th scope="col" class="w-16 px-2 py-2 font-semibold">Статус</th>
-                            @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
-                            <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Действия</th>
-                            @endcan
+                            <th scope="col" class="w-36 px-2 py-2 text-center font-semibold">Действия</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -103,8 +112,12 @@
                                 <span class="text-green-400 font-bold cursor-pointer">В</span>
                                 @endif
                             </td>
-                            @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
-                            <td class="w-24 text-center">
+                            <td class="w-36 text-center">
+                                @if($decision->executor_id == auth()->user()->id)
+                                <button onclick="submitReport('{{ $decision->id }}')" class="w-9 btn-description" data-tippy-content="Предоставить отчет">
+                                    <i class="fa-solid fa-up-right-from-square"></i>
+                                </button>
+                                @endif
                                 @can('create-edit-delete-decisions-rectorate-and-council')
                                 <button wire:click="edit({{ $decision->id }})" class="w-9 btn-edit" data-tippy-content="Редактировать">
                                     <span wire:loading.remove wire:target="edit({{ $decision->id }})">
@@ -137,7 +150,6 @@
                                 </button>
                                 @endcan
                             </td>
-                            @endcan
                         </tr>
                         @endforeach
                     </tbody>
@@ -173,10 +185,14 @@
                         <span class="text-green-400 font-semibold">Выполнена</span>
                         @endif
                     </div>
-                    @canany(['create-edit-delete-decisions-rectorate-and-council', 'confirm-decisions-rectorate-and-council'])
                     <div class="flex flex-col">
                         <span class="font-semibold">Действия:</span>
                         <div class="flex flex-row space-x-2">
+                            @if($decision->executor_id == auth()->user()->id)
+                            <button onclick="submitReport('{{ $decision->id }}')" class="w-auto grow btn-description" title="" data-tippy-content="Предоставить отчет">
+                                <i class="fa-solid fa-up-right-from-square"></i>
+                            </button>
+                            @endif
                             @can('create-edit-delete-decisions-rectorate-and-council')
                             <button wire:click="edit({{ $decision->id }})" class="w-auto grow btn-edit" data-tippy-content="Редактировать">
                                 <span wire:loading.remove wire:target="edit({{ $decision->id }})">
@@ -210,7 +226,6 @@
                             @endcan
                         </div>
                     </div>
-                    @endcan
                 </div>
                 @endforeach
             </div>
