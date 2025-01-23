@@ -46,7 +46,7 @@ class PrintDecisionsRectorateAndCouncilController extends Controller
             $table->addRow();
             $table->addCell(3500)->addText($value->position, $tableFontStyle);
             $table->addCell(3500)->addText($value->task, $tableFontStyle);
-            $table->addCell(3500)->addText(Carbon::parse($value->due_date)->format('m.d.Y'), $tableFontStyle);
+            $table->addCell(3500)->addText(Carbon::parse($value->due_date)->format('d.m.Y'), $tableFontStyle);
         }
 
         $templateProcessor->setComplexBlock('table', $table);
@@ -79,7 +79,7 @@ class PrintDecisionsRectorateAndCouncilController extends Controller
             $table->addRow();
             $table->addCell(3500)->addText($value->position, $tableFontStyle);
             $table->addCell(3500)->addText($value->task, $tableFontStyle);
-            $table->addCell(1000)->addText(Carbon::parse($value->due_date)->format('m.d.Y'), $tableFontStyle);
+            $table->addCell(1000)->addText(Carbon::parse($value->due_date)->format('d.m.Y'), $tableFontStyle);
 
             $operatingActivityIds = json_decode($value->operating_activity_id, true);
 

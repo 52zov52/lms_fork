@@ -344,7 +344,10 @@ class RectorateDecision extends Component
         if ($this->selectedDueDate == 0) {
             $this->dispatch('show-toast', message: 'Для формирования отчета необходимо выбрать срок исполнения!', type: 'error');
         } else {
-            $rectorateDecisions = RectorateAndCouncilDecision::where('due_date', '=', Carbon::parse($this->selectedDueDate)->format('Y-m-d'))->get();
+            $rectorateDecisions = RectorateAndCouncilDecision::where('due_date', '=', Carbon::parse($this->selectedDueDate)->format('Y-m-d'))
+                ->orderBy('position')
+                ->get();
+                
             $report = new PrintDecisionsRectorateAndCouncilController();
             $data = $report->downloadReport($rectorateDecisions);
 
