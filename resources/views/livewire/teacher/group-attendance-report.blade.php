@@ -7,7 +7,7 @@
             Дисциплина: {{ $discipline_name }}
         </h4>
         <h4 class="text-base lg:text-base font-semibold">
-            Учебный год: {{ $academicYear }} ({{ $halfYear }}-е полугодие)
+            {{ $academicYear }} 
         </h4>
 
         @if(count($eJournal) != 0)

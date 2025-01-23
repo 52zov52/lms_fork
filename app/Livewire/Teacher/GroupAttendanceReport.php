@@ -46,14 +46,16 @@ class GroupAttendanceReport extends Component
             ->groupBy('fio')
             ->get();
 
-        $academicYear = $aboutYear->academic_year;
-        $halfYear = $aboutYear->half_year;
+        if (!is_null($aboutYear)) {
+            $academicYear = "Учебный год: " . $aboutYear->academic_year . " (" . $aboutYear->half_year . "-е полугодие)";
+        } else {
+            $academicYear = "";
+        }
 
         return view('livewire.teacher.group-attendance-report', [
             'group_name' => $group->group_name,
             'discipline_name' => $wspCoursesInSemester->discipline_name,
             'academicYear' => $academicYear,
-            'halfYear' => $halfYear,
             'eJournal' => $eJournal
         ]);
     }
