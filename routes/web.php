@@ -130,6 +130,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.teacher.e-journal', compact('wspCoursesInSemesterId'), compact('groupId'));
         })->name('teacher.e.journal');
 
+        Route::get('/e-journal-group-attendance-report/{wspCoursesInSemesterId}/{groupId}', function ($wspCoursesInSemesterId, $groupId) {
+            return view('pages.teacher.group-attendance-report', compact('wspCoursesInSemesterId'), compact('groupId'));
+        })->name('teacher.e.journal.group.attendance.report');
+
         //График пересдач академических задолженностей у студентов
         Route::get('/academic-retake-schedule', function () {
             return view('pages.teacher.academic-retake-schedule');

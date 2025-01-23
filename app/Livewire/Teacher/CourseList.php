@@ -64,4 +64,12 @@ class CourseList extends Component
             'groupId' => $this->groupId
         ]);
     }
+
+    public function groupAttendanceReport($wspCoursesInSemesterId)
+    {
+        return redirect()->route('teacher.e.journal.group.attendance.report', [
+            'wspCoursesInSemesterId' => $wspCoursesInSemesterId,
+            'groupId' => $this->groupId
+        ]);
+    }
 }

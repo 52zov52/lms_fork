@@ -23,9 +23,12 @@
                         <td class="sticky left-0 w-auto bg-white dark:bg-slate-800 px-2 py-2">{{ $value->name }}</td>
                         <td class="w-24 px-2 py-2 text-center">{{ $value->half_year }}</td>
                         <td class="w-24 px-2 py-2 text-center">{{ $value->semester_number }}</td>
-                        <td class="sticky right-0 w-20 bg-white dark:bg-slate-800 px-2 py-2 text-center">
+                        <td class="sticky right-0 w-20 flex flex-row space-x-1 bg-white dark:bg-slate-800 px-2 py-2 text-center">
                             <button wire:click="redirectToEJournal({{ $value->wsp_courses_in_semester_id }})" class="w-9 btn-course-list" data-tippy-content="Журнал группы">
                                 <i class="fa-solid fa-book-open"></i>
+                            </button>
+                            <button wire:click="groupAttendanceReport({{ $value->wsp_courses_in_semester_id }})" class="w-9 btn-course-list" data-tippy-content="Отчет о посещаемости группы">
+                                <i class="fa-solid fa-chart-column"></i>
                             </button>
                         </td>
                     </tr>
