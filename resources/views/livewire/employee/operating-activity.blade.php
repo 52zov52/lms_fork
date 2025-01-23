@@ -276,7 +276,7 @@
                     </div>
                     <div class="flex flex-col">
                         <label for="activity-direction" class="font-semibold">Направления деятельности<span class="text-red-500">*</span></label>
-                        @if($activityDirection == 'Решение ректората')
+                        @if($activityDirection == 'Исполнение решений ректората')
                         <input wire:model="activityDirection" type="text" id="activity-direction" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" readonly>
                         @else
                         <select wire:model="activityDirection" name="activityDirection" id="activity-direction" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
