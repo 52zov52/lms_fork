@@ -198,7 +198,7 @@ class OperatingActivity extends Component
                 'status' => 'required|numeric|min:1',
                 'weekStartDate' => 'required',
                 'weekEndDate' => 'required',
-                'files.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,bmp,png,zip|max:3072'
+                'files.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,bmp,png,zip|max:9216'
             ]);
         } else {
             $this->validate([
@@ -243,7 +243,7 @@ class OperatingActivity extends Component
                 'status' => 'required|numeric|min:1',
                 'weekStartDate' => 'required',
                 'weekEndDate' => 'required',
-                'files.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,bmp,png,zip|max:3072'
+                'files.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,bmp,png,zip|max:9216'
             ]);
         } else {
             $this->validate([
