@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\Report\UvrController;
 use App\Models\UpbringingEvent;
 use App\Models\UpbringingEventReport;
 use Carbon\Carbon;
@@ -76,6 +77,7 @@ class UpbringingManagement extends Component
                 'upbringing_event_reports.link_to_news',
                 'upbringing_event_reports.file_path'
             )
+            ->orderBy('upbringing_events.date', 'asc')
             ->paginate(50);
 
         return view('livewire.upbringing-management', ['upbringingEvents' => $upbringingEvents]);
@@ -222,6 +224,14 @@ class UpbringingManagement extends Component
 
         session()->flash('type', 'success');
         session()->flash('message', 'Запись успешно удалена!');
+    }
+
+    public function downloadReport()
+    {
+        $uvrReport = new UvrController();
+        $data = $uvrReport->downloadReport();
+        
+        return response()->download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }
 
     private function resetFields()

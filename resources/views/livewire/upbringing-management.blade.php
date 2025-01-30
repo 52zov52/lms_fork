@@ -4,9 +4,17 @@
 
     @can('add-educational-and-youth-policy-events')
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-end">
-        <button wire:click="modalVisible(false)" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-left text-green-400 hover:text-white font-bold">
+        <button wire:click="modalVisible(false)" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-center text-green-400 hover:text-white font-bold">
             <i class="fa-solid fa-circle-plus fa-lg"></i>
             Добавить запись
+        </button>
+        <button wire:click="downloadReport" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-center text-blue-400 hover:text-white font-bold">
+            <span wire:loading.remove wire:target="downloadReport">
+                <i class="fa-solid fa-download"></i> Скачать отчет
+            </span>
+            <span wire:loading wire:target="downloadReport">
+                <i class="fa-solid fa-spinner fa-spin-pulse"></i> Идет загрузка
+            </span>
         </button>
     </div>
     @endcan

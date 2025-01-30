@@ -12,6 +12,7 @@ use App\Http\Controllers\Report\ContingentReportController;
 use App\Http\Controllers\Report\GroupStudentGradeController;
 use App\Http\Controllers\Report\IndividualStudentGradeController;
 use App\Http\Controllers\Report\SptController;
+use App\Http\Controllers\Report\UvrController;
 use App\Http\Controllers\Reports\PrintAdmissionCampaignController;
 use App\Http\Controllers\Reports\PrintApplicantAverageScoreController;
 use App\Http\Controllers\Reports\PrintDefenseMinistryForm10Controller;
@@ -104,6 +105,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/student-social-passport-review', function () {
             return view('pages.employee.student-social-passport-review');
         })->name('employee.student.social.passport.review');
+
+        Route::get('download-uvr-report', [UvrController::class, 'downloadReport'])->name('download.uvr.report');
 
         Route::get('/download-student-social-passport/{userId}', [StudentSocialPassportReviewController::class, 'downloadStudentSocialPassport'])->name('download.student.social.passport');
     });
