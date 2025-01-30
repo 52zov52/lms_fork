@@ -32,8 +32,7 @@
             <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                 <tr class="border-b border-slate-400/20">
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
-                    <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">Наименование мероприятия</th>
-                    <th scope="col" class="w-56 px-2 py-2 text-left font-semibold">Описание</th>
+                    <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">Мероприятие</th>
                     <th scope="col" class="w-56 px-2 py-2 text-left font-semibold">Ответственное лицо</th>
                     <th scope="col" class="w-16 px-2 py-2 font-semibold">Дата проведения</th>
                     <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Учебный год и полугодие</th>
@@ -49,8 +48,12 @@
                 @foreach($upbringingEvents as $value)
                 <tr class="bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-b border-slate-400/20">
                     <td class="w-12 px-2 py-2 text-center">{{ $loop->iteration }}</td>
-                    <td class="w-auto px-2 py-2">{{ $value->name }}</td>
-                    <td class="w-56 px-2 py-2">{{ $value->description }}</td>
+                    <td class="w-auto px-2 py-2">
+                        <p class="font-semibold">Наименование:</p>
+                        <p>{{ $value->name }}</p>
+                        <p class="font-semibold">Описание:</p>
+                        <p>{{ $value->description }}</p>
+                    </td>
                     <td class="w-56 px-2 py-2">{{ $value->fio }}</td>
                     <td class="w-16 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->date)->format('d.m.Y') }}</td>
                     <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }} ({{ $value->half_year }})</td>
