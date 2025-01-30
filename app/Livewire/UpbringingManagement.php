@@ -18,6 +18,7 @@ class UpbringingManagement extends Component
     use WithPagination;
 
     public $id = 0,
+        $category,
         $name = '',
         $description = '',
         $date = '',
@@ -61,12 +62,19 @@ class UpbringingManagement extends Component
         24829 => 'Шпилевская Елена Вячеславовна'
     ];
 
+    public $listOfCategories = [
+        1 => 'Федеральные',
+        2 => 'Региональные',
+        3 => 'В рамках академии'
+    ];
+
     public function render()
     {
         $upbringingEvents = UpbringingEvent::leftJoin('users_data', 'upbringing_events.user_id', '=', 'users_data.user_id')
             ->join('upbringing_event_reports', 'upbringing_events.id', '=', 'upbringing_event_reports.upbringing_event_id')
             ->select(
                 'upbringing_events.id',
+                'upbringing_events.category',
                 'upbringing_events.name',
                 'upbringing_events.description',
                 'upbringing_events.date',
@@ -80,7 +88,10 @@ class UpbringingManagement extends Component
             ->orderBy('upbringing_events.date', 'asc')
             ->paginate(50);
 
-        return view('livewire.upbringing-management', ['upbringingEvents' => $upbringingEvents]);
+        return view('livewire.upbringing-management', [
+            'upbringingEvents' => $upbringingEvents,
+            'listOfCategories' => $this->listOfCategories
+        ]);
     }
 
     public function callMethod($methodName, $param = null)
@@ -106,6 +117,7 @@ class UpbringingManagement extends Component
     {
         if (!is_null($this->file)) {
             $this->validate([
+                'category' => 'required|numeric|min:1',
                 'name' => 'required|string|max:1500',
                 'date' => 'required',
                 'academicYear' => 'required|string',
@@ -115,6 +127,7 @@ class UpbringingManagement extends Component
             ]);
         } else {
             $this->validate([
+                'category' => 'required|numeric|min:1',
                 'name' => 'required|string|max:1500',
                 'date' => 'required',
                 'academicYear' => 'required|string',
@@ -126,6 +139,7 @@ class UpbringingManagement extends Component
         $filePath = (!is_null($this->file)) ? $this->file->store('files' . '/' . Carbon::now()->format('Y-m-d'), 'public') : null;
 
         $upbringingEvent = UpbringingEvent::create([
+            'category' => $this->category,
             'name' => $this->name,
             'description' => $this->description,
             'date' => Carbon::parse($this->date)->format('Y-m-d'),
@@ -151,6 +165,7 @@ class UpbringingManagement extends Component
     {
         $upbringingEvent = UpbringingEvent::findOrfail($id);
         $this->id = $id;
+        $this->category = $upbringingEvent->category ?? 0;
         $this->name = $upbringingEvent->name;
         $this->description = $upbringingEvent->description;
         $this->date = $upbringingEvent->date;
@@ -169,6 +184,7 @@ class UpbringingManagement extends Component
     {
         if (!is_null($this->file)) {
             $this->validate([
+                'category' => 'required|numeric|min:1',
                 'name' => 'required|string|max:1500',
                 'date' => 'required',
                 'academicYear' => 'required|string',
@@ -178,6 +194,7 @@ class UpbringingManagement extends Component
             ]);
         } else {
             $this->validate([
+                'category' => 'required|numeric|min:1',
                 'name' => 'required|string|max:1500',
                 'date' => 'required',
                 'academicYear' => 'required|string',
@@ -187,6 +204,7 @@ class UpbringingManagement extends Component
         }
 
         $upbringingEvent = UpbringingEvent::findOrfail($this->id);
+        $upbringingEvent->category = $this->category;
         $upbringingEvent->name = $this->name;
         $upbringingEvent->description = $this->description;
         $upbringingEvent->date = Carbon::parse($this->date)->format('Y-m-d');
@@ -237,6 +255,7 @@ class UpbringingManagement extends Component
     private function resetFields()
     {
         $this->id = 0;
+        $this->category = 0;
         $this->name = '';
         $this->description = '';
         $this->date = '';

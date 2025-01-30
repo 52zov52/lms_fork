@@ -16,6 +16,7 @@ class UvrController extends Controller
             ->join('upbringing_event_reports', 'upbringing_events.id', '=', 'upbringing_event_reports.upbringing_event_id')
             ->select(
                 'upbringing_events.id',
+                'upbringing_events.category',
                 'upbringing_events.name',
                 'upbringing_events.description',
                 DB::raw("DATE_FORMAT(upbringing_events.date, '%d.%m.%Y') as date"),
@@ -25,6 +26,7 @@ class UvrController extends Controller
                 'upbringing_event_reports.link_to_news',
                 'upbringing_event_reports.file_path'
             )
+            ->orderBy('fio', 'asc')
             ->orderBy('upbringing_events.date', 'asc')
             ->get();
 
@@ -44,9 +46,10 @@ class UvrController extends Controller
         $sheet->setCellValue('F' . $offset, 'Полугодие');
         $sheet->setCellValue('G' . $offset, 'Ссылка на отчет в сети интернет');
         $sheet->setCellValue('H' . $offset, 'Наличие прикрепленных файлов');
+        $sheet->setCellValue('I' . $offset, 'Категория');
 
-        $sheet->getStyle('A' . $offset . ':H' . $offset)->getFont()->setBold(true);
-        $sheet->getStyle('A' . $offset . ':H' . $offset)
+        $sheet->getStyle('A' . $offset . ':I' . $offset)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $offset . ':I' . $offset)
             ->applyFromArray(array('alignment' => [
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
@@ -54,7 +57,19 @@ class UvrController extends Controller
 
         $offset++;
 
+        $category = '-';
+
         foreach ($upbringingEvents as $key => $value) {
+            if($value->category == 1) {
+                $category = 'Федеральные';
+            }elseif($value->category == 2) {
+                $category = 'Региональные';
+            }elseif($value->category == 3) {
+                $category = 'В рамках академии';
+            }else {
+                $category = '-';
+            }
+
             $sheet->setCellValue('A' . $offset, $value->name);
             $sheet->setCellValue('B' . $offset, $value->description);
             $sheet->setCellValue('C' . $offset, $value->fio);
@@ -63,11 +78,12 @@ class UvrController extends Controller
             $sheet->setCellValue('F' . $offset, $value->half_year);
             $sheet->setCellValue('G' . $offset, $value->link_to_news ?? 'Отсутствует');
             $sheet->setCellValue('H' . $offset, (is_null($value->file_path)) ? 'Отсутствуют' : 'Прикреплены к отчету');
+            $sheet->setCellValue('I' . $offset, $category);
 
             $offset++;
         }
 
-        $sheet->getStyle('A1:H' . $offset)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('A1:I' . $offset)->getAlignment()->setWrapText(true);
 
         $sheet->getStyle('A2:D' . $offset)
             ->applyFromArray(array('alignment' => [
@@ -75,14 +91,14 @@ class UvrController extends Controller
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT
             ]));
 
-        $sheet->getStyle('D2:H' . $offset)
+        $sheet->getStyle('D2:I' . $offset)
             ->applyFromArray(array('alignment' => [
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
             ]));
 
         //Стиль для рамки
-        $sheet->getStyle('A1:H' . ($offset - 1))
+        $sheet->getStyle('A1:I' . ($offset - 1))
             ->getBorders()
             ->getAllBorders()
             ->applyFromArray(array(
@@ -99,6 +115,7 @@ class UvrController extends Controller
         $sheet->getColumnDimension('F')->setWidth(15);
         $sheet->getColumnDimension('G')->setWidth(15);
         $sheet->getColumnDimension('H')->setWidth(15);
+        $sheet->getColumnDimension('I')->setWidth(20);
 
         $writer = new Xlsx($spreadsheet);
 

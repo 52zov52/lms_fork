@@ -14,6 +14,7 @@ return new class extends Migration
     {
         Schema::create('upbringing_events', function (Blueprint $table) {
             $table->id();
+            $table->integer('category');
             $table->string('name', 1500);
             $table->text('description', 1500)->nullable();
             $table->date('date');

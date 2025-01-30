@@ -2,22 +2,29 @@
 
     <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
-    @can('add-educational-and-youth-policy-events')
-    <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 md:justify-end">
-        <button wire:click="modalVisible(false)" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-center text-green-400 hover:text-white font-bold">
-            <i class="fa-solid fa-circle-plus fa-lg"></i>
-            Добавить запись
-        </button>
-        <button wire:click="downloadReport" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-center text-blue-400 hover:text-white font-bold">
-            <span wire:loading.remove wire:target="downloadReport">
-                <i class="fa-solid fa-download"></i> Скачать отчет
-            </span>
-            <span wire:loading wire:target="downloadReport">
-                <i class="fa-solid fa-spinner fa-spin-pulse"></i> Идет загрузка
-            </span>
-        </button>
+    <div class="flex flex-col md:flex-row md:justify-between space-y-2 md:space-y-0">
+        <div class="flex flex-row space-x-2">
+            <span class="bg-orange-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">Федеральные</span>
+            <span class="bg-sky-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">Региональные</span>
+            <span class="bg-green-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">В рамках академии</span>
+        </div>
+        @can('add-educational-and-youth-policy-events')
+        <div class="flex flex-col space-x-0 space-y-1 md:flex-row md:space-x-2 md:space-y-0">
+            <button wire:click="modalVisible(false)" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-center text-green-400 hover:text-white font-bold">
+                <i class="fa-solid fa-circle-plus fa-lg"></i>
+                Добавить запись
+            </button>
+            <button wire:click="downloadReport" class="bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-2 text-xs text-center text-blue-400 hover:text-white font-bold">
+                <span wire:loading.remove wire:target="downloadReport">
+                    <i class="fa-solid fa-download"></i> Скачать отчет
+                </span>
+                <span wire:loading wire:target="downloadReport">
+                    <i class="fa-solid fa-spinner fa-spin-pulse"></i> Идет загрузка
+                </span>
+            </button>
+        </div>
+        @endcan
     </div>
-    @endcan
 
     @if(!is_null($upbringingEvents) && count($upbringingEvents) != 0)
     <div class="border rounded border-slate-400/20">
@@ -29,10 +36,10 @@
                     <th scope="col" class="w-56 px-2 py-2 text-left font-semibold">Описание</th>
                     <th scope="col" class="w-56 px-2 py-2 text-left font-semibold">Ответственное лицо</th>
                     <th scope="col" class="w-16 px-2 py-2 font-semibold">Дата проведения</th>
-                    <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Учебный год</th>
-                    <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Полугодие</th>
+                    <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Учебный год и полугодие</th>
                     <th scope="col" class="w-44 px-2 py-2 text-left font-semibold">Ссылка</th>
                     <th scope="col" class="w-16 px-2 py-2 font-semibold">Файл(ы)</th>
+                    <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Категория</th>
                     @can('add-educational-and-youth-policy-events')
                     <th scope="col" class="w-32 px-2 py-2 font-semibold">Действия</th>
                     @endcan
@@ -46,8 +53,7 @@
                     <td class="w-56 px-2 py-2">{{ $value->description }}</td>
                     <td class="w-56 px-2 py-2">{{ $value->fio }}</td>
                     <td class="w-16 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->date)->format('d.m.Y') }}</td>
-                    <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }}</td>
-                    <td class="w-24 px-2 py-2 text-center">{{ $value->half_year }}</td>
+                    <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }} ({{ $value->half_year }})</td>
                     <td class="w-44 px-2 py-2">
                         @if(!is_null($value->link_to_news))
                         <a href="{{ $value->link_to_news }}" class="text-blue-400 hover:underline" target="_blank">{{ $value->link_to_news }}</a>
@@ -58,6 +64,17 @@
                     <td class="w-16 px-2 py-2 text-center">
                         @if(!is_null($value->file_path))
                         <a href="storage/{{ $value->file_path }}" class="text-blue-400 hover:underline" target="_blank">Смотреть</a>
+                        @else
+                        <span>-</span>
+                        @endif
+                    </td>
+                    <td class="w-24 px-2 py-2 text-center">
+                        @if($value->category == 1)
+                        <span class="text-orange-400 font-bold cursor-pointer">Ф</span>
+                        @elseif($value->category == 2)
+                        <span class="text-sky-400 font-bold cursor-pointer">Р</span>
+                        @elseif($value->category == 3)
+                        <span class="text-green-400 font-bold cursor-pointer">А</span>
                         @else
                         <span>-</span>
                         @endif
@@ -100,6 +117,16 @@
 
             <x-slot name="content">
                 <div class="flex flex-col space-y-2">
+                    <div class="flex flex-col">
+                        <label for="category" class="font-semibold">Категория мероприятий<span class="ml-1 text-red-500">*</span></label>
+                        <select wire:model="category" name="category" id="category" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            <option value="0">Выберите категорию мероприятия из списка</option>
+                            @foreach($listOfCategories as $key => $value)
+                            <option value="{{ $key }}">{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        @error('category') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
+                    </div>
                     <div class="flex flex-col">
                         <label for="name" class="font-semibold">Наименование мероприятия<span class="ml-1 text-red-500">*</span></label>
                         <textarea wire:model="name" name="name" id="name" cols="5" rows="2" class="w-full border border-gray-300 rounded px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
