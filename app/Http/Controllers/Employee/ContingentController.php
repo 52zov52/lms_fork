@@ -21,7 +21,7 @@ class ContingentController extends Controller
             ->get()->toArray());
     }
 
-    public function getContingent($groupId): object
+    public function getContingent($groupId, $gender = [0, 1]): object
     {
         return GroupStudent::join('users_data', 'group_student.user_id', '=', 'users_data.user_id')
             ->select(
@@ -35,6 +35,7 @@ class ContingentController extends Controller
                 DB::raw("(SELECT states.name FROM student_state INNER JOIN states ON states.id = student_state.state_id WHERE student_state.user_id = group_student.user_id ORDER BY student_state.id DESC LIMIT 1) as state_name")
             )
             ->where('group_student.group_id', '=', $groupId)
+            ->whereIn('users_data.sex', $gender)
             ->orderBy('users_data.last_name', 'asc')
             ->get();
     }

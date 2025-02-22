@@ -15,13 +15,21 @@ class PrintDefenseMinistryForm10Controller extends Controller
     public function print($userId)
     {
         $userInfo = DB::table('users_data')
-            ->leftJoin('users_addresses', 'users_data.user_id', '=', 'users_addresses.user_id')
-            ->leftJoin('countries', 'users_addresses.country_id', '=', 'countries.id')
-            ->leftJoin('regions', 'users_addresses.region_id', '=', 'regions.id')
-            ->leftJoin('cities', 'users_addresses.city_id', '=', 'cities.id')
+            ->leftJoin('address_user', 'users_data.user_id', '=', 'address_user.user_id')
+            ->leftJoin('addresses', 'address_user.address_id', '=', 'addresses.id')
+            ->leftJoin('countries', 'addresses.country_id', '=', 'countries.id')
+            ->leftJoin('regions', 'addresses.region_id', '=', 'regions.id')
+            ->leftJoin('cities', 'addresses.city_id', '=', 'cities.id')
             ->leftJoin('city_types', 'cities.city_type_id', '=', 'city_types.id')
-            ->leftJoin('districts', 'users_addresses.district_id', '=', 'districts.id')
+            ->leftJoin('districts', 'addresses.district_id', '=', 'districts.id')
             ->where('users_data.user_id', '=', $userId)
+            ->where(function ($query) {
+                $query->where('address_user.address_type', '=', 0)
+                      ->orWhere(function ($query) {
+                          $query->whereNull('address_user.address_type')
+                                ->where('address_user.address_type', '=', 2);
+                      });
+            })
             ->select(
                 'users_data.last_name',
                 'users_data.first_name',
@@ -36,10 +44,10 @@ class PrintDefenseMinistryForm10Controller extends Controller
                 'city_types.name as city_type_name',
                 'cities.city_name',
                 'districts.district_name',
-                'users_addresses.street',
-                'users_addresses.building',
-                'users_addresses.flat',
-                'users_addresses.phone'
+                'addresses.street',
+                'addresses.building',
+                'addresses.flat',
+                'addresses.phone'
             )
             ->first();
 
@@ -134,7 +142,9 @@ class PrintDefenseMinistryForm10Controller extends Controller
 
         $templateProcessor->setComplexBlock('educationBackgound', $table);
 
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        $templateProcessor->saveAs("php://output");
+        $tempFile = tempnam(sys_get_temp_dir(), $filename);
+        $templateProcessor->saveAs($tempFile);
+
+        return ['tempFile' => $tempFile, 'filename' => $filename];
     }
 }

@@ -106,6 +106,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.employee.student-social-passport-review');
         })->name('employee.student.social.passport.review');
 
+        //Воинский учёт
+        Route::get('milatary', function () {
+            return view('pages.employee.milatary');
+        })->name('milatary');
+
         Route::get('download-uvr-report', [UvrController::class, 'downloadReport'])->name('download.uvr.report');
 
         Route::get('/download-student-social-passport/{userId}', [StudentSocialPassportReviewController::class, 'downloadStudentSocialPassport'])->name('download.student.social.passport');

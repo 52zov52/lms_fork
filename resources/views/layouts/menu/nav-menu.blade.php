@@ -178,6 +178,16 @@
         </div>
     </a>
     @endcan
+    @can('access-to-milatary')
+    <a href="{{ route('milatary') }}">
+        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('milatary')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <div class="w-8 h-8 flex items-center justify-center">
+                <i class="fa-solid fa-shield fa-lg"></i>
+            </div>
+            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Воинский учёт</span>
+        </div>
+    </a>
+    @endcan
     <!-- Teacher -->
     @role('Teacher')
     <a href="{{ route('teacher.digital.profile') }}">
