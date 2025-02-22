@@ -107,9 +107,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         })->name('employee.student.social.passport.review');
 
         //Воинский учёт
-        Route::get('milatary', function () {
+        Route::get('military', function () {
             return view('pages.employee.milatary');
-        })->name('milatary');
+        })->name('military');
 
         Route::get('download-uvr-report', [UvrController::class, 'downloadReport'])->name('download.uvr.report');
 
