@@ -11,6 +11,10 @@
             </div>
         </div>
 
+        <div class="flex flex-row space-x-2">
+            <input wire:model="docNumber" type="text" name="docNumber" id="doc-number" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 px-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-600 dark:placeholder-white" placeholder="Введите номер документа для приложения № 4">
+        </div>
+
         <div wire:loading.remove wire:target="getContingent, searchContingentByTicketNumber">
             @if(!is_null($contingent) && count($contingent) != 0)
             <div class="border rounded border-slate-400/20">
@@ -37,6 +41,14 @@
                                         <i class="fa-solid fa-download"></i>
                                     </span>
                                     <span wire:loading wire:target="milatary({{ $item->user_id }})">
+                                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                    </span>
+                                </button>
+                                <button wire:click="form4({{ $item->user_id }})" class="w-9 btn-download" title="" data-tippy-content="Скачать форму № 4">
+                                    <span wire:loading.remove wire:target="form4({{ $item->user_id }})">
+                                        <i class="fa-solid fa-download"></i>
+                                    </span>
+                                    <span wire:loading wire:target="form4({{ $item->user_id }})">
                                         <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                                     </span>
                                 </button>
