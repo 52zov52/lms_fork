@@ -82,6 +82,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.employee.rectorate-decision');
         })->name('employee.rectorate.decision');
 
+        //Справочник нормативных документов
+        Route::get('/rectorate-decisions', function () {
+            return view('pages.employee.regulatory-document');
+        })->name('employee.regulatory.documents');
+
         //Управление контингентом
         Route::get('/contingent-management', function () {
             return view('pages.employee.contingent-management');
