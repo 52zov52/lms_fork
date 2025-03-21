@@ -3,6 +3,7 @@
 namespace App\Livewire\Employee;
 
 use App\Models\RegulatoryDocument as ModelsRegulatoryDocument;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -16,33 +17,78 @@ class RegulatoryDocument extends Component
     public $isCreateOrEditModalVisible = false;
     public $isEdit = false;
 
-    public $regulatoryDocuments = [];
     public $searchText = '';
-    public $id, $title, $description, $type, $file, $file_path, $filename;
+    public $rand = 0;
+    public $id = 0, $title = '', $description = '', $type = '', $file = null, $file_path = '', $filename = '';
 
     public function render()
     {
         if ($this->searchText != '') {
-            $this->search();
+            $regulatoryDocuments = $this->search();
         } else {
-            $this->fecthData();
+            $regulatoryDocuments = $this->fecthData();
         }
-        
-        return view('livewire.employee.regulatory-document');
+
+        return view('livewire.employee.regulatory-document', ['regulatoryDocuments' => $regulatoryDocuments]);
     }
 
     public function search()
     {
-        $this->regulatoryDocuments = ModelsRegulatoryDocument::where('title', 'like', '%' . $this->searchText . '%')->pagination(20);
+        return ModelsRegulatoryDocument::where('title', 'like', '%' . $this->searchText . '%')
+            ->select(
+                'id',
+                'title',
+                'description',
+                DB::raw("CASE 
+                    WHEN type = 'laws' THEN 'Законы'
+                    WHEN type = 'decrees' THEN 'Постановления'
+                    WHEN type = 'orders' THEN 'Приказы'
+                    WHEN type = 'regulations' THEN 'Регламенты'
+                    WHEN type = 'standards' THEN 'Стандарты'
+                    WHEN type = 'instructions' THEN 'Инструкции'
+                    WHEN type = 'rules' THEN 'Правила'
+                    WHEN type = 'gost' THEN 'ГОСТ'
+                    WHEN type = 'sanitary_norms' THEN 'Санитарные нормы'
+                    WHEN type = 'technical_regulations' THEN 'Технические регламенты'
+                    ELSE 'Не определен' END as type")
+            )
+            ->paginate(50);
     }
 
     public function fecthData()
     {
-        $this->regulatoryDocuments = ModelsRegulatoryDocument::pagination(20);
+        return ModelsRegulatoryDocument::select(
+            'id',
+            'title',
+            'description',
+            DB::raw("CASE 
+                WHEN type = 'laws' THEN 'Законы'
+                WHEN type = 'decrees' THEN 'Постановления'
+                WHEN type = 'orders' THEN 'Приказы'
+                WHEN type = 'regulations' THEN 'Регламенты'
+                WHEN type = 'standards' THEN 'Стандарты'
+                WHEN type = 'instructions' THEN 'Инструкции'
+                WHEN type = 'rules' THEN 'Правила'
+                WHEN type = 'gost' THEN 'ГОСТ'
+                WHEN type = 'sanitary_norms' THEN 'Санитарные нормы'
+                WHEN type = 'technical_regulations' THEN 'Технические регламенты'
+                ELSE 'Не определен' END as type")
+        )
+            ->paginate(50);
+    }
+
+    public function create()
+    {
+        $this->resetFields();
+
+        $this->isEdit = false;
+        $this->isCreateOrEditModalVisible = true;
     }
 
     public function edit(string $id)
     {
+        $this->resetFields();
+
         $regulatoryDocuments = ModelsRegulatoryDocument::findOrFail($id);
         $this->id = $id;
         $this->title = $regulatoryDocuments->title;
@@ -59,7 +105,7 @@ class RegulatoryDocument extends Component
     {
         $this->validate([
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'string',
             'type' => 'required|string',
             'file' => 'required|file|mimes:pdf,doc,docx|max:9216'
         ]);
@@ -72,7 +118,7 @@ class RegulatoryDocument extends Component
         $filePath = $this->file->store('files/' . now()->format('Y-m-d'), 'public');
 
         $regulatoryDocuments->file_path = $filePath;
-        $regulatoryDocuments->filename = $this->file->getOriggetClientOriginalName();
+        $regulatoryDocuments->filename = $this->file->getClientOriginalName();
         $regulatoryDocuments->save();
 
         $this->isCreateOrEditModalVisible = false;
@@ -81,22 +127,31 @@ class RegulatoryDocument extends Component
 
     public function update()
     {
-        $this->validate([
+        $rules = [
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'string',
             'type' => 'required|string',
-            'file' => 'required|file|mimes:pdf,doc,docx|max:9216'
-        ]);
+        ];
+
+        if (!is_null($this->file)) {
+            $rules['file'] = 'required|file|mimes:pdf,doc,docx|max:9216';
+        }
+
+        $this->validate($rules);
 
         $regulatoryDocuments = ModelsRegulatoryDocument::findOrFail($this->id);
         $regulatoryDocuments->title = $this->title;
         $regulatoryDocuments->description = $this->description;
         $regulatoryDocuments->type = $this->type;
 
-        $filePath = $this->file->store('files/' . now()->format('Y-m-d'), 'public');
+        if (!is_null($this->file)) {
+            unlink(storage_path('app/public/' . $regulatoryDocuments->file_path));
 
-        $regulatoryDocuments->file_path = $filePath;
-        $regulatoryDocuments->filename = $this->file->getOriggetClientOriginalName();
+            $filePath = $this->file->store('files/' . now()->format('Y-m-d'), 'public');
+            $regulatoryDocuments->file_path = $filePath;
+            $regulatoryDocuments->filename = $this->file->getClientOriginalName();
+        }
+
         $regulatoryDocuments->update();
 
         $this->isCreateOrEditModalVisible = false;
@@ -114,5 +169,21 @@ class RegulatoryDocument extends Component
 
         $regulatoryDocuments->delete();
         $this->dispatch('show-toast', message: 'Запись успешно удалена!', type: 'success');
+    }
+
+    private function resetFields()
+    {
+        $this->id = 0;
+        $this->title = '';
+        $this->description = '';
+        $this->type = '';
+        $this->file = null;
+        $this->file_path = '';
+        $this->filename = '';
+
+        $this->rand++;
+
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 }

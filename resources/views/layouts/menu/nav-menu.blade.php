@@ -142,7 +142,7 @@
     <a href="{{ route('employee.regulatory.documents') }}">
         <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('employee.regulatory.documents')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <div class="w-8 h-8 flex items-center justify-center">
-                <i class="fa-solid fa-briefcase fa-lg"></i>
+                <i class="fa-solid fa-layer-group"></i>
             </div>
             <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Справочник нормативных документов</span>
         </div>

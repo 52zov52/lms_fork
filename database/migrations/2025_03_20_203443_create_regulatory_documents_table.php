@@ -8,16 +8,16 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * Законы (Laws)
-     * Постановления (Decrees)
-     * Приказы (Orders)
-     * Регламенты (Regulations)
-     * Стандарты (Standards)
-     * Инструкции (Instructions)
-     * Правила (Rules)
-     * Государственные стандарты (ГОСТ) (GOST)
-     * Санитарные нормы (Sanitary Norms)
-     * Технические регламенты (Technical Regulations)
+     * Законы (laws)
+     * Постановления (decrees)
+     * Приказы (orders)
+     * Регламенты (regulations)
+     * Стандарты (standards)
+     * Инструкции (instructions)
+     * Правила (rules)
+     * Государственные стандарты (ГОСТ) (gost)
+     * Санитарные нормы (sanitary_norms)
+     * Технические регламенты (technical_regulations)
      */
     public function up(): void
     {

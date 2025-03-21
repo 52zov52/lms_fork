@@ -83,7 +83,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         })->name('employee.rectorate.decision');
 
         //Справочник нормативных документов
-        Route::get('/rectorate-decisions', function () {
+        Route::get('/regulatory-documents', function () {
             return view('pages.employee.regulatory-document');
         })->name('employee.regulatory.documents');
 
