@@ -39,6 +39,8 @@ class RegulatoryDocument extends Component
                 'id',
                 'title',
                 'description',
+                'file_path',
+                'filename',
                 DB::raw("CASE 
                     WHEN type = 'laws' THEN 'Законы'
                     WHEN type = 'decrees' THEN 'Постановления'
@@ -61,6 +63,8 @@ class RegulatoryDocument extends Component
             'id',
             'title',
             'description',
+            'file_path',
+            'filename',
             DB::raw("CASE 
                 WHEN type = 'laws' THEN 'Законы'
                 WHEN type = 'decrees' THEN 'Постановления'
