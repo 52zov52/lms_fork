@@ -40,13 +40,14 @@ class ApplicantAverageScore extends Component
 
     public $isEntryModalVisible = false, $isEdit = false;
 
-    public function mount()
-    {
-        $this->directions = AdmissionCampaignDirection::where('level_education_id', '=', 2)->get();
-    }
-
     public function render()
     {
+        $this->directions = AdmissionCampaignDirection::where('is_active', '=', 1)
+            ->whereIn('level_education_id', [2, 6])
+            ->orderBy('level_education_id', 'ASC')
+            ->orderBy('speciality_code', 'ASC')
+            ->get();
+
         $activeAdmissionCampaign = AdmissionCampaign::where('is_active', 1)->select('id')->first();
         $this->activeAdmissionCampaignId = $activeAdmissionCampaign->id;
 

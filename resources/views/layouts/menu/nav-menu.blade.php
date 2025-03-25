@@ -65,7 +65,7 @@
             <div class="w-8 h-8 flex items-center justify-center">
                 <i class="fa-solid fa-book-open fa-lg"></i>
             </div>
-            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Моя успеваемость</span>
+            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Моя посещаемость</span>
         </div>
     </a>
     <a href="{{ route('student.document.order.requests') }}">
