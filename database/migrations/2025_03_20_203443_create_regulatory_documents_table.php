@@ -8,6 +8,7 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     * type:
      * Законы (laws)
      * Постановления (decrees)
      * Приказы (orders)
@@ -18,6 +19,22 @@ return new class extends Migration
      * Государственные стандарты (ГОСТ) (gost)
      * Санитарные нормы (sanitary_norms)
      * Технические регламенты (technical_regulations)
+     * 
+     * category:
+     * Учебная. СПО
+     * Учебная. Бакалавриат
+     * Учебная. Магистратура
+     * Учебная. Аспирантура
+     * Научная
+     * Межународная
+     * Прием на обучение
+     * Воспитательная
+     * Кадровая
+     * Трудоустройство
+     * Финансово-хозяйственная
+     * Безопасность 
+     * Конкурсы/гранты
+     * Разное
      */
     public function up(): void
     {
@@ -26,6 +43,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('type');
+            $table->json('category');
             $table->string('file_path', 2048);
             $table->text('filename');
             $table->timestamps();

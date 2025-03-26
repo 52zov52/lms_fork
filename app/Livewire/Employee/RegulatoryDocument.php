@@ -19,7 +19,24 @@ class RegulatoryDocument extends Component
 
     public $searchText = '';
     public $rand = 0;
-    public $id = 0, $title = '', $description = '', $type = '', $file = null, $file_path = '', $filename = '';
+    public $id = 0, $title = '', $description = '', $type = '', $category = [], $file = null, $file_path = '', $filename = '';
+
+    public $categories = [
+        'Учебная. СПО',
+        'Учебная. Бакалавриат',
+        'Учебная. Магистратура',
+        'Учебная. Аспирантура',
+        'Научная',
+        'Межународная',
+        'Прием на обучение',
+        'Воспитательная',
+        'Кадровая',
+        'Трудоустройство',
+        'Финансово-хозяйственная',
+        'Безопасность',
+        'Конкурсы/гранты',
+        'Разное',
+    ];
 
     public function render()
     {
@@ -52,7 +69,8 @@ class RegulatoryDocument extends Component
                     WHEN type = 'gost' THEN 'ГОСТ'
                     WHEN type = 'sanitary_norms' THEN 'Санитарные нормы'
                     WHEN type = 'technical_regulations' THEN 'Технические регламенты'
-                    ELSE 'Не определен' END as type")
+                    ELSE 'Не определен' END as type"),
+                'category'
             )
             ->paginate(50);
     }
@@ -76,7 +94,8 @@ class RegulatoryDocument extends Component
                 WHEN type = 'gost' THEN 'ГОСТ'
                 WHEN type = 'sanitary_norms' THEN 'Санитарные нормы'
                 WHEN type = 'technical_regulations' THEN 'Технические регламенты'
-                ELSE 'Не определен' END as type")
+                ELSE 'Не определен' END as type"),
+            'category'
         )
             ->paginate(50);
     }
@@ -98,6 +117,7 @@ class RegulatoryDocument extends Component
         $this->title = $regulatoryDocuments->title;
         $this->description = $regulatoryDocuments->description;
         $this->type = $regulatoryDocuments->type;
+        $this->category = json_decode($regulatoryDocuments->category, true);
         $this->file_path = $regulatoryDocuments->file_path;
         $this->filename = $regulatoryDocuments->filename;
 
@@ -111,6 +131,7 @@ class RegulatoryDocument extends Component
             'title' => 'required|string|max:255',
             'description' => 'string',
             'type' => 'required|string',
+            'category' => 'required|array',
             'file' => 'required|file|mimes:pdf,doc,docx|max:9216'
         ]);
 
@@ -118,6 +139,7 @@ class RegulatoryDocument extends Component
         $regulatoryDocuments->title = $this->title;
         $regulatoryDocuments->description = $this->description;
         $regulatoryDocuments->type = $this->type;
+        $regulatoryDocuments->category = json_encode($this->category);
 
         $filePath = $this->file->store('files/' . now()->format('Y-m-d'), 'public');
 
@@ -135,6 +157,7 @@ class RegulatoryDocument extends Component
             'title' => 'required|string|max:255',
             'description' => 'string',
             'type' => 'required|string',
+            'category' => 'required|array',
         ];
 
         if (!is_null($this->file)) {
@@ -147,6 +170,7 @@ class RegulatoryDocument extends Component
         $regulatoryDocuments->title = $this->title;
         $regulatoryDocuments->description = $this->description;
         $regulatoryDocuments->type = $this->type;
+        $regulatoryDocuments->category = json_encode($this->category);
 
         if (!is_null($this->file)) {
             unlink(storage_path('app/public/' . $regulatoryDocuments->file_path));
@@ -181,6 +205,7 @@ class RegulatoryDocument extends Component
         $this->title = '';
         $this->description = '';
         $this->type = '';
+        $this->category = [];
         $this->file = null;
         $this->file_path = '';
         $this->filename = '';

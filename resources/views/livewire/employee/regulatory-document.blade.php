@@ -31,6 +31,7 @@
                             <th scope="col" class="w-60 px-2 py-2 text-left font-semibold">Документ</th>
                             <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">Описание</th>
                             <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Тип</th>
+                            <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Категория</th>
                             <th scope="col" class="w-36 px-2 py-2 text-center font-semibold">Действия</th>
                         </tr>
                     </thead>
@@ -41,6 +42,13 @@
                             <td class="w-60 px-2 py-2">{{ $item->title }}</td>
                             <td class="w-auto px-2 py-2 text-justify">{{ Str::limit($item->description, 255, ' ...') }}</td>
                             <td class="w-24 px-2 py-2 text-center">{{ $item->type }}</td>
+                            <td class="w-40 px-2 py-2 text-center">
+                                <div class="flex flex-col space-y-1">
+                                    @foreach(json_decode($item->category, true) as $value)
+                                    <span>{{ $value }}</span>
+                                    @endforeach
+                                </div>
+                            </td>
                             <td class="w-36 text-center">
                                 <div class="flex flex-row flex-wrap items-center justify-center space-x-1">
                                     <a href="{{ asset('storage/'. $item->file_path) }}" target="_blank" rel="noopener noreferrer" class="w-9 btn-download" data-tippy-content="Скачать файл">
@@ -81,6 +89,14 @@
                     <div class="flex flex-col">
                         <span class="font-semibold">Тип:</span>
                         <span>{{ $item->type }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Категория:</span>
+                        <div class="flex flex-row space-x-2">
+                            @foreach(json_decode($item->category, true) as $value)
+                            <span>{{ $value }}</span>
+                            @endforeach
+                        </div>
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Действия:</span>
@@ -159,6 +175,17 @@
                             <option value="technical_regulations">Технические регламенты</option>
                         </select>
                         @error('type') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="type" class="font-semibold">Категория документа<span class="ml-1 text-red-400">*</span></label>
+                        @foreach($categories as $item)
+                        <div class="mr-2">
+                            <label for="category-{{ $loop->iteration }}" class="flex space-x-1 items-center">
+                                <input wire:model="category" value="{{ $item }}" type="checkbox" id="category-{{ $loop->iteration }}" class="mr-1">{{ $item }}
+                            </label>
+                        </div>
+                        @endforeach
+                        @error('category') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                     </div>
                     <div class="flex flex-col">
                         <div class="flex">

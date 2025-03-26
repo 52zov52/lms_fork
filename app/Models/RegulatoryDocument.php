@@ -13,6 +13,7 @@ class RegulatoryDocument extends Model
         'title',
         'description',
         'type',
+        'category',
         'file_path',
         'filename',
     ];

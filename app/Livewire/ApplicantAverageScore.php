@@ -43,7 +43,7 @@ class ApplicantAverageScore extends Component
     public function render()
     {
         $this->directions = AdmissionCampaignDirection::where('is_active', '=', 1)
-            ->whereIn('level_education_id', [2, 6])
+            ->whereIn('level_education_id', [2])
             ->orderBy('level_education_id', 'ASC')
             ->orderBy('speciality_code', 'ASC')
             ->get();
