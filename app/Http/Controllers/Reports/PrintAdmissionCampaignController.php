@@ -17,17 +17,35 @@ class PrintAdmissionCampaignController extends Controller
 {
     public function printToDayReport()
     {
-        $collegeCommerce = $this->dataTransformToCollege(1);
-        $bachelorCommerce = $this->dataTransformToBachelor(1);
-        $mastersDegreeCommerce = $this->dataTransformToMastersDegree(1);
-        $phdCommerce = $this->dataTransformToPhD(1);
+        $activeAdmissionCampaign = AdmissionCampaign::where('is_active', 1)->select('id')->first();
+        $activeAdmissionCampaignId = $activeAdmissionCampaign->id;
 
-        $collegeBudget = $this->dataTransformToCollege(0);
-        $bachelorBudget = $this->dataTransformToBachelor(0);
-        $mastersDegreeBudget = $this->dataTransformToMastersDegree(0);
-        $phdBudget = $this->dataTransformToPhD(0);
+        $collegeCommerce = $this->dataTransformToCollege(1, $activeAdmissionCampaignId);
+        $bachelorCommerce = $this->dataTransformToBachelor(1, $activeAdmissionCampaignId);
+        $mastersDegreeCommerce = $this->dataTransformToMastersDegree(1, $activeAdmissionCampaignId);
+        $phdCommerce = $this->dataTransformToPhD(1, $activeAdmissionCampaignId);
 
-        $sumByLevelEducation = $this->getSum(true);
+        $collegeBudget = $this->dataTransformToCollege(0, $activeAdmissionCampaignId);
+        $bachelorBudget = $this->dataTransformToBachelor(0, $activeAdmissionCampaignId);
+        $mastersDegreeBudget = $this->dataTransformToMastersDegree(0, $activeAdmissionCampaignId);
+        $phdBudget = $this->dataTransformToPhD(0, $activeAdmissionCampaignId);
+
+        $sumByLevelEducation = $this->getSum($activeAdmissionCampaignId, true);
+
+        $collegeTotalApplication =  $sumByLevelEducation['college'][0]['total_applications_count'] ?? 0;
+        $bachelorTotalApplication = $sumByLevelEducation['bachelor'][0]['total_applications_count'] ?? 0;
+        $mastersDegreeTotalApplication = $sumByLevelEducation['mastersDegree'][0]['total_applications_count'] ?? 0;
+        $phdTotalApplication = $sumByLevelEducation['phd'][0]['total_applications_count'] ?? 0;
+
+        $collegeTotalContract =  $sumByLevelEducation['college'][0]['total_contracts_count'] ?? 0;
+        $bachelorTotalContract = $sumByLevelEducation['bachelor'][0]['total_contracts_count'] ?? 0;
+        $mastersDegreeTotalContract = $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] ?? 0;
+        $phdTotalContract = $sumByLevelEducation['phd'][0]['total_contracts_count'] ?? 0;
+
+        $collegeTotalPaidContract =  $sumByLevelEducation['college'][0]['total_paid_contracts_count'] ?? 0;
+        $bachelorTotalPaidContract = $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count'] ?? 0;
+        $mastersDegreeTotalPaidContract = $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count'] ?? 0;
+        $phdTotalPaidContract = $sumByLevelEducation['phd'][0]['total_paid_contracts_count'] ?? 0;
 
         $filename = time() . '.xlsx';
 
@@ -54,47 +72,43 @@ class PrintAdmissionCampaignController extends Controller
         $offset++;
 
         $sheet->setCellValue('A' . $offset, 'Подано заявлений');
-        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_applications_count']);
-        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_applications_count']);
-        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_applications_count']);
-        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_applications_count']);
-        $sheet->setCellValue('F' . $offset, $sumByLevelEducation['college'][0]['total_applications_count'] +
-            $sumByLevelEducation['bachelor'][0]['total_applications_count'] + $sumByLevelEducation['mastersDegree'][0]['total_applications_count'] +
-            $sumByLevelEducation['phd'][0]['total_applications_count']);
+        $sheet->setCellValue('B' . $offset, $collegeTotalApplication);
+        $sheet->setCellValue('C' . $offset, $bachelorTotalApplication);
+        $sheet->setCellValue('D' . $offset, $mastersDegreeTotalApplication);
+        $sheet->setCellValue('E' . $offset, $phdTotalApplication);
+        $sheet->setCellValue('F' . $offset, $collegeTotalApplication + $bachelorTotalApplication + $mastersDegreeTotalApplication + $phdTotalApplication);
 
         $offset++;
 
         $sheet->setCellValue('A' . $offset, 'Заключено договоров');
-        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_contracts_count']);
-        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_contracts_count']);
-        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_contracts_count']);
-        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_contracts_count']);
-        $sheet->setCellValue('F' . $offset, $sumByLevelEducation['college'][0]['total_contracts_count'] +
-            $sumByLevelEducation['bachelor'][0]['total_contracts_count'] + $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] +
-            $sumByLevelEducation['phd'][0]['total_contracts_count']);
+        $sheet->setCellValue('B' . $offset, $collegeTotalContract);
+        $sheet->setCellValue('C' . $offset, $bachelorTotalContract);
+        $sheet->setCellValue('D' . $offset, $mastersDegreeTotalContract);
+        $sheet->setCellValue('E' . $offset, $phdTotalContract);
+        $sheet->setCellValue('F' . $offset, $collegeTotalContract + $bachelorTotalContract + $mastersDegreeTotalContract + $phdTotalContract);
 
         $offset++;
 
         $sheet->setCellValue('A' . $offset, 'Оплачено');
-        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('F' . $offset, $sumByLevelEducation['college'][0]['total_paid_contracts_count'] +
-            $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count'] + $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count'] +
-            $sumByLevelEducation['phd'][0]['total_paid_contracts_count']);
+        $sheet->setCellValue('B' . $offset, $collegeTotalPaidContract);
+        $sheet->setCellValue('C' . $offset, $bachelorTotalPaidContract);
+        $sheet->setCellValue('D' . $offset, $mastersDegreeTotalPaidContract);
+        $sheet->setCellValue('E' . $offset, $phdTotalPaidContract);
+        $sheet->setCellValue('F' . $offset, $collegeTotalPaidContract +
+            $bachelorTotalPaidContract + $mastersDegreeTotalPaidContract +
+            $phdTotalPaidContract);
 
         $offset++;
 
         $sheet->setCellValue('A' . $offset, 'Не оплачено');
-        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_contracts_count'] - $sumByLevelEducation['college'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_contracts_count'] - $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] - $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_contracts_count'] - $sumByLevelEducation['phd'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('F' . $offset, ($sumByLevelEducation['college'][0]['total_contracts_count'] + $sumByLevelEducation['bachelor'][0]['total_contracts_count'] +
-            $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] + $sumByLevelEducation['phd'][0]['total_contracts_count']) -
-            ($sumByLevelEducation['college'][0]['total_paid_contracts_count'] + $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count'] +
-                $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count'] + $sumByLevelEducation['phd'][0]['total_paid_contracts_count']));
+        $sheet->setCellValue('B' . $offset, $collegeTotalContract - $collegeTotalPaidContract);
+        $sheet->setCellValue('C' . $offset, $bachelorTotalContract - $bachelorTotalPaidContract);
+        $sheet->setCellValue('D' . $offset, $mastersDegreeTotalContract - $mastersDegreeTotalPaidContract);
+        $sheet->setCellValue('E' . $offset, $phdTotalContract - $phdTotalPaidContract);
+        $sheet->setCellValue('F' . $offset, ($collegeTotalContract + $bachelorTotalContract +
+            $mastersDegreeTotalContract + $phdTotalContract) -
+            ($collegeTotalPaidContract + $bachelorTotalPaidContract +
+                $mastersDegreeTotalPaidContract + $phdTotalPaidContract));
 
         $offsetContentLast = $offset;
 
@@ -1344,21 +1358,39 @@ class PrintAdmissionCampaignController extends Controller
 
     public function printFullReport()
     {
+        $activeAdmissionCampaign = AdmissionCampaign::where('is_active', 1)->select('id')->first();
+        $activeAdmissionCampaignId = $activeAdmissionCampaign->id;
+
         $applicationPeriodStartDate = Carbon::parse(AdmissionCampaign::where('is_active', '=', true)
             ->select('application_period_start_date')
             ->first()->application_period_start_date)->format('d.m.Y');
 
-        $collegeCommerce = $this->dataTransformToCollege(1);
-        $bachelorCommerce = $this->dataTransformToBachelor(1);
-        $mastersDegreeCommerce = $this->dataTransformToMastersDegree(1);
-        $phdCommerce = $this->dataTransformToPhD(1);
+        $collegeCommerce = $this->dataTransformToCollege(1, $activeAdmissionCampaignId);
+        $bachelorCommerce = $this->dataTransformToBachelor(1, $activeAdmissionCampaignId);
+        $mastersDegreeCommerce = $this->dataTransformToMastersDegree(1, $activeAdmissionCampaignId);
+        $phdCommerce = $this->dataTransformToPhD(1, $activeAdmissionCampaignId);
 
-        $collegeBudget = $this->dataTransformToCollege(0);
-        $bachelorBudget = $this->dataTransformToBachelor(0);
-        $mastersDegreeBudget = $this->dataTransformToMastersDegree(0);
-        $phdBudget = $this->dataTransformToPhD(0);
+        $collegeBudget = $this->dataTransformToCollege(0, $activeAdmissionCampaignId);
+        $bachelorBudget = $this->dataTransformToBachelor(0, $activeAdmissionCampaignId);
+        $mastersDegreeBudget = $this->dataTransformToMastersDegree(0, $activeAdmissionCampaignId);
+        $phdBudget = $this->dataTransformToPhD(0, $activeAdmissionCampaignId);
 
-        $sumByLevelEducation = $this->getSum();
+        $sumByLevelEducation = $this->getSum($activeAdmissionCampaignId);
+
+        $collegeTotalApplication =  $sumByLevelEducation['college'][0]['total_applications_count'] ?? 0;
+        $bachelorTotalApplication = $sumByLevelEducation['bachelor'][0]['total_applications_count'] ?? 0;
+        $mastersDegreeTotalApplication = $sumByLevelEducation['mastersDegree'][0]['total_applications_count'] ?? 0;
+        $phdTotalApplication = $sumByLevelEducation['phd'][0]['total_applications_count'] ?? 0;
+
+        $collegeTotalContract =  $sumByLevelEducation['college'][0]['total_contracts_count'] ?? 0;
+        $bachelorTotalContract = $sumByLevelEducation['bachelor'][0]['total_contracts_count'] ?? 0;
+        $mastersDegreeTotalContract = $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] ?? 0;
+        $phdTotalContract = $sumByLevelEducation['phd'][0]['total_contracts_count'] ?? 0;
+
+        $collegeTotalPaidContract =  $sumByLevelEducation['college'][0]['total_paid_contracts_count'] ?? 0;
+        $bachelorTotalPaidContract = $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count'] ?? 0;
+        $mastersDegreeTotalPaidContract = $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count'] ?? 0;
+        $phdTotalPaidContract = $sumByLevelEducation['phd'][0]['total_paid_contracts_count'] ?? 0;
 
         $filename = time() . '.xlsx';
 
@@ -1385,47 +1417,45 @@ class PrintAdmissionCampaignController extends Controller
         $offset++;
 
         $sheet->setCellValue('A' . $offset, 'Подано заявлений');
-        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_applications_count']);
-        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_applications_count']);
-        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_applications_count']);
-        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_applications_count']);
-        $sheet->setCellValue('F' . $offset, $sumByLevelEducation['college'][0]['total_applications_count'] +
-            $sumByLevelEducation['bachelor'][0]['total_applications_count'] + $sumByLevelEducation['mastersDegree'][0]['total_applications_count'] +
-            $sumByLevelEducation['phd'][0]['total_applications_count']);
+        $sheet->setCellValue('B' . $offset, $collegeTotalApplication);
+        $sheet->setCellValue('C' . $offset, $bachelorTotalApplication);
+        $sheet->setCellValue('D' . $offset, $mastersDegreeTotalApplication);
+        $sheet->setCellValue('E' . $offset, $phdTotalApplication);
+        $sheet->setCellValue('F' . $offset, $collegeTotalApplication + $bachelorTotalApplication + $mastersDegreeTotalApplication + $phdTotalApplication);
 
         $offset++;
 
         $sheet->setCellValue('A' . $offset, 'Заключено договоров');
-        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_contracts_count']);
-        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_contracts_count']);
-        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_contracts_count']);
-        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_contracts_count']);
-        $sheet->setCellValue('F' . $offset, $sumByLevelEducation['college'][0]['total_contracts_count'] +
-            $sumByLevelEducation['bachelor'][0]['total_contracts_count'] + $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] +
-            $sumByLevelEducation['phd'][0]['total_contracts_count']);
+        $sheet->setCellValue('B' . $offset, $collegeTotalContract);
+        $sheet->setCellValue('C' . $offset, $bachelorTotalContract);
+        $sheet->setCellValue('D' . $offset, $mastersDegreeTotalContract);
+        $sheet->setCellValue('E' . $offset, $phdTotalContract);
+        $sheet->setCellValue('F' . $offset, $collegeTotalContract +
+            $bachelorTotalContract + $mastersDegreeTotalContract +
+            $phdTotalContract);
 
         $offset++;
 
         $sheet->setCellValue('A' . $offset, 'Оплачено');
-        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('F' . $offset, $sumByLevelEducation['college'][0]['total_paid_contracts_count'] +
-            $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count'] + $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count'] +
-            $sumByLevelEducation['phd'][0]['total_paid_contracts_count']);
+        $sheet->setCellValue('B' . $offset, $collegeTotalPaidContract);
+        $sheet->setCellValue('C' . $offset, $bachelorTotalPaidContract);
+        $sheet->setCellValue('D' . $offset, $mastersDegreeTotalPaidContract);
+        $sheet->setCellValue('E' . $offset, $phdTotalPaidContract);
+        $sheet->setCellValue('F' . $offset, $collegeTotalPaidContract +
+            $bachelorTotalPaidContract + $mastersDegreeTotalPaidContract +
+            $phdTotalPaidContract);
 
         $offset++;
 
         $sheet->setCellValue('A' . $offset, 'Не оплачено');
-        $sheet->setCellValue('B' . $offset, $sumByLevelEducation['college'][0]['total_contracts_count'] - $sumByLevelEducation['college'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('C' . $offset, $sumByLevelEducation['bachelor'][0]['total_contracts_count'] - $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('D' . $offset, $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] - $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('E' . $offset, $sumByLevelEducation['phd'][0]['total_contracts_count'] - $sumByLevelEducation['phd'][0]['total_paid_contracts_count']);
-        $sheet->setCellValue('F' . $offset, ($sumByLevelEducation['college'][0]['total_contracts_count'] + $sumByLevelEducation['bachelor'][0]['total_contracts_count'] +
-            $sumByLevelEducation['mastersDegree'][0]['total_contracts_count'] + $sumByLevelEducation['phd'][0]['total_contracts_count']) -
-            ($sumByLevelEducation['college'][0]['total_paid_contracts_count'] + $sumByLevelEducation['bachelor'][0]['total_paid_contracts_count'] +
-                $sumByLevelEducation['mastersDegree'][0]['total_paid_contracts_count'] + $sumByLevelEducation['phd'][0]['total_paid_contracts_count']));
+        $sheet->setCellValue('B' . $offset, $collegeTotalContract - $collegeTotalPaidContract);
+        $sheet->setCellValue('C' . $offset, $bachelorTotalContract - $bachelorTotalPaidContract);
+        $sheet->setCellValue('D' . $offset, $mastersDegreeTotalContract - $mastersDegreeTotalPaidContract);
+        $sheet->setCellValue('E' . $offset, $phdTotalContract - $phdTotalPaidContract);
+        $sheet->setCellValue('F' . $offset, ($collegeTotalContract + $bachelorTotalContract +
+            $mastersDegreeTotalContract + $phdTotalContract) -
+            ($collegeTotalPaidContract + $bachelorTotalPaidContract +
+                $mastersDegreeTotalPaidContract + $phdTotalPaidContract));
 
         $offsetContentLast = $offset;
 
@@ -2673,12 +2703,12 @@ class PrintAdmissionCampaignController extends Controller
         $writer->save('php://output');
     }
 
-    private function dataTransformToCollege($fundingType)
+    private function dataTransformToCollege($fundingType, $activeAdmissionCampaignId)
     {
         $today = Carbon::now()->format('Y-m-d');
 
         $data = AdmissionCampaignStatsCollege::join('admission_campaign_directions', 'admission_campaign_stats_colleges.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
-            ->where('admission_campaign_stats_colleges.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_stats_colleges.admission_campaign_id', '=', $activeAdmissionCampaignId)
             ->where('admission_campaign_directions.level_education_id', '=', 2)
             ->where('admission_campaign_directions.funding_type', '=', $fundingType)
             ->select(
@@ -2729,12 +2759,12 @@ class PrintAdmissionCampaignController extends Controller
         return $result;
     }
 
-    private function dataTransformToBachelor($fundingType)
+    private function dataTransformToBachelor($fundingType, $activeAdmissionCampaignId)
     {
         $today = Carbon::now()->format('Y-m-d');
 
         $data = AdmissionCampaignStatsBachelor::join('admission_campaign_directions', 'admission_campaign_stats_bachelors.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
-            ->where('admission_campaign_stats_bachelors.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_stats_bachelors.admission_campaign_id', '=', $activeAdmissionCampaignId)
             ->where('admission_campaign_directions.level_education_id', '=', 6)
             ->where('admission_campaign_directions.funding_type', '=', $fundingType)
             ->select(
@@ -2794,12 +2824,12 @@ class PrintAdmissionCampaignController extends Controller
         return $result;
     }
 
-    private function dataTransformToMastersDegree($fundingType)
+    private function dataTransformToMastersDegree($fundingType, $activeAdmissionCampaignId)
     {
         $today = Carbon::now()->format('Y-m-d');
 
         $data = AdmissionCampaignStatsMastersDegree::join('admission_campaign_directions', 'admission_campaign_stats_masters_degrees.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
-            ->where('admission_campaign_stats_masters_degrees.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_stats_masters_degrees.admission_campaign_id', '=', $activeAdmissionCampaignId)
             ->where('admission_campaign_directions.level_education_id', '=', 7)
             ->where('admission_campaign_directions.funding_type', '=', $fundingType)
             ->select(
@@ -2843,12 +2873,12 @@ class PrintAdmissionCampaignController extends Controller
         return $result;
     }
 
-    private function dataTransformToPhD($fundingType)
+    private function dataTransformToPhD($fundingType, $activeAdmissionCampaignId)
     {
         $today = Carbon::now()->format('Y-m-d');
 
         $data = AdmissionCampaignStatsPhD::join('admission_campaign_directions', 'admission_campaign_stats_phd.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
-            ->where('admission_campaign_stats_phd.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_stats_phd.admission_campaign_id', '=', $activeAdmissionCampaignId)
             ->where('admission_campaign_directions.level_education_id', '=', 4)
             ->where('admission_campaign_directions.funding_type', '=', $fundingType)
             ->select(
@@ -2892,10 +2922,10 @@ class PrintAdmissionCampaignController extends Controller
         return $result;
     }
 
-    private function getSum($isToDay = false)
+    private function getSum($activeAdmissionCampaignId, $isToDay = false)
     {
         $college = AdmissionCampaignStatsCollege::join('admission_campaign_directions', 'admission_campaign_stats_colleges.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
-            ->where('admission_campaign_stats_colleges.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_stats_colleges.admission_campaign_id', '=', $activeAdmissionCampaignId)
             ->where('admission_campaign_directions.level_education_id', '=', 2);
 
         if ($isToDay) {
@@ -2913,7 +2943,7 @@ class PrintAdmissionCampaignController extends Controller
         )->get()->toArray();
 
         $bachelor = AdmissionCampaignStatsBachelor::join('admission_campaign_directions', 'admission_campaign_stats_bachelors.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
-            ->where('admission_campaign_stats_bachelors.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_stats_bachelors.admission_campaign_id', '=', $activeAdmissionCampaignId)
             ->where('admission_campaign_directions.level_education_id', '=', 6);
 
         if ($isToDay) {
@@ -2934,7 +2964,7 @@ class PrintAdmissionCampaignController extends Controller
 
 
         $mastersDegree = AdmissionCampaignStatsMastersDegree::join('admission_campaign_directions', 'admission_campaign_stats_masters_degrees.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
-            ->where('admission_campaign_stats_masters_degrees.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_stats_masters_degrees.admission_campaign_id', '=', $activeAdmissionCampaignId)
             ->where('admission_campaign_directions.level_education_id', '=', 7);
 
         if ($isToDay) {
@@ -2950,7 +2980,7 @@ class PrintAdmissionCampaignController extends Controller
         )->get()->toArray();
 
         $phd = AdmissionCampaignStatsPhD::join('admission_campaign_directions', 'admission_campaign_stats_phd.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
-            ->where('admission_campaign_stats_phd.admission_campaign_id', '=', 1)
+            ->where('admission_campaign_stats_phd.admission_campaign_id', '=', $activeAdmissionCampaignId)
             ->where('admission_campaign_directions.level_education_id', '=', 4);
 
         if ($isToDay) {
