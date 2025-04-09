@@ -40,6 +40,16 @@
                 </div>
             </div>
         </div>
+        @role('Teacher')
+        @if(!is_null($currentConference))
+        <div class="flex items-center space-x-2 border border-slate-400/20 rounded p-4">
+            <i class="fa-regular fa-circle-dot text-red-500"></i>
+            <span class="flex">У вас есть активная видеоконференция.</span>
+            <a href="{{ $currentConference->link }}" target="_blank" rel="noopener noreferrer" class="text-green-500 hover:underline">Перейти в ВКС</a>
+            <a href="{{ route('logout.video.conference', $currentConference->id) }}" class="text-red-500 hover:underline">Завершить ВКС</a>
+        </div>
+        @endif
+        @endrole
     </x-slot>
 
     @livewire('schedule')

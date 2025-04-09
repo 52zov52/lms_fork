@@ -6,6 +6,7 @@ use App\Models\GroupStudent;
 use App\Models\RectorateAndCouncilDecision;
 use App\Models\Schedule;
 use App\Models\UpbringingEvent;
+use App\Models\VideoConferenceFallback;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -134,10 +135,21 @@ class DashboardController extends Controller
             }
         }
 
+        $currentConference = VideoConferenceFallback::query()
+            ->where('is_activated', '=', 1)
+            ->where('date_lesson', '=', now()->format('Y-m-d'))
+            ->where(function ($query) {
+                $query->where('time_start_lesson', '<=', now()->format('H:i'))
+                    ->where('time_end_lesson', '>=', now()->format('H:i'));
+            })
+            ->select('id', 'link')
+            ->first();
+
         return view('dashboard', [
             'additionalInfoAboutUser' => $this->additionalInfoAboutUser,
             'eventCount' => $eventCount,
-            'event' => $event
+            'event' => $event,
+            'currentConference' => $currentConference
         ]);
     }
 }

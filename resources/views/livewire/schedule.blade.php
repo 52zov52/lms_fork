@@ -47,7 +47,7 @@
                 <table class="w-full text-xs lg:text-sm">
                     @foreach($daysOfWeek as $dayOfWeek)
                     <tr class="{{ (\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) ? 'border-l-4 border-l-green-500' : ''}}">
-                        <td colspan="5" class="bg-slate-200 dark:bg-slate-700 px-4 py-2 font-bold uppercase">
+                        <td colspan="6" class="bg-slate-200 dark:bg-slate-700 px-4 py-2 font-bold uppercase">
                             {{ $dayOfWeek['ru'] }} {{ $dayOfWeek['date'] }}
                             @if(\Carbon\Carbon::now()->format('d.m.Y') == $dayOfWeek['date']) (Сегодня) @endif
                         </td>
@@ -71,6 +71,11 @@
                             @endforeach
                         </td>
                         <td class="w-10 lg:w-32 px-2 py-2">{{ $schedule['lesson_place'] }}</td>
+                        <td class="w-auto lg:w-32 px-2 py-2 text-center">
+                            <button wire:click="getLinkToVideoConference({{ $schedule['id'] }})" data-tippy-content="Видеоконференция">
+                                <i class="fa-solid fa-link"></i>
+                            </button>
+                        </td>
                     </tr>
                     @endforeach
                     @endif

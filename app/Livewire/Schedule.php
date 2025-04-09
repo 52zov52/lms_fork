@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\VideoConferenceFallbackController;
+use App\Models\Schedule as ModelsSchedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
@@ -129,5 +131,35 @@ class Schedule extends Component
         $fullTempFilePath = Storage::path($tempFilePath);
 
         return Response::download($fullTempFilePath, $filename)->deleteFileAfterSend(true);
+    }
+
+    public function getLinkToVideoConference($schedule_id)
+    {
+        $schedule = ModelsSchedule::where('id', '=', $schedule_id)->first();
+        $time = explode('-', $schedule->time);
+
+        $schedule_date = Carbon::parse($schedule->date)->format('Y-m-d');
+        $currrent_date = now()->format('Y-m-d');
+
+        $time_start = Carbon::parse($time[0])->format('H:i');
+        $time_end = Carbon::parse($time[1])->format('H:i');
+        $time_now = now()->format('H:i');
+
+        if (($currrent_date == $schedule_date) && ($time_now >= $time_start && $time_now <= $time_end)) {
+            $videoConferenceFallbackController = new VideoConferenceFallbackController();
+            $link = $videoConferenceFallbackController->getLink($schedule_id, $currrent_date, $time_start, $time_end);
+
+            if (is_null($link)) {
+                $msg = (Auth::user()->hasRole('Student')) ? 'Занятие в формате ВКС еще не началось или превышено кол-во участников, повторите запрос позже'
+                    : 'Свободных аудиторий нет, повторите запрос позже';
+
+                $this->dispatch('show-toast', message: $msg, type: 'error');
+            }
+
+            return redirect($link);
+        } else {
+            $msg = "Доступ к ВКС закрыт: текущая дата $currrent_date и время $time_now не соответствует расписанию ($schedule_date с $time_start до $time_end)";
+            $this->dispatch('show-toast', message: $msg, type: 'error');
+        }
     }
 }

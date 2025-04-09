@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleReportController;
 use App\Http\Controllers\Student\SptConsentStatusController;
 use App\Http\Controllers\StudyPlanController;
+use App\Http\Controllers\VideoConferenceFallbackController;
 use App\Livewire\Employee\OperatingActivity;
 
 /*
@@ -52,7 +53,7 @@ Route::get('/qr-code-document-verifications/{verificationCode}', function ($veri
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/upcoming-events', function() {
+    Route::get('/upcoming-events', function () {
         return view('pages.upcoming-events');
     })->name('upcoming.event');
 
@@ -156,6 +157,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/consultation-schedule', function () {
             return view('pages.teacher.consultation-schedule');
         })->name('teacher.consultation.schedule');
+
+        Route::get('/logout-video-conference/{id}', [VideoConferenceFallbackController::class, 'logout'])
+            ->name('logout.video.conference');
     });
 
     //Печать индивидуальных оценок студента по ИД

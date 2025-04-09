@@ -189,12 +189,14 @@ class ScheduleController extends Controller
             foreach ($lessonNumbers as $lessonNumber) {
                 $scheduleByLessonNumber = $this->getScheduleByLessonNumber($scheduleByDayOfLesson, $lessonNumber);
 
+                $id = array_unique(array_column($scheduleByLessonNumber, 'id'));
                 $times = array_unique(array_column($scheduleByLessonNumber, 'time'));
                 $disciplines = array_unique(array_column($scheduleByLessonNumber, 'discipline'));
                 $lessonsPlace = array_unique(array_column($scheduleByLessonNumber, 'lesson_place'));
                 $lessonsType = array_unique(array_column($scheduleByLessonNumber, 'lesson_type'));
 
                 array_push($data, [
+                    'id' => $id[0],
                     'lesson_number' => $lessonNumber,
                     'time' => $times[0],
                     'discipline' => $disciplines[0],
@@ -379,6 +381,7 @@ class ScheduleController extends Controller
         foreach ($schedule as $value) {
             if ($value['date'] == $dayOfLesson) {
                 array_push($scheduleByDayOfLesson, [
+                    'id' => $value['id'],
                     'group' => $value['group'],
                     'course' => $value['course'],
                     'lesson_number' => $value['lesson_number'],
@@ -402,6 +405,7 @@ class ScheduleController extends Controller
         foreach ($scheduleByDayOfLesson as $value) {
             if ($value['lesson_number'] == $lessonNumber) {
                 array_push($scheduleByLessonNumber, [
+                    'id' => $value['id'],
                     'group' => $value['group'],
                     'course' => $value['course'],
                     'lesson_number' => $value['lesson_number'],
