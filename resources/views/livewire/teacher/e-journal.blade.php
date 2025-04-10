@@ -87,7 +87,7 @@
                             @else
                             @switch($status[$item->id])
                             @case(1)
-                            <div class="w-full h-6 font-bold" data-tippy-content="Присутствовал">П</div>
+                            <div class="w-full h-6 font-bold" data-tippy-content="Присутствовал">.</div>
                             @break
                             @case(2)
                             <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал">Н</div>

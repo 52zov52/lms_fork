@@ -42,7 +42,7 @@ class EJournal extends Component
     ];
 
     public $listOfStatuses = [
-        1 => 'П',
+        1 => '.',
         2 => 'Н',
         3 => 'НУ',
         6 => '2',
@@ -140,29 +140,40 @@ class EJournal extends Component
 
     public function store()
     {
-        $contingentController = new ContingentController();
-        $contingent = $contingentController->getContingent($this->groupId);
+        $isCheck = ModelsEJournal::where('teacher_id', '=', Auth::user()->id)
+            ->where('work_study_plan_courses_in_semester_id', '=', $this->wspCoursesInSemesterId)
+            ->where('group_id', '=', $this->groupId)
+            ->where('lesson_date', '=', Carbon::parse($this->lessonDate)->format('Y-m-d'))
+            ->where('lesson_time', '=', $this->lessonTime)
+            ->count();
 
-        foreach ($contingent as $key => $value) {
-            ModelsEJournal::create([
-                'teacher_id' => Auth::user()->id,
-                'work_study_plan_courses_in_semester_id' => $this->wspCoursesInSemesterId,
-                'group_id' => $this->groupId,
-                'student_id' => $value->user_id,
-                'status' => 2,
-                'lesson_date' => Carbon::parse($this->lessonDate)->format('Y-m-d'),
-                'lesson_time' => $this->lessonTime,
-                'lesson_type' => $this->lessonType,
-                'lesson_theme' => $this->lessonTheme,
-                'who_checked' => Auth::user()->id,
-                'checked_at' => Carbon::now()->format('Y-m-d H:i:s'),
-                'academic_year' => AcademicYearController::getAcademicYear(),
-                'half_year' => AcademicYearController::getHalfYear()
-            ]);
+        if ($isCheck != 0) {
+            $this->dispatch('show-toast', message: 'На указанную дату и время уже созданы записи в эл. журнале!', type: 'error');
+        } else {
+            $contingentController = new ContingentController();
+            $contingent = $contingentController->getContingent($this->groupId);
+
+            foreach ($contingent as $key => $value) {
+                ModelsEJournal::create([
+                    'teacher_id' => Auth::user()->id,
+                    'work_study_plan_courses_in_semester_id' => $this->wspCoursesInSemesterId,
+                    'group_id' => $this->groupId,
+                    'student_id' => $value->user_id,
+                    'status' => 2,
+                    'lesson_date' => Carbon::parse($this->lessonDate)->format('Y-m-d'),
+                    'lesson_time' => $this->lessonTime,
+                    'lesson_type' => $this->lessonType,
+                    'lesson_theme' => $this->lessonTheme,
+                    'who_checked' => Auth::user()->id,
+                    'checked_at' => Carbon::now()->format('Y-m-d H:i:s'),
+                    'academic_year' => AcademicYearController::getAcademicYear(),
+                    'half_year' => AcademicYearController::getHalfYear()
+                ]);
+            }
+
+            $this->isShowModalDialog = false;
+            $this->dispatch('show-toast', message: 'Записи успешно добавлены!', type: 'success');
         }
-
-        $this->isShowModalDialog = false;
-        $this->dispatch('show-toast', message: 'Записи успешно добавлены!', type: 'success');
     }
 
     public function signature($lessonDate, $lessonTime, $lessonType)
@@ -182,7 +193,7 @@ class EJournal extends Component
         $this->dispatch('show-toast', message: 'Журнал успешно подписан!', type: 'success');
     }
 
-    #[On('destroy')] 
+    #[On('destroy')]
     public function destroy($lessonDate, $lessonTime, $lessonType)
     {
         ModelsEJournal::where('teacher_id', '=', Auth::user()->id)
@@ -193,7 +204,7 @@ class EJournal extends Component
             ->where('lesson_type', '=', (int)$lessonType)
             ->delete();
 
-            $this->dispatch('show-toast', message: 'Записи успешно удалены!', type: 'success');
+        $this->dispatch('show-toast', message: 'Записи успешно удалены!', type: 'success');
     }
 
     protected function getCountLessons($lessonType)
