@@ -187,15 +187,27 @@
                         @endforeach
                         @error('category') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
                     </div>
-                    <div class="flex flex-col">
+                    <div x-data="{ filename: '' }" class="flex flex-col">
                         <div class="flex">
                             <label for="file-id" class="font-semibold">Файл<span class="ml-1 text-red-500">*</span></label>
-                            <input wire:model="file" type="file" name="file" id="file-id-{{ $rand }}" class="ml-1 w-full">
+                            <input x-ref="fileinput" 
+                                wire:model="file" 
+                                type="file" 
+                                name="file" 
+                                id="file-id-{{ $rand }}" 
+                                x-on:change="
+                                    filename = $event.target.files[0].name;
+                                    if (filename.length > 80) {
+                                        $refs.fileinput.value = '';
+                                    }
+                                "
+                                class="ml-1 w-full">
                         </div>
                         <span class="text-xs font-semibold">доступные типы файлов: *.pdf, *.doc, *.docx</span>
                         <span class="text-xs font-semibold">максимальный объем файла: 9 МБ</span>
                         <div wire:loading wire:target="file" class="text-green-500 font-semibold">Идет загрузка файла ...</div>
                         @error('file') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
+                        <span x-show="filename.length > 80" class="text-red-500 font-semibold">Имя файла слишком длинное! Максимум 80 символов</span>
                         @if($isEdit && !is_null($file_path))
                         <div class="mt-2 flex">
                             <a href="{{ asset('storage/'. $file_path) }}" target="_blank" class="text-blue-500 hover:underline" title="Скачать файл">
