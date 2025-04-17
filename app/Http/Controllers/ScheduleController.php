@@ -6,6 +6,7 @@ use App\Models\GroupStudent;
 use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use XBase\TableReader;
 
@@ -87,8 +88,10 @@ class ScheduleController extends Controller
             'encoding' => 'cp1251'
         ]);
 
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Schedule::truncate();
-
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        
         while ($record = $table->nextRecord()) {
             $classTime = array_search($record->get('LES'), array_column($schedule, 'number'));
             $groups = explode(',', $record->get('GROUP'));
