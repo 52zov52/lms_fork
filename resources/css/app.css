@@ -78,7 +78,15 @@
     }
 
     .btn-blue {
-        @apply bg-white hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-500 px-2 py-2 text-xs text-center text-blue-500 hover:text-white font-bold;
+        @apply bg-white hover:bg-blue-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-500 px-1 py-1 text-xs text-center text-blue-500 hover:text-white font-bold;
+    }
+
+    .btn-indigo {
+        @apply bg-white hover:bg-indigo-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-indigo-500 px-1 py-1 text-xs text-center text-indigo-500 hover:text-white font-bold;
+    }
+
+    .btn-sky {
+        @apply bg-white hover:bg-sky-500 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-500 px-1 py-1 text-xs text-center text-sky-500 hover:text-white font-bold;
     }
 }
 

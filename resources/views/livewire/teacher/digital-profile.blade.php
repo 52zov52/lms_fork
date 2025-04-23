@@ -12,6 +12,17 @@
         </div>
     </a>
     @endcan
+    <a x-bind:class="{ 'hovered': hovered === 'teacher_interact' }" @mouseover="hovered = 'teacher_interact'" @mouseout="hovered = null" class="w-auto" href="{{ route('teacher.interact') }}">
+        <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
+            <div class="h-14 px-4 py-2 font-bold">Асинхронное взаимодействие</div>
+            <div class="grow px-4 py-2 text-sm text-justify">
+                Раздел предназначен для асинхронного взаимодействия со студентами путем обмена учебными материалами и проверки выполнения их работ
+            </div>
+            <div class="h-8 px-4 py-2">
+                <div x-bind:class="{ 'w-full': hovered === 'teacher_interact', 'w-6': hovered != 'teacher_interact' }" class="bg-gray-600 dark:bg-white border border-slate-400/20 rounded p-0.5 transition-all duration-500"></div>
+            </div>
+        </div>
+    </a>
     @can('access-to-academic-workload')
     <a x-bind:class="{ 'hovered': hovered === 'academic_workload' }" @mouseover="hovered = 'academic_workload'" @mouseout="hovered = null" class="w-auto" href="{{ route('academic.workload') }}">
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">

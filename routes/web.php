@@ -158,6 +158,16 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.teacher.consultation-schedule');
         })->name('teacher.consultation.schedule');
 
+        //Асинхронное взаимодействие
+        Route::get('/interact', function () {
+            return view('pages.teacher.interact-with-student');
+        })->name('teacher.interact');
+
+        Route::get('/interact/upload/materials/{id}', function ($id) {
+            return view('pages.teacher.interact-upload-materials', ['id' => $id]);
+        })->name('teacher.interact.upload.materials');
+
+        //Закрытие сессии ВКС
         Route::get('/logout-video-conference/{id}', [VideoConferenceFallbackController::class, 'logout'])
             ->name('logout.video.conference');
     });
@@ -211,6 +221,15 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/family-status', function () {
             return view('pages.student.family-status');
         })->name('student.family.status');
+
+        //Асинхронное взаимодействие
+        Route::get('/interact', function () {
+            return view('pages.student.interact-with-teacher');
+        })->name('student.interact');
+
+        Route::get('/interact/view/materials/{id}', function ($id) {
+            return view('pages.student.interact-view-materials', ['id' => $id]);
+        })->name('student.interact.view.materials');
     });
 
     Route::get('/upbringing-management', function () {
