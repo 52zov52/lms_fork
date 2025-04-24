@@ -25,6 +25,12 @@ return new class extends Migration
             $table->string('registered_address', 1500);
             $table->string('housing_conditions', 20);
             $table->json('cohabitants');
+            $table->boolean('marital_status')->default(false);
+            $table->string('spouse_last_name', 50)->nullable();
+            $table->string('spouse_first_name', 50)->nullable();
+            $table->string('spouse_middle_name', 50)->nullable();
+            $table->string('spouse_workplace')->nullable();
+            $table->string('spouse_phone', 20)->nullable();
             $table->string('family_composition', 20);
             $table->integer('number_of_children')->default(1);
             $table->string('father_last_name', 50)->nullable();

@@ -30,7 +30,7 @@
         @endif
     </div>
 
-    <div class="flex flex-col space-y-2 border rounded border-slate-400/20 p-2">
+    <div x-data="{ isMarrieted: {{ $maritalStatus ? 'true' : 'false' }} }" class="flex flex-col space-y-2 border rounded border-slate-400/20 p-2">
         <div class="flex flex-col">
             <label class="font-semibold">ФИО</label>
             <span>{{ $lastName }} {{ $firstName }} {{ $middleName }}</span>
@@ -46,7 +46,7 @@
         </div>
         <div class="flex flex-col">
             <label for="registeredAddress" class="font-semibold">Место жительства (по прописке)</label>
-            <input wire:model="registeredAddress" type="text" name="registeredAddress" id="registeredAddress" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+            <input wire:model="registeredAddress" type="text" name="registeredAddress" id="registeredAddress" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Укажите место жительства в формате: Страна, регион, населенный пункт, улица, дом, корпус и № квартиры (если есть)" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
             @error('registeredAddress') <span class="text-red-500">{{ $message }}</span> @enderror
         </div>
         <div class="flex flex-col">
@@ -95,11 +95,61 @@
                 </div>
                 <div class="mr-2">
                     <label for="cohabitants-7" class="flex space-x-1 items-center">
-                        <input wire:model="cohabitants" value="Другое" type="checkbox" id="cohabitants-7" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Другое
+                        <input wire:model="cohabitants" value="Супруг/супруга" type="checkbox" id="cohabitants-7" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Супруг/супруга
+                    </label>
+                </div>
+                <div class="mr-2">
+                    <label for="cohabitants-8" class="flex space-x-1 items-center">
+                        <input wire:model="cohabitants" value="Другое" type="checkbox" id="cohabitants-8" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Другое
                     </label>
                 </div>
             </div>
             @error('cohabitants') <span class="text-red-500">{{ $message }}</span> @enderror
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold">Семейное положение</label>
+            <div class="flex flex-row space-x-4">
+                <div class="flex space-x-1 items-center">
+                    <input x-model="isMarrieted" wire:model="maritalStatus" type="radio" id="maritalStatusYes" value="1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                    <label for="maritalStatusYes" class="cursor-pointer">В браке</label>
+                </div>
+                <div class="flex space-x-1 items-center">
+                    <input x-model="isMarrieted" wire:model="maritalStatus" type="radio" id="maritalStatusNo" value="0" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                    <label for="maritalStatusNo" class="cursor-pointer">Не в браке</label>
+                </div>
+            </div>
+        </div>
+        <div x-show="isMarrieted == true">
+            <div class="flex flex-col">
+                <label class="font-semibold">Супруг/супруга</label>
+                <div class="flex flex-col lg:flex-row lg:space-x-4">
+                    <div class="flex flex-col">
+                        <label for="spouseLastName">Фамилия</label>
+                        <input wire:model="spouseLastName" type="text" name="spouseLastName" id="spouseLastName" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                        @error('spouseLastName') <span class="text-red-500">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="spouseFirstName">Имя</label>
+                        <input wire:model="spouseFirstName" type="text" name="spouseFirstName" id="spouseFirstName" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                        @error('spouseFirstName') <span class="text-red-500">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="spouseMiddleName">Отчество</label>
+                        <input wire:model="spouseMiddleName" type="text" name="spouseMiddleName" id="spouseMiddleName" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                        @error('spouseMiddleName') <span class="text-red-500">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col">
+                <label for="spouseWorkplace" class="font-semibold">Место работы супруга/супруги</label>
+                <input wire:model="spouseWorkplace" type="text" name="spouseWorkplace" id="spouseWorkplace" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                @error('spouseWorkplace') <span class="text-red-500">{{ $message }}</span> @enderror
+            </div>
+            <div class="flex flex-col">
+                <label for="spousePhone" class="font-semibold">Контактный телефон супруга/супруги</label>
+                <input wire:model="spousePhone" type="text" name="spousePhone" id="spousePhone" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                @error('spousePhone') <span class="text-red-500">{{ $message }}</span> @enderror
+            </div>
         </div>
         <div class="flex flex-col">
             <label for="familyComposition" class="font-semibold">Состав семьи</label>
@@ -222,6 +272,11 @@
                 <div class="mr-2">
                     <label for="child-categories-4" class="flex space-x-1 items-center">
                         <input wire:model="childCategories" value="Дети участников СВО" type="checkbox" id="child-categories-4" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Дети участников СВО
+                    </label>
+                </div>
+                <div class="mr-2">
+                    <label for="child-categories-5" class="flex space-x-1 items-center">
+                        <input wire:model="childCategories" value="Многодетная семья" type="checkbox" id="child-categories-5" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Многодетная семья
                     </label>
                 </div>
             </div>

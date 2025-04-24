@@ -20,9 +20,9 @@ class StudentSocialPassportReviewController extends Controller
 
     public function downloadStudentSocialPassport($userId)
     {
-        $cohabitants = ['Мать', 'Отец', 'Бабушка', 'Дедушка', 'Опекун', 'Проживаю самостоятельно', 'Другое'];
+        $cohabitants = ['Мать', 'Отец', 'Бабушка', 'Дедушка', 'Опекун', 'Проживаю самостоятельно', 'Супруг/супруга', 'Другое'];
 
-        $childCategories = ['Дети-инвалиды', 'Сироты', 'Дети под опекой', 'Дети участников СВО'];
+        $childCategories = ['Дети-инвалиды', 'Сироты', 'Дети под опекой', 'Дети участников СВО', 'Многодетная семья'];
 
         $socialPassport = SocialPassport::where('user_id', '=', $userId)->first();
 

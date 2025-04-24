@@ -20,6 +20,12 @@ class SocialPassport extends Component
         $registeredAddress = '',
         $housingConditions = '',
         $cohabitants = [],
+        $maritalStatus = false,
+        $spouseLastName = '',
+        $spouseFirstName = '',
+        $spouseMiddleName = '',
+        $spouseWorkplace = '',
+        $spousePhone = '',
         $familyComposition = '',
         $numberOfChildren = 1,
         $fatherLastName = '',
@@ -61,6 +67,12 @@ class SocialPassport extends Component
             $this->registeredAddress = $socialPassport->registered_address;
             $this->housingConditions = $socialPassport->housing_conditions;
             $this->cohabitants = json_decode($socialPassport->cohabitants, true);
+            $this->maritalStatus = $socialPassport->marital_status;
+            $this->spouseLastName = $socialPassport->spouse_last_name;
+            $this->spouseFirstName = $socialPassport->spouse_first_name;
+            $this->spouseMiddleName = $socialPassport->spouse_middle_name;
+            $this->spouseWorkplace = $socialPassport->spouse_workplace;
+            $this->spousePhone = $socialPassport->spouse_phone;
             $this->familyComposition = $socialPassport->family_composition;
             $this->numberOfChildren = $socialPassport->number_of_children;
             $this->fatherLastName = $socialPassport->father_last_name;
@@ -77,7 +89,7 @@ class SocialPassport extends Component
             $this->motherDisability = $socialPassport->mother_disability;
             $this->childCategories = json_decode($socialPassport->child_categories, true);
             $this->questionnaireStatus = $socialPassport->questionnaire_status;
-        }else {
+        } else {
             $this->citizenship = $userData['country_name'];
         }
 
@@ -117,6 +129,11 @@ class SocialPassport extends Component
             'registeredAddress' => 'required|string|max:1500',
             'housingConditions' => 'required',
             'cohabitants' => 'required|array',
+            'spouseLastName' => 'string|max:50',
+            'spouseFirstName' => 'string|max:50',
+            'spouseMiddleName' => 'string|max:50',
+            'spouseWorkplace' => 'string|max:255',
+            'spousePhone' => 'string|max:20',
             'familyComposition' => 'required',
             'numberOfChildren' => 'required|integer|min:1',
             'fatherLastName' => 'string|max:50',
@@ -142,6 +159,12 @@ class SocialPassport extends Component
             'registered_address' => $this->registeredAddress,
             'housing_conditions' => $this->housingConditions,
             'cohabitants' => json_encode($this->cohabitants),
+            'marital_status' => $this->maritalStatus,
+            'spouse_last_name' => $this->spouseLastName,
+            'spouse_first_name' => $this->spouseFirstName,
+            'spouse_middle_name' => $this->spouseMiddleName,
+            'spouse_workplace' => $this->spouseWorkplace,
+            'spouse_phone' => $this->spousePhone,
             'family_composition' => $this->familyComposition,
             'number_of_children' => $this->numberOfChildren,
             'father_last_name' => $this->fatherLastName,
@@ -171,6 +194,11 @@ class SocialPassport extends Component
             'registeredAddress' => 'required|string|max:1500',
             'housingConditions' => 'required',
             'cohabitants' => 'required|array',
+            'spouseLastName' => 'string|max:50',
+            'spouseFirstName' => 'string|max:50',
+            'spouseMiddleName' => 'string|max:50',
+            'spouseWorkplace' => 'string|max:255',
+            'spousePhone' => 'string|max:20',
             'familyComposition' => 'required',
             'numberOfChildren' => 'required|integer|min:1',
             'fatherLastName' => 'string|max:50',
@@ -191,6 +219,12 @@ class SocialPassport extends Component
         $socialPassport->registered_address = $this->registeredAddress;
         $socialPassport->housing_conditions = $this->housingConditions;
         $socialPassport->cohabitants = $this->cohabitants;
+        $socialPassport->marital_status = $this->maritalStatus;
+        $socialPassport->spouse_last_name = $this->spouseLastName;
+        $socialPassport->spouse_first_name = $this->spouseFirstName;
+        $socialPassport->spouse_middle_name = $this->spouseMiddleName;
+        $socialPassport->spouse_workplace = $this->spouseWorkplace;
+        $socialPassport->spouse_phone = $this->spousePhone;
         $socialPassport->family_composition = $this->familyComposition;
         $socialPassport->number_of_children = $this->numberOfChildren;
         $socialPassport->father_last_name = $this->fatherLastName;
