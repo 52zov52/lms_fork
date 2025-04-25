@@ -3,12 +3,14 @@
 namespace App\Livewire\Teacher;
 
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\Common\InterimAssessmentStatementController;
 use App\Http\Controllers\Employee\ContingentController;
 use App\Models\EJournal as ModelsEJournal;
 use App\Models\Group;
 use App\Models\WorkStudyPlanCoursesInSemester;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Response;
 use Livewire\Component;
 use Livewire\Attributes\On;
 
@@ -205,6 +207,24 @@ class EJournal extends Component
             ->delete();
 
         $this->dispatch('show-toast', message: 'Записи успешно удалены!', type: 'success');
+    }
+
+    public function generateInterimAssessmentStatementToPdf()
+    {
+        $isExistExams = ModelsEJournal::where('teacher_id', '=', Auth::user()->id)
+            ->where('work_study_plan_courses_in_semester_id', '=', $this->wspCoursesInSemesterId)
+            ->where('group_id', '=', $this->groupId)
+            ->whereIn('lesson_type', [6, 7, 8])
+            ->count();
+
+        if ($isExistExams == 0) {
+            $this->dispatch('show-toast', message: 'У данной группы в эл. журнале отсутствует занятие с типом пр. аттестации. Добавьте новую запись и выберите тип: экзамен, диф. зачёт или зачёт.', type: 'error');
+        } else {
+            $interimAssessmentStatementController = new InterimAssessmentStatementController();
+            $data = $interimAssessmentStatementController->index($this->wspCoursesInSemesterId, $this->groupId);
+
+            return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend();
+        }
     }
 
     protected function getCountLessons($lessonType)

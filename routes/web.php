@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Common\InterimAssessmentStatementController;
 use App\Http\Controllers\ContingentReportController as OldContingentReportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Employee\StudentSocialPassportReviewController;
@@ -147,6 +148,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/e-journal-group-attendance-report/{wspCoursesInSemesterId}/{groupId}', function ($wspCoursesInSemesterId, $groupId) {
             return view('pages.teacher.group-attendance-report', compact('wspCoursesInSemesterId'), compact('groupId'));
         })->name('teacher.e.journal.group.attendance.report');
+
+        Route::get('/generate-interim-assessment-statement/{wspCoursesInSemesterId}/{groupId}', [InterimAssessmentStatementController::class, 'index'])->name('generate.interim.assessment.statement');
 
         //График пересдач академических задолженностей у студентов
         Route::get('/academic-retake-schedule', function () {

@@ -25,16 +25,16 @@
     <style>
         @media screen and (min-width: 1024px) {
             .w-admission-campaign {
-                width: calc(100vw - 105px);
+                width: calc(100vw - 95px);
             }
 
             .w-e-journal {
-                width: calc(100vw - 105px);
+                width: calc(100vw - 95px);
             }
         }
 
         .h-e-journal {
-            height: calc(100vh - 230px);
+            height: calc(100vh - 265px);
         }
     </style>
 </head>

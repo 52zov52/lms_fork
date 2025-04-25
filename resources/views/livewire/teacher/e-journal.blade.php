@@ -7,8 +7,20 @@
             Дисциплина: {{ $discipline_name }}
         </h4>
 
+        <div class="flex flex-col md:flex-row md:justify-end">
+            <button type="button" wire:click="generateInterimAssessmentStatementToPdf" class="block btn-sky">
+                <span wire:loading.remove wire:target="generateInterimAssessmentStatementToPdf">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    Сформировать ведомость пр. аттестации в pdf
+                </span>
+                <span wire:loading wire:target="generateInterimAssessmentStatementToPdf">
+                    <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                </span>
+            </button>
+        </div>
+
         <div class="w-e-journal h-e-journal border rounded border-slate-400/20 overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
-            <table class="w-full text-xs md:text-sm">
+            <table class="w-full text-xs">
                 <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                     <tr class="z-10 sticky top-0 bg-slate-200 dark:bg-slate-700 border-b border-slate-400/20">
                         <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
