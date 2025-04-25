@@ -21,13 +21,14 @@ class StudentDocumentOrderReportController extends Controller
 
         switch ($studentDocumentOrderIssuance->level_education_name) {
             case 'Среднее профессиональное':
-                $edu_level = 'колледжа рационального обучения';
+                $forTransportCard = ($studentDocumentOrderRequest->document_type == 2) ? 'интегрированной с общеобразовательной программой среднего общего образования' : '';
+                $edu_level = "среднего профессионального образования $forTransportCard - программе подготовки специалистов среднего звена специальности";
                 break;
             case 'Бакалавриат':
-                $edu_level = 'бакалавриата';
+                $edu_level = 'бакалавриата направления подготовки';
                 break;
             case 'Магистратура':
-                $edu_level = 'магистратуры';
+                $edu_level = 'магистратуры направления подготовки';
                 break;
             default:
                 $edu_level = '';
@@ -37,10 +38,8 @@ class StudentDocumentOrderReportController extends Controller
         $confirmiter = UserData::select('last_name', 'first_name', 'middle_name')
             ->where('user_id', '=', $studentDocumentOrderIssuance->confirmiter_id)->first();
 
-        if ($studentDocumentOrderRequest->document_type == 1) {
+        if ($studentDocumentOrderRequest->document_type == 1 || $studentDocumentOrderRequest->document_type == 2) {
             $path = Storage::disk('public')->path('template/certificates/tmp_about_study.docx');
-        } else if ($studentDocumentOrderRequest->document_type == 2) {
-            $path = Storage::disk('public')->path('template/certificates/tmp_for_transport_cards.docx');
         } else if ($studentDocumentOrderRequest->document_type == 3) {
             $path = Storage::disk('public')->path('template/spravka.docx');
         } else {
@@ -87,7 +86,9 @@ class StudentDocumentOrderReportController extends Controller
             $templateProcessor->setValue('sp', $studentDocumentOrderIssuance->specialty_code . ' - ' . $studentDocumentOrderIssuance->speciality_name);
             $templateProcessor->setValue('orders', $studentDocumentOrderIssuance->orders);
             $templateProcessor->setValue('training_period',  $studentDocumentOrderIssuance->training_period);
-            $templateProcessor->setValue('is_budget', (!$studentDocumentOrderIssuance->is_budget) ? 'Университет не предоставляет стипендии и иные меры материальной поддержки.' : '');
+            $templateProcessor->setValue('is_budget', (!$studentDocumentOrderIssuance->is_budget) ?
+                "За время обучения академический отпуск $studentDocumentOrderIssuance->last_name_dative $studentDocumentOrderIssuance->first_name_dative $studentDocumentOrderIssuance->middle_name_dative не предоставлялся, стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются."
+                : "");
             $templateProcessor->setValue('confirmiter',  $confirmiter->last_name . ' ' . mb_substr($confirmiter->first_name, 0, 1) . '.' . mb_substr($confirmiter->middle_name, 0, 1) . '.');
             $templateProcessor->setValue('signer_position', $studentDocumentOrderIssuance->signer_position);
             $templateProcessor->setValue('signer_fio', $studentDocumentOrderIssuance->signer_fio);

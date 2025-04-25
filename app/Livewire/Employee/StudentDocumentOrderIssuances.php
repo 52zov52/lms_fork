@@ -27,7 +27,7 @@ class StudentDocumentOrderIssuances extends Component
 
     public $listOfSigners = [
         'Проректор по УиНР' => 'Е.В. Шпилевская',
-        'Академический директор' => 'Д.А. Лимарева',
+        'Академический директор' => 'Н.А Вартанян',
     ];
 
     public $listOfDocumentTypes = [
