@@ -1,7 +1,6 @@
 <?php
 
-use App\Models\AssignmentComment;
-use App\Models\TeacherAssignment;
+use App\Models\AsyncInteractChatComment;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,12 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('assignment_attachments', function (Blueprint $table) {
+        Schema::create('async_interact_chat_files', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(TeacherAssignment::class)
-                ->constrained()
-                ->cascadeOnDelete();
-            $table->foreignIdFor(AssignmentComment::class)
+            $table->foreignIdFor(AsyncInteractChatComment::class)
                 ->constrained()
                 ->cascadeOnDelete();
             $table->string('path_to_file', 9216);
@@ -32,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('assignment_attachments');
+        Schema::dropIfExists('async_interact_chat_files');
     }
 };

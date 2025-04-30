@@ -162,13 +162,30 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         })->name('teacher.consultation.schedule');
 
         //Асинхронное взаимодействие
-        Route::get('/interact', function () {
-            return view('pages.teacher.interact-with-student');
-        })->name('teacher.interact');
+        Route::get('/async-interact', function () {
+            return view('pages.common.async-interact-chat');
+        })->name('teacher.async.interact.chats');
 
-        Route::get('/interact/upload/materials/{id}', function ($id) {
-            return view('pages.teacher.interact-upload-materials', ['id' => $id]);
-        })->name('teacher.interact.upload.materials');
+        //Асинхронное взаимодействие. Загрузка уч. материала
+        Route::get('/async-interact/chat/upload-file/{chatId}/{mode}', function ($chatId, $mode) {
+            return view('pages.common.async-interact-chat-upload-file', ['chatId' => $chatId, 'mode' => $mode]);
+        })->name('teacher.async.interact.chat.upload.files');
+
+        //Асинхронное взаимодействие. Список чатов
+        Route::get('/async-interact/chat/list/{year}/{halfYear}/{disciplineId}/{normativeId}/{groupId}', function ($year, $halfYear, $disciplineId, $normativeId, $groupId) {
+            return view('pages.common.async-interact-chat-list', [
+                'year' => $year,
+                'halfYear' => $halfYear,
+                'disciplineId' => $disciplineId,
+                'normativeId' => $normativeId,
+                'groupId' => $groupId
+            ]);
+        })->name('teacher.async.interact.chat.list');
+
+        //Асинхронное взаимодействие. Чат
+        Route::get('/async-interact/chat/{chatId}/{mode}', function ($chatId, $mode) {
+            return view('pages.common.async-interact-chat-upload-file', ['chatId' => $chatId, 'mode' => $mode]);
+        })->name('teacher.async.interact.with.student.chat');
 
         //Закрытие сессии ВКС
         Route::get('/logout-video-conference/{id}', [VideoConferenceFallbackController::class, 'logout'])
@@ -226,13 +243,19 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         })->name('student.family.status');
 
         //Асинхронное взаимодействие
-        Route::get('/interact', function () {
-            return view('pages.student.interact-with-teacher');
-        })->name('student.interact');
+        Route::get('/async-interact', function () {
+            return view('pages.common.async-interact-chat');
+        })->name('student.async.interact.chats');
 
-        Route::get('/interact/view/materials/{id}', function ($id) {
-            return view('pages.student.interact-view-materials', ['id' => $id]);
-        })->name('student.interact.view.materials');
+        //Асинхронное взаимодействие. Чат
+        Route::get('/async-interact/chat/{chatId}/{mode}', function ($chatId, $mode) {
+            return view('pages.common.async-interact-chat-upload-file', ['chatId' => $chatId, 'mode' => $mode]);
+        })->name('student.async.interact.with.teacher.chat');
+
+        //Асинхронное взаимодействие. Просмотр уч. материала
+        Route::get('/async-interact/chat/view/files/{chatId}', function ($chatId) {
+            return view('pages.common.async-interact-chat-view-file', ['chatId' => $chatId]);
+        })->name('student.async.interact.chat.view.files');
     });
 
     Route::get('/upbringing-management', function () {

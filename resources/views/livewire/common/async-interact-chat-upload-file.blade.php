@@ -1,5 +1,14 @@
 <div class="h-full">
     <div class="h-full flex flex-col space-y-2">
+        <h4 class="text-base lg:text-base font-semibold">
+            Группа: {{ $group }}
+        </h4>
+        <h4 class="text-base lg:text-base font-semibold">
+            Дисциплина: {{ $discipline }} ({{ $normative }})
+        </h4>
+        <h4 class="text-base lg:text-base font-semibold">
+            Учебный год: {{ $studyYear }} {{ $halfYear }}-е полугодие
+        </h4>
         @if(count($materials) != 0)
             @foreach($materials as $material)
             <div class="bg-gray-100 dark:bg-slate-700 flex flex-col space-y-2 border rounded border-slate-400/20 px-4 py-2">
@@ -10,7 +19,7 @@
                 </div>
                 @if(!is_null($material['files']))
                 <div class="flex flex-col space-y-2 border rounded border-slate-400/20 px-4 py-2">
-                    <p class="text-sm font-semibold">Учебный материал:</p>
+                    <p class="text-sm font-semibold">Прикреплённые файлы:</p>
                     <ul class="list-disc list-inside text-sm">
                         @foreach($material['files'] as $value)
                         <li>
@@ -20,11 +29,13 @@
                     </ul>
                 </div>
                 @endif
+                @if(auth()->user()->id == $material['user_id'] && ($material['isToday'] && $material['isWithin30Minutes']))
                 <div class="flex justify-end">
                     <button onclick="confirmDestroy('{{ $material['id'] }}')" class="text-red-500 underline">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
+                @endif
             </div>
             @endforeach
         @else
@@ -34,7 +45,7 @@
             @csrf
             <div class="flex flex-col space-y-4">
                 <div class="flex flex-col space-y-2">
-                    <label for="comment" class="text-sm font-semibold">Комментарий к учебному материалу:</label>
+                    <label for="comment" class="text-sm font-semibold">Комментарий:</label>
                     <textarea class="w-full
                         dark:bg-slate-700
                         border 
@@ -94,7 +105,7 @@
     function confirmDestroy(id) {
         if (confirm('Вы уверены, что хотите удалить данную запись?')) {
             Livewire.dispatch('destroy', {
-                assignmentCommentId: id
+                commentId: id
             });
         }
     }

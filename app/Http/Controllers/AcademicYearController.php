@@ -18,6 +18,13 @@ class AcademicYearController extends Controller
         }
     }
 
+    //Получение учебного года в виде строки вида 0000/0000 на основе переданного года
+    public static function getAcademicYearByYear($year): string
+    {
+        $data = "$year-01-01";
+        return Carbon::parse($data)->format('Y') . '/' . Carbon::parse($data)->addYear()->format('Y');
+    }
+
     //Получение текущего полугодия
     public static function getHalfYear(): int
     {

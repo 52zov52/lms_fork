@@ -8,4 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class StudyThreadNormative extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'hour_weight',
+        'person_weight',
+        'day_weight',
+        'edge',
+        'less',
+        'more',
+        'sort_order',
+    ];
 }

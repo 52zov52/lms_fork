@@ -1,6 +1,7 @@
 <?php
 
-use App\Models\ResponseAttachment;
+use App\Models\AsyncInteractChat;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,14 +13,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('response_comments', function (Blueprint $table) {
+        Schema::create('async_interact_chat_comments', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(ResponseAttachment::class)
+            $table->foreignIdFor(AsyncInteractChat::class)
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->unsignedBigInteger('teacher_id');
-            $table->foreign('teacher_id')->references('id')->on('users')->onDelete('cascade');
-            $table->text('comment');
+            $table->foreignIdFor(User::class)
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->text('comment')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('response_comments');
+        Schema::dropIfExists('async_interact_chat_comments');
     }
 };
