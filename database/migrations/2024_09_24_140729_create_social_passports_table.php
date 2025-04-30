@@ -46,6 +46,7 @@ return new class extends Migration
             $table->boolean('father_disability')->default(false);
             $table->boolean('mother_disability')->default(false);
             $table->json('child_categories')->nullable();
+            $table->boolean('has_pushkin_card')->default(false);
             $table->integer('questionnaire_status')->default(0);
             $table->unsignedBigInteger('confirmiter_id')->nullable();
             $table->foreign('confirmiter_id')->references('id')->on('users')->onDelete('cascade');

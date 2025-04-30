@@ -40,6 +40,7 @@ class SocialPassport extends Model
         'father_disability',
         'mother_disability',
         'child_categories',
+        'has_pushkin_card',
         'questionnaire_status',
         'confirmiter_id',
         'confirmiter_signature',

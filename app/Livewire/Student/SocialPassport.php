@@ -41,6 +41,7 @@ class SocialPassport extends Component
         $fatherDisability = false,
         $motherDisability = false,
         $childCategories = [],
+        $hasPushkinCard = false,
         $questionnaireStatus = 0;
 
     public function render()
@@ -88,6 +89,7 @@ class SocialPassport extends Component
             $this->fatherDisability = $socialPassport->father_disability;
             $this->motherDisability = $socialPassport->mother_disability;
             $this->childCategories = json_decode($socialPassport->child_categories, true);
+            $this->hasPushkinCard = $socialPassport->has_pushkin_card;
             $this->questionnaireStatus = $socialPassport->questionnaire_status;
         } else {
             $this->citizenship = $userData['country_name'];
@@ -180,6 +182,7 @@ class SocialPassport extends Component
             'father_disability' => $this->fatherDisability,
             'mother_disability' => $this->motherDisability,
             'child_categories' => json_encode($this->childCategories),
+            'has_pushkin_card' => $this->hasPushkinCard,
             'questionnaire_status' => 1,
             'user_signature' => SocialPassportController::getSignature(Auth::user()->id)
         ]);
@@ -240,6 +243,7 @@ class SocialPassport extends Component
         $socialPassport->father_disability = $this->fatherDisability;
         $socialPassport->mother_disability = $this->motherDisability;
         $socialPassport->child_categories = $this->childCategories;
+        $socialPassport->has_pushkin_card = $this->hasPushkinCard;
         $socialPassport->questionnaire_status = 1;
         $socialPassport->user_signature = SocialPassportController::getSignature(Auth::user()->id);
         $socialPassport->save();

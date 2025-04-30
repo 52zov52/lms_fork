@@ -134,6 +134,10 @@
                     @endforeach
                 </td>
             </tr>
+            <tr>
+                <td width="20%" class="p-1">Наличие Пушкинской карты</td>
+                <td width="80%" class="p-1">{{ ($socialPassport->has_pushkin_card) ? 'Да' : 'Нет' }}</td>
+            </tr>
         </tbody>
     </table>
 </body>

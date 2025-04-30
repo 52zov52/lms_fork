@@ -50,7 +50,7 @@
             @error('registeredAddress') <span class="text-red-500">{{ $message }}</span> @enderror
         </div>
         <div class="flex flex-col">
-            <label for="housingConditions">Жилищные условия</label>
+            <label for="housingConditions" class="font-semibold">Жилищные условия</label>
             <select wire:model="housingConditions" name="housingConditions" id="housingConditions" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
                 <option value="">Выберите жилищные условия</option>
                 <option value="Частный дом">Частный дом</option>
@@ -242,11 +242,11 @@
             <label class="font-semibold">Наличие инвалидности у матери</label>
             <div class="flex flex-row space-x-4">
                 <div class="flex space-x-1 items-center">
-                    <input wire:model="motherDisability" wire:change="motherDisability" type="radio" id="motherDisabilityYes" value="1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                    <input wire:model="motherDisability" type="radio" id="motherDisabilityYes" value="1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
                     <label for="motherDisabilityYes" class="cursor-pointer">Да</label>
                 </div>
                 <div class="flex space-x-1 items-center">
-                    <input wire:model="motherDisability" wire:change="motherDisability" type="radio" id="motherDisabilityNo" value="0" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                    <input wire:model="motherDisability" type="radio" id="motherDisabilityNo" value="0" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
                     <label for="motherDisabilityNo" class="cursor-pointer">Нет</label>
                 </div>
             </div>
@@ -278,6 +278,19 @@
                     <label for="child-categories-5" class="flex space-x-1 items-center">
                         <input wire:model="childCategories" value="Многодетная семья" type="checkbox" id="child-categories-5" class="mr-1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>Многодетная семья
                     </label>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold">Наличие Пушкинской карты</label>
+            <div class="flex flex-row space-x-4">
+                <div class="flex space-x-1 items-center">
+                    <input wire:model="hasPushkinCard" type="radio" id="hasPushkinCardYes" value="1" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                    <label for="hasPushkinCardYes" class="cursor-pointer">Да</label>
+                </div>
+                <div class="flex space-x-1 items-center">
+                    <input wire:model="hasPushkinCard" type="radio" id="hasPushkinCardNo" value="0" @if($questionnaireStatus==1 || $questionnaireStatus==2) disabled @endif>
+                    <label for="hasPushkinCardNo" class="cursor-pointer">Нет</label>
                 </div>
             </div>
         </div>
