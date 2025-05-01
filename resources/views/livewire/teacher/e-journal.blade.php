@@ -7,15 +7,24 @@
             Дисциплина: {{ $discipline_name }}
         </h4>
 
-        <div class="flex flex-col md:flex-row md:justify-end">
+        <div class="flex flex-col space-y-2 md:flex-row md:justify-end md:space-x-2 md:space-y-0">
             <button type="button" wire:click="generateInterimAssessmentStatementToPdf" class="block btn-sky">
                 <span wire:loading.remove wire:target="generateInterimAssessmentStatementToPdf">
                     <i class="fa-solid fa-file-pdf"></i>
-                    Сформировать ведомость пр. аттестации в pdf
                 </span>
                 <span wire:loading wire:target="generateInterimAssessmentStatementToPdf">
                     <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                 </span>
+                Сформировать ведомость пр. аттестации в pdf
+            </button>
+            <button type="button" onclick="confirmSend()" class="block btn-blue">
+                <span wire:loading.remove wire:target="sendInterimAssessmentStatement">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </span>
+                <span wire:loading wire:target="sendInterimAssessmentStatement">
+                    <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                </span>
+                Отправить ведомость пр. аттестации в АД
             </button>
         </div>
 
@@ -212,6 +221,12 @@
                 lessonTime: lessonTime,
                 lessonType: lessonType
             })
+        }
+    }
+
+    function confirmSend() {
+        if (confirm('Вы уверены, что хотите направить ведомость пр. аттестации в академическую дирекцию?')) {
+            @this.sendInterimAssessmentStatement();
         }
     }
 </script>

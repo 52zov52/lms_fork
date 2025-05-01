@@ -10,6 +10,7 @@ use App\Models\Group;
 use App\Models\WorkStudyPlanCoursesInSemester;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Response;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -211,11 +212,7 @@ class EJournal extends Component
 
     public function generateInterimAssessmentStatementToPdf()
     {
-        $isExistExams = ModelsEJournal::where('teacher_id', '=', Auth::user()->id)
-            ->where('work_study_plan_courses_in_semester_id', '=', $this->wspCoursesInSemesterId)
-            ->where('group_id', '=', $this->groupId)
-            ->whereIn('lesson_type', [6, 7, 8])
-            ->count();
+        $isExistExams = $this->checkExams();
 
         if ($isExistExams == 0) {
             $this->dispatch('show-toast', message: 'У данной группы в эл. журнале отсутствует занятие с типом пр. аттестации. Добавьте новую запись и выберите тип: экзамен, диф. зачёт или зачёт.', type: 'error');
@@ -225,6 +222,46 @@ class EJournal extends Component
 
             return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend();
         }
+    }
+
+    public function sendInterimAssessmentStatement()
+    {
+        $isExistExams = $this->checkExams();
+
+        if ($isExistExams == 0) {
+            $this->dispatch('show-toast', message: 'У данной группы в эл. журнале отсутствует занятие с типом пр. аттестации. Добавьте новую запись и выберите тип: экзамен, диф. зачёт или зачёт.', type: 'error');
+        } else {
+            $emailTo = env('AD_EMAIL');
+
+            $interimAssessmentStatementController = new InterimAssessmentStatementController();
+            $data = $interimAssessmentStatementController->index($this->wspCoursesInSemesterId, $this->groupId);
+
+            Mail::send('reports.pdf.empty', [], function ($message) use ($emailTo, $data) {
+                $message->from('iubip@mg-lab.ru', 'ИУБиП. Ведомости');
+                $message->to($emailTo)
+                    ->subject(Auth::user()->userData->last_name . ' ' .
+                        mb_substr(Auth::user()->userData->first_name, 0, 1) . '. ' .
+                        mb_substr(Auth::user()->userData->middle_name, 0, 1) . '. ' .
+                        'Ведомость промежуточной аттестации от ' .
+                        Carbon::now()->format('d.m.Y'));
+
+                $message->attach($data['tempFile'], [
+                    'as' => $data['filename'],
+                    'mime' => 'application/pdf',
+                ]);
+            });
+
+            $this->dispatch('show-toast', message: 'Ведомость промежуточной аттестации успешно отправлена!', type: 'success');
+        }
+    }
+
+    private function checkExams()
+    {
+        return ModelsEJournal::where('teacher_id', '=', Auth::user()->id)
+            ->where('work_study_plan_courses_in_semester_id', '=', $this->wspCoursesInSemesterId)
+            ->where('group_id', '=', $this->groupId)
+            ->whereIn('lesson_type', [6, 7, 8])
+            ->count();
     }
 
     protected function getCountLessons($lessonType)
