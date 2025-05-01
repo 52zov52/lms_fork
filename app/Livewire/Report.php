@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\Report\ContingentReportController;
+use App\Http\Controllers\Reports\SocialPassportController;
 use App\Http\Controllers\ScheduleController;
 use App\Models\EJournal;
 use Illuminate\Support\Facades\Response;
@@ -10,7 +11,12 @@ use Livewire\Component;
 
 class Report extends Component
 {
-    public bool $isTeacherModalVisible = false, $isGroupModalVisible = false, $isRoomsModalVisible = false, $isEJournalModalVisible = false;
+    public bool $isTeacherModalVisible = false,
+        $isGroupModalVisible = false,
+        $isRoomsModalVisible = false,
+        $isEJournalModalVisible = false,
+        $isSocialPassportModalVisible = false;
+
     public $teachers = [], $groups = [], $weeksRange = [];
     public string $fio = "", $group = "", $week = "";
 
@@ -23,6 +29,9 @@ class Report extends Component
     public $listOfHalfYear = array(1, 2);
     public $listOfDiscipline = [];
     public $listOfGroups = [];
+
+    public $childCategories = [];
+    public $hasPushkinCard = 2;
 
     public function render()
     {
@@ -93,6 +102,11 @@ class Report extends Component
     public function showEJournalModal()
     {
         $this->isEJournalModalVisible = true;
+    }
+
+    public function showSocialPassportModal()
+    {
+        $this->isSocialPassportModalVisible = true;
     }
 
     public function setAcademicYear()
@@ -218,6 +232,14 @@ class Report extends Component
 
             return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
         }
+    }
+
+    public function downloadSocialPassportReport()
+    {
+        $socialPassportController = new SocialPassportController();
+        $data = $socialPassportController->downloadSocialPassportReport($this->childCategories, $this->hasPushkinCard);
+
+        return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend();
     }
 
     /**

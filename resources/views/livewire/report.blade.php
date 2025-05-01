@@ -29,6 +29,13 @@
         <li><a wire:click="generateContingentByAgeAndGenderReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней и форм обучения</a></li>
         <li><a wire:click="generateContingentByAgeAndGenderWithoutTeachingFromReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней обучения</a></li>
         <li><a wire:click="downloadListOfForeignStudents" href="#" class="text-blue-500 hover:underline">Отчет по иностранным обучающимся</a></li>
+        <li><a wire:click="showSocialPassportModal" href="#" class="text-blue-500 hover:underline">Социальный паспорт обучающегося</a></li>
+    </ul>
+    @endcan
+    @can('access-to-social-passport-report')
+    <h2 class="mt-2 font-semibold">Социальный паспорт обучающегося:</h2>
+    <ul class="list-disc px-4">
+        <li><a wire:click="showSocialPassportModal" href="#" class="text-blue-500 hover:underline">Социальный паспорт обучающегося</a></li>
     </ul>
     @endcan
     @can('access-to-spt')
@@ -178,6 +185,77 @@
                     {{ __('Закрыть') }}
                 </button>
                 <button wire:click.prevent="downloadEJournalReport" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                    {{ __('Сформировать отчет') }}
+                </button>
+            </x-slot>
+        </form>
+    </x-dialog-modal>
+
+    <!-- Modal dialog social passport -->
+    <x-dialog-modal wire:model="isSocialPassportModalVisible">
+        <form>
+            @csrf
+            <x-slot name="title">
+                Форма выбора критериев отчета
+            </x-slot>
+
+            <x-slot name="content">
+                <div class="w-full flex flex-col space-y-2">
+                    <div class="flex flex-col">
+                        <label class="font-semibold">Категория</label>
+                        <div class="flex flex-col space-y-2">
+                            <div class="mr-2">
+                                <label for="child-categories-1" class="flex space-x-1 items-center">
+                                    <input wire:model="childCategories" value="Дети-инвалиды" type="checkbox" id="child-categories-1" class="mr-1">Дети-инвалиды
+                                </label>
+                            </div>
+                            <div class="mr-2">
+                                <label for="child-categories-2" class="flex space-x-1 items-center">
+                                    <input wire:model="childCategories" value="Сироты" type="checkbox" id="child-categories-2" class="mr-1">Сироты
+                                </label>
+                            </div>
+                            <div class="mr-2">
+                                <label for="child-categories-3" class="flex space-x-1 items-center">
+                                    <input wire:model="childCategories" value="Дети под опекой" type="checkbox" id="child-categories-3" class="mr-1">Дети под опекой
+                                </label>
+                            </div>
+                            <div class="mr-2">
+                                <label for="child-categories-4" class="flex space-x-1 items-center">
+                                    <input wire:model="childCategories" value="Дети участников СВО" type="checkbox" id="child-categories-4" class="mr-1">Дети участников СВО
+                                </label>
+                            </div>
+                            <div class="mr-2">
+                                <label for="child-categories-5" class="flex space-x-1 items-center">
+                                    <input wire:model="childCategories" value="Многодетная семья" type="checkbox" id="child-categories-5" class="mr-1">Многодетная семья
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold">Наличие Пушкинской карты</label>
+                        <div class="flex flex-row space-x-4">
+                            <div class="flex space-x-1 items-center">
+                                <input wire:model="hasPushkinCard" type="radio" id="hasPushkinCardYes" value="1">
+                                <label for="hasPushkinCardYes" class="cursor-pointer">Да</label>
+                            </div>
+                            <div class="flex space-x-1 items-center">
+                                <input wire:model="hasPushkinCard" type="radio" id="hasPushkinCardNo" value="0">
+                                <label for="hasPushkinCardNo" class="cursor-pointer">Нет</label>
+                            </div>
+                            <div class="flex space-x-1 items-center">
+                                <input wire:model="hasPushkinCard" type="radio" id="skip-pushkin-card-id" value="2">
+                                <label for="skip-pushkin-card-id" class="cursor-pointer">Не учитывать</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </x-slot>
+
+            <x-slot name="footer">
+                <button wire:click="$toggle('isSocialPassportModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
+                    {{ __('Закрыть') }}
+                </button>
+                <button wire:click.prevent="downloadSocialPassportReport" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
                     {{ __('Сформировать отчет') }}
                 </button>
             </x-slot>

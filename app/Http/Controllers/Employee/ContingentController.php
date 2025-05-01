@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Employee;
 
+use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\Controller;
 use App\Models\GroupStudent;
 use App\Models\StudentTicketNumber;
@@ -15,7 +16,7 @@ class ContingentController extends Controller
         return $this->extractGroupIds(StudyThread::join('study_thread_subgroups', 'study_threads.id', '=', 'study_thread_subgroups.study_thread_id')
             ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
             ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
-            ->where('study_threads.year', '=', 2024)
+            ->where('study_threads.year', '=', AcademicYearController::getYear())
             ->select('groups.id')
             ->distinct()
             ->get()->toArray());
