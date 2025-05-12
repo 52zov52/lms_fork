@@ -117,7 +117,7 @@ class EJournal extends Component
         }
 
         foreach ($journal as $key => $value) {
-            if($value->status != 12)
+            if ($value->status != 12)
                 $this->status[$value->id] = $value->status;
         }
 
@@ -174,29 +174,40 @@ class EJournal extends Component
         if ($isCheck != 0) {
             $this->dispatch('show-toast', message: 'На указанную дату и время уже созданы записи в эл. журнале!', type: 'error');
         } else {
+            $examsCount = $this->checkExams();
+            $examValidate = true;
+
             $contingentController = new ContingentController();
             $contingent = $contingentController->getContingent($this->groupId);
 
-            foreach ($contingent as $key => $value) {
-                ModelsEJournal::create([
-                    'teacher_id' => Auth::user()->id,
-                    'work_study_plan_courses_in_semester_id' => $this->wspCoursesInSemesterId,
-                    'group_id' => $this->groupId,
-                    'student_id' => $value->user_id,
-                    'status' => 2,
-                    'lesson_date' => Carbon::parse($this->lessonDate)->format('Y-m-d'),
-                    'lesson_time' => $this->lessonTime,
-                    'lesson_type' => $this->lessonType,
-                    'lesson_theme' => $this->lessonTheme,
-                    'who_checked' => Auth::user()->id,
-                    'checked_at' => Carbon::now()->format('Y-m-d H:i:s'),
-                    'academic_year' => AcademicYearController::getAcademicYear(),
-                    'half_year' => AcademicYearController::getHalfYear()
-                ]);
+            if ($this->lessonType == 6 || $this->lessonType == 7 || $this->lessonType == 8) {
+                $examValidate = ($examsCount == 0) ? true : false;
             }
 
-            $this->isShowModalDialog = false;
-            $this->dispatch('show-toast', message: 'Записи успешно добавлены!', type: 'success');
+            if ($examValidate) {
+                foreach ($contingent as $key => $value) {
+                    ModelsEJournal::create([
+                        'teacher_id' => Auth::user()->id,
+                        'work_study_plan_courses_in_semester_id' => $this->wspCoursesInSemesterId,
+                        'group_id' => $this->groupId,
+                        'student_id' => $value->user_id,
+                        'status' => 2,
+                        'lesson_date' => Carbon::parse($this->lessonDate)->format('Y-m-d'),
+                        'lesson_time' => $this->lessonTime,
+                        'lesson_type' => $this->lessonType,
+                        'lesson_theme' => $this->lessonTheme,
+                        'who_checked' => Auth::user()->id,
+                        'checked_at' => Carbon::now()->format('Y-m-d H:i:s'),
+                        'academic_year' => AcademicYearController::getAcademicYear(),
+                        'half_year' => AcademicYearController::getHalfYear()
+                    ]);
+                }
+
+                $this->isShowModalDialog = false;
+                $this->dispatch('show-toast', message: 'Записи успешно добавлены!', type: 'success');
+            } else {
+                $this->dispatch('show-toast', message: 'Занятие с типом «зачет», «диф. зачет» или «экзамен» можно создать только один раз!', type: 'error');
+            }
         }
     }
 
