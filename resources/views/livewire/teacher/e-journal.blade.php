@@ -94,50 +94,54 @@
                         @foreach($journal as $item)
                         @if($student->user_id == $item->student_id)
                         <td class="w-20 px-2 py-2 text-center {{ ($item->is_signature) ? 'bg-green-200 dark:bg-slate-700' : '' }}">
-                            @if(!$item->is_signature)
-                            <div wire:loading.remove wire:target="setStatus({{ $item->id }}, {{ $student->user_id }})">
-                                <select wire:model="status.{{ $item->id }}" wire:key="{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $student->user_id }})" name="status" id="status-.{{ $item->id }}" class="bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($item->is_signature) disabled @endif>
-                                    @foreach($listOfStatuses as $key => $value)
-                                    <option value="{{ $key }}">{{ $value }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div wire:loading wire:target="setStatus({{ $item->id }}, {{ $student->user_id }})">
-                                <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-                            </div>
+                            @if($item->status == 12)
+                            <span>-</span>
                             @else
-                            @switch($status[$item->id])
-                            @case(1)
-                            <div class="w-full h-6 font-bold" data-tippy-content="Присутствовал">.</div>
-                            @break
-                            @case(2)
-                            <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал">Н</div>
-                            @break
-                            @case(3)
-                            <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал по уважительной причине">НУ</div>
-                            @break
-                            @case(6)
-                            <div class="w-full h-6 font-bold" data-tippy-content="Неудовлетворительно">2</div>
-                            @break
-                            @case(7)
-                            <div class="w-full h-6 font-bold" data-tippy-content="Удовлетворительно">3</div>
-                            @break
-                            @case(8)
-                            <div class="w-full h-6 font-bold" data-tippy-content="Хорошо">4</div>
-                            @break
-                            @case(9)
-                            <div class="w-full h-6 font-bold" data-tippy-content="Отлично">5</div>
-                            @break
-                            @case(10)
-                            <div class="w-full h-6 font-bold" data-tippy-content="Зачёт">Зач.</div>
-                            @break
-                            @case(11)
-                            <div class="w-full h-6 font-bold" data-tippy-content="Незачёт">Незач.</div>
-                            @break
-                            @default
-                            -
-                            @break
-                            @endswitch
+                                @if(!$item->is_signature)
+                                    <div wire:loading.remove wire:target="setStatus({{ $item->id }}, {{ $student->user_id }})">
+                                        <select wire:model="status.{{ $item->id }}" wire:key="{{ $item->id }}" wire:change="setStatus({{ $item->id }}, {{ $student->user_id }})" name="status" id="status-.{{ $item->id }}" class="bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" @if($item->is_signature) disabled @endif>
+                                            @foreach($listOfStatuses as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div wire:loading wire:target="setStatus({{ $item->id }}, {{ $student->user_id }})">
+                                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                    </div>
+                                @else
+                                    @switch($status[$item->id])
+                                    @case(1)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Присутствовал">.</div>
+                                    @break
+                                    @case(2)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал">Н</div>
+                                    @break
+                                    @case(3)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Отсутсвовал по уважительной причине">НУ</div>
+                                    @break
+                                    @case(6)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Неудовлетворительно">2</div>
+                                    @break
+                                    @case(7)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Удовлетворительно">3</div>
+                                    @break
+                                    @case(8)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Хорошо">4</div>
+                                    @break
+                                    @case(9)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Отлично">5</div>
+                                    @break
+                                    @case(10)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Зачёт">Зач.</div>
+                                    @break
+                                    @case(11)
+                                    <div class="w-full h-6 font-bold" data-tippy-content="Незачёт">Незач.</div>
+                                    @break
+                                    @default
+                                    <span>-</span>
+                                    @break
+                                    @endswitch
+                                @endif
                             @endif
                         </td>
                         @endif

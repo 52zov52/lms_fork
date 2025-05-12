@@ -41,7 +41,7 @@ class EJournal extends Component
         '15:10-16:40',
         '17:00-18:30',
         '18:40-20:10',
-        '20:20-21:50'
+        '20:20-21:50',
     ];
 
     public $listOfStatuses = [
@@ -54,6 +54,7 @@ class EJournal extends Component
         9 => '5',
         10 => 'Зач.',
         11 => 'Незач.',
+        12 => '-',
     ];
 
     public $status = array();
@@ -80,17 +81,6 @@ class EJournal extends Component
         $contingentController = new ContingentController();
         $contingent = $contingentController->getContingent($this->groupId);
 
-        $journal = ModelsEJournal::where('teacher_id', '=', Auth::user()->id)
-            ->where('work_study_plan_courses_in_semester_id', '=', $this->wspCoursesInSemesterId)
-            ->where('group_id', '=', $this->groupId)
-            ->orderBy('lesson_date', 'asc')
-            ->orderBy('lesson_time', 'asc')
-            ->get();
-
-        foreach ($journal as $key => $value) {
-            $this->status[$value->id] = $value->status;
-        }
-
         $lessonInfo = ModelsEJournal::select('lesson_date', 'lesson_time', 'lesson_type', 'is_signature')
             ->where('teacher_id', '=', Auth::user()->id)
             ->where('work_study_plan_courses_in_semester_id', '=', $this->wspCoursesInSemesterId)
@@ -99,6 +89,37 @@ class EJournal extends Component
             ->orderBy('lesson_date', 'asc')
             ->orderBy('lesson_time', 'asc')
             ->get();
+
+        $journal = collect();
+
+        foreach ($lessonInfo as $key => $lesson) {
+            foreach ($contingent as $key => $student) {
+                $entry = ModelsEJournal::where('teacher_id', Auth::user()->id)
+                    ->where('work_study_plan_courses_in_semester_id', $this->wspCoursesInSemesterId)
+                    ->where('group_id', $this->groupId)
+                    ->where('student_id', $student->user_id)
+                    ->where('lesson_date', $lesson->lesson_date)
+                    ->where('lesson_time', $lesson->lesson_time)
+                    ->select('id', 'student_id', 'status', 'is_signature')
+                    ->first();
+
+                if (!$entry) {
+                    $entry = new ModelsEJournal([
+                        'id' => null,
+                        'student_id' => $student->user_id,
+                        'status' => 12,
+                        'is_signature' => $lesson->is_signature,
+                    ]);
+                }
+
+                $journal->push($entry);
+            }
+        }
+
+        foreach ($journal as $key => $value) {
+            if($value->status != 12)
+                $this->status[$value->id] = $value->status;
+        }
 
         return view('livewire.teacher.e-journal', [
             'group_name' => $group->group_name,
