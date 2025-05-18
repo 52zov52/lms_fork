@@ -54,7 +54,7 @@ class SendDailyEvents extends Command
                 'rectorateDecisionEvents' => $rectorateDecisionEvents,
                 'upbringingEvents' => $upbringingEvents
             ], function ($message) use ($emailTo) {
-                $message->from('iubip@mg-lab.ru', 'ЧОУ ВО ЮУ (ИУБиП)');
+                $message->from('lms@iubip.space', 'ЧОУ ВО ЮУ (ИУБиП)');
                 $message->to($emailTo)->subject('ИУБиП список ближайших мероприятий на период с ' . Carbon::now()->format('d.m.Y') . ' по ' . Carbon::now()->addDays(3)->format('d.m.Y'));
             });
         }

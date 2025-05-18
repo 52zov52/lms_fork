@@ -269,7 +269,7 @@ class EJournal extends Component
             $data = $interimAssessmentStatementController->index($this->wspCoursesInSemesterId, $this->groupId);
 
             Mail::send('reports.pdf.empty', [], function ($message) use ($emailTo, $data) {
-                $message->from('iubip@mg-lab.ru', 'ИУБиП. Ведомости');
+                $message->from('lms@iubip.space', 'ИУБиП. Ведомости');
                 $message->to($emailTo)
                     ->subject(Auth::user()->userData->last_name . ' ' .
                         mb_substr(Auth::user()->userData->first_name, 0, 1) . '. ' .

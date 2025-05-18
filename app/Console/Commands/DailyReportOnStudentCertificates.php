@@ -61,7 +61,7 @@ class DailyReportOnStudentCertificates extends Command
             'orderRequestSPO' => $orderRequestSPO,
             'orderRequestVO' => $orderRequestVO
         ], function ($message) {
-            $message->from('iubip@mg-lab.ru', 'ИУБиП отчет по справкам о статусе студента');
+            $message->from('lms@iubip.space', 'ИУБиП отчет по справкам о статусе студента');
             $message->to(['ak.direktor@iubip.ru', 'miziukov@iubip.ru'])->subject('Количество заявок от студентов на справки о статусе студента на ' . Carbon::now()->format('d.m.Y'));
         });
 
