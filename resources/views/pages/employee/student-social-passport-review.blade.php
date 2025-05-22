@@ -1,6 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h1>{{ __('Студенты, направившие социальный паспорт на утверждение') }}</h1>
+        <h1>Социальные паспорта студентов</h1>
+    </x-slot>
+
+    <x-slot name="breadcrumbs">
+        <x-breadcrumbs :items="[
+            ['title' => 'Главная', 'url' => '/'],
+            ['title' => 'Социальные паспорта студентов']
+        ]" />
     </x-slot>
 
     @livewire('employee.student-social-passport-review')

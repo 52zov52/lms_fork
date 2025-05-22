@@ -1,6 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h1>{{ __('Управление контингентом') }}</h1>
+        <h1>Управление контингентом</h1>
+    </x-slot>
+
+    <x-slot name="breadcrumbs">
+        <x-breadcrumbs :items="[
+            ['title' => 'Главная', 'url' => '/'],
+            ['title' => 'Управление контингентом']
+        ]" />
     </x-slot>
 
     @livewire('employee.contingent-management')

@@ -1,6 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h1>{{ __('Цифровой профиль преподавателя') }}</h1>
+        <h1>Цифровой профиль преподавателя</h1>
+    </x-slot>
+
+    <x-slot name="breadcrumbs">
+        <x-breadcrumbs :items="[
+            ['title' => 'Главная', 'url' => '/'],
+            ['title' => 'Цифровой профиль преподавателя']
+        ]" />
     </x-slot>
 
     @livewire('teacher.digital-profile')

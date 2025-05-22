@@ -95,9 +95,12 @@
                 </div>
             </header>
             <main class="grow overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300 p-4">
-                <div class="h-full flex flex-col space-y-2">
-                    <div class="mb-4 flex flex-col space-y-4">
+                <div class="h-full flex flex-col">
+                    <div class="flex mb-2 flex-col">
                         {{ $header }}
+                    </div>
+                    <div class="flex mb-6">
+                        {{ $breadcrumbs }}
                     </div>
                     <div class="grow">
                         {{ $slot }}

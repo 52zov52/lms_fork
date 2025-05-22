@@ -1,6 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h1>{{ __('Моя посещаемость') }}</h1>
+        <h1>Моя посещаемость</h1>
+    </x-slot>
+
+    <x-slot name="breadcrumbs">
+        <x-breadcrumbs :items="[
+            ['title' => 'Главная', 'url' => '/'],
+            ['title' => 'Моя посещаемость']
+        ]" />
     </x-slot>
 
     @livewire('student.my-attendance')

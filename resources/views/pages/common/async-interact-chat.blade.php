@@ -1,6 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h1>{{ __('Асинхронное взаимодействие') }}</h1>
+        <h1>Асинхронное взаимодействие</h1>
+    </x-slot>
+
+    <x-slot name="breadcrumbs">
+        <x-breadcrumbs :items="[
+            ['title' => 'Главная', 'url' => '/'],
+            ['title' => 'Асинхронное взаимодействие']
+        ]" />
     </x-slot>
 
     @livewire('common.async-interact-chat')
