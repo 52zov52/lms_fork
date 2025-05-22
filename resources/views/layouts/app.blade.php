@@ -37,6 +37,9 @@
             height: calc(100vh - 265px);
         }
     </style>
+    <!-- Скрипты для версии для слабовидящих https://lidrekon.ru/slep/ -->
+    <script src="{{ asset('assets/jquery.js') }}"></script>
+    <script src="{{ asset('assets/uhpv-full.min.js') }}"></script>
 </head>
 
 <body>
@@ -62,6 +65,10 @@
                         </button>
                     </div>
                     <div class="h-full flex space-x-1 items-center">
+                        <button id="specialButton" class="h-8 flex items-center justify-center px-2 hover:text-blue-500">
+                            <i class="fa-solid fa-eye"></i>
+                            <span class="hidden md:block ml-2 text-xs">Версия для слабовидящих</span>
+                        </button>
                         <button @click="toggleDarkMode()" class="header-icon">
                             <template x-if="!isDarkMode">
                                 <i class="fa-solid fa-sun"></i>
