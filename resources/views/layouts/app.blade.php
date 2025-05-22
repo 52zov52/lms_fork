@@ -38,8 +38,8 @@
         }
     </style>
     <!-- Скрипты для версии для слабовидящих https://lidrekon.ru/slep/ -->
-    <script src="{{ asset('assets/jquery.js') }}"></script>
-    <script src="{{ asset('assets/uhpv-full.min.js') }}"></script>
+    <script src="{{ asset('js/lidrekon/jquery.js') }}"></script>
+    <script src="{{ asset('js/lidrekon/uhpv-full.min.js') }}"></script>
 </head>
 
 <body>
