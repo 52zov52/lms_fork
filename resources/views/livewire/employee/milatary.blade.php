@@ -12,12 +12,15 @@
         </div>
 
         <div class="flex flex-row space-x-2">
-            <input wire:model="docNumber" type="text" name="docNumber" id="doc-number" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 px-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-600 dark:placeholder-white" placeholder="Введите номер документа для приложения № 4">
+            <input wire:model="ticketNumber" type="text" name="ticketNumber" id="ticket-number" class="w-full bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 px-2 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-gray-600 dark:placeholder-white" placeholder="Для поиска введите номер личного дела (номер зачетной книжки)">
+            <button wire:click="searchContingentByTicketNumber" class="w-12 bg-white hover:bg-blue-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-blue-400 px-2 py-1 text-xs text-center text-blue-400 hover:text-white">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
         </div>
 
         <div wire:loading.remove wire:target="getContingent, searchContingentByTicketNumber">
             @if(!is_null($contingent) && count($contingent) != 0)
-            <div class="border rounded border-slate-400/20">
+            <div class="hidden lg:block border rounded border-slate-400/20">
                 <table class="w-full text-xs md:text-sm">
                     <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                         <tr class="border-b border-slate-400/20">
@@ -35,22 +38,17 @@
                             <td class="w-auto px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
                             <td class="w-64 px-2 py-2 text-center">{{ $item->group_name }}</td>
                             <td class="w-64 px-2 py-2 text-center">{{ $item->ticket_number }}</td>
-                            <td class="w-24 px-2 py-2 text-center">
-                                <button wire:click="milatary({{ $item->user_id }})" class="w-9 btn-download" title="" data-tippy-content="Скачать форму № 10">
-                                    <span wire:loading.remove wire:target="milatary({{ $item->user_id }})">
-                                        <i class="fa-solid fa-download"></i>
+                            <td class="w-32 px-2 py-2 text-center">
+                                <button wire:click="printForm10({{ $item->user_id }})" class="w-10 btn-download" title="" data-tippy-content="Скачать форму №10">
+                                    <span wire:loading.remove wire:target="printForm10({{ $item->user_id }})">
+                                        Ф10
                                     </span>
-                                    <span wire:loading wire:target="milatary({{ $item->user_id }})">
+                                    <span wire:loading wire:target="printForm10({{ $item->user_id }})">
                                         <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                                     </span>
                                 </button>
-                                <button wire:click="form4({{ $item->user_id }})" class="w-9 btn-download" title="" data-tippy-content="Скачать форму № 4">
-                                    <span wire:loading.remove wire:target="form4({{ $item->user_id }})">
-                                        <i class="fa-solid fa-download"></i>
-                                    </span>
-                                    <span wire:loading wire:target="form4({{ $item->user_id }})">
-                                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-                                    </span>
+                                <button wire:click="toggleForm4ParamsModal({{ $item->user_id }})" class="w-10 btn-download" title="" data-tippy-content="Скачать форму №4">
+                                    <span>Ф4</span>
                                 </button>
                             </td>
                         </tr>
@@ -58,16 +56,90 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="lg:hidden flex flex-col space-y-2">
+                @foreach($contingent as $item)
+                <div class="flex flex-col space-y-2 bg-slate-200 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 p-4 text-xs">
+                    <div class="flex flex-col">
+                        <span class="font-semibold">ФИО:</span>
+                        <span>{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Группа:</span>
+                        <span>{{ $item->group_name }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">№ зачетки:</span>
+                        <span>{{ $item->ticket_number }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Действия:</span>
+                        <div class="flex flex-row space-x-2">
+                            <button wire:click="printForm10({{ $item->user_id }})" class="w-auto grow btn-download" title="" data-tippy-content="Скачать форму №10">
+                                <span wire:loading.remove wire:target="printForm10({{ $item->user_id }})">
+                                    Ф10
+                                </span>
+                                <span wire:loading wire:target="printForm10({{ $item->user_id }})">
+                                    <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                </span>
+                            </button>
+                            <button wire:click="toggleForm4ParamsModal({{ $item->user_id }})" class="w-auto grow btn-download" title="" data-tippy-content="Скачать форму №4">
+                                <span>Ф4</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
             @else
             <x-alert type="info" title="Информация" message="Для просмотра списочного состава учебной группы, выберите нужную группу из списка" />
             @endif
         </div>
         <!-- Preloader -->
-        <div class="h-full" wire:loading wire:target="getContingent">
+        <div class="h-full" wire:loading wire:target="getContingent, searchContingentByTicketNumber">
             <div class="h-full flex space-x-2 items-center justify-center text-sm md:text-lg">
                 <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                 <span>Пожалуйста, подождите, идет загрузка данных</span>
             </div>
         </div>
     </div>
+
+    <!-- Modal dialog for from 4 -->
+    <x-dialog-modal wire:model="showForm4ParamsModal">
+        <form>
+            @csrf
+            <x-slot name="title">
+                Форма критериев отчета
+            </x-slot>
+
+            <x-slot name="content">
+                <div class="flex flex-col space-y-2">
+                    <div class="flex flex-col">
+                        <label for="date-from" class="font-semibold">Дата выдачи справки</label>
+                        <input wire:model="dateFrom" type="date" id="date-from" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        @error('dateFrom') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="doc-number" class="font-semibold">Номер справки</label>
+                        <input wire:model="docNumber" type="text" id="doc-number" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        @error('docNumber') <span class="text-red-500 font-semibold">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+            </x-slot>
+
+            <x-slot name="footer">
+                <button wire:click="$toggle('showForm4ParamsModal')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
+                    {{ __('Закрыть') }}
+                </button>
+                <button wire:click="printForm4" type="button" class="ml-2 w-full sm:w-auto bg-green-500 hover:bg-green-600 rounded shadow-xl px-2 py-1 text-white">
+                    <span wire:loading.remove wire:target="printForm4">
+                        {{ __('Сформировать отчет') }}
+                    </span>
+                    <span wire:loading wire:target="printForm4">
+                        <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                    </span>
+                </button>
+            </x-slot>
+        </form>
+    </x-dialog-modal>
 </div>

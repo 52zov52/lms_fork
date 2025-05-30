@@ -153,7 +153,7 @@ class PrintDefenseMinistryForm10Controller extends Controller
         return ['tempFile' => $tempFile, 'filename' => $filename];
     }
 
-    public function form4($userId, $groupId, $docNumber)
+    public function form4($userId, $groupId, $dateFrom, $docNumber)
     {
         $userInfo = DB::table('users_data')
             ->where('user_id', '=', $userId)
@@ -212,6 +212,9 @@ class PrintDefenseMinistryForm10Controller extends Controller
 
         $imgPath = storage_path('app/public/' . $data['imgPath']);
 
+        $templateProcessor->setValue('date_from', Carbon::parse($dateFrom)->format('d.m.Y'));
+        $templateProcessor->setValue('doc_number', $docNumber);
+        $templateProcessor->setValue('course', $group->course);
         $templateProcessor->setValue('fio', $userInfo->last_name . ' ' . $userInfo->first_name . ' ' . $userInfo->middle_name);
         $templateProcessor->setValue('birthday', Carbon::parse($userInfo->birthday)->format('Y'));
         $templateProcessor->setValue('education_backgound', $userEducationBackgound->document_type);
