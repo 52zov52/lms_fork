@@ -198,7 +198,7 @@
     @endcan
     @can('access-to-military')
     <a href="{{ route('military') }}">
-        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('milatary')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('military')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <div class="w-8 h-8 flex items-center justify-center">
                 <i class="fa-solid fa-shield fa-lg"></i>
             </div>
