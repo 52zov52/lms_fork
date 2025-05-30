@@ -24,7 +24,7 @@
         </div>
     </a>
     @can('access-to-academic-workload')
-    <a x-bind:class="{ 'hovered': hovered === 'academic_workload' }" @mouseover="hovered = 'academic_workload'" @mouseout="hovered = null" class="w-auto" href="{{ route('academic.workload') }}">
+    <a x-bind:class="{ 'hovered': hovered === 'academic_workload' }" @mouseover="hovered = 'academic_workload'" @mouseout="hovered = null" class="w-auto" href="{{ route('teacher.academic.workload') }}">
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Учебная нагрузка</div>
             <div class="grow px-4 py-2 text-sm text-justify">

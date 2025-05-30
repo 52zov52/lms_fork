@@ -11,5 +11,5 @@
         ]" />
     </x-slot>
 
-    @livewire('academic-workload')
+    @livewire('teacher.academic-workload')
 </x-app-layout>

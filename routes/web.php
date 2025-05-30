@@ -151,6 +151,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
         Route::get('/generate-interim-assessment-statement/{wspCoursesInSemesterId}/{groupId}', [InterimAssessmentStatementController::class, 'index'])->name('generate.interim.assessment.statement');
 
+        //Учебная нагрузка
+        Route::get('/academic-workload', function () {
+            return view('pages.teacher.academic-workload');
+        })->name('teacher.academic.workload');
+
         //График пересдач академических задолженностей у студентов
         Route::get('/academic-retake-schedule', function () {
             return view('pages.teacher.academic-retake-schedule');
@@ -299,14 +304,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     });
 
     Route::group(['middleware' => ['role:Teacher']], function () {
-        Route::get('/digital-teacher-profile', function () {
-            return view('pages.digital-teacher-profile');
-        })->name('digital.teacher.profile');
-
-        Route::get('/academic-workload', function () {
-            return view('pages.academic-workload');
-        })->name('academic.workload');
-
         Route::get('/my-publications', function () {
             return view('pages.my-publications');
         })->name('my.publications');
@@ -330,8 +327,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/questionnaire', function () {
         return view('pages.questionnaire');
     })->name('questionnaire');
-
-    Route::group(['middleware' => ['role:Student']], function () {});
 
     Route::group(['middleware' => ['permission:access-to-student-requests-for-certificates-full|access-to-student-requests-for-certificates-spo|access-to-student-requests-for-certificates-vo']], function () {
         Route::get('/document-retrieval-requests', function () {

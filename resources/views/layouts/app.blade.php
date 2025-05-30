@@ -24,16 +24,12 @@
 
     <style>
         @media screen and (min-width: 1024px) {
-            .w-admission-campaign {
-                width: calc(100vw - 95px);
-            }
-
-            .w-e-journal {
+            .viewport-width-wrapper {
                 width: calc(100vw - 95px);
             }
         }
 
-        .h-e-journal {
+        .viewport-height-wrapper {
             height: calc(100vh - 265px);
         }
     </style>

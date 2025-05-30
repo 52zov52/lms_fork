@@ -28,7 +28,7 @@
             </button>
         </div>
 
-        <div class="w-e-journal h-e-journal border rounded border-slate-400/20 overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
+        <div class="viewport-width-wrapper viewport-height-wrapper border rounded border-slate-400/20 overflow-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-300">
             <table class="w-full text-xs">
                 <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                     <tr class="z-10 sticky top-0 bg-slate-200 dark:bg-slate-700 border-b border-slate-400/20">

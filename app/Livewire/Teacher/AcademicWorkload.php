@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Teacher;
 
 use App\Models\ActiveUser;
 use Carbon\Carbon;
@@ -88,7 +88,7 @@ class AcademicWorkload extends Component
             ->orderBy('groups.group_name')
             ->distinct()->get()->toArray());
 
-        return view('livewire.academic-workload', ['academicYear' => $this->getAcademicYear(), 'data' => $data]);
+        return view('livewire.teacher.academic-workload', ['academicYear' => $this->getAcademicYear(), 'data' => $data]);
     }
 
     private function transformer($data): array
