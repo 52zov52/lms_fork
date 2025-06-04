@@ -31,6 +31,7 @@ class SendDailyEvents extends Command
     public function handle()
     {
         $users = User::whereNotNull('email')->select('id', 'email')->get();
+        $emailFrom = env('MAIL_FROM_ADDRESS');
 
         foreach ($users as $key => $value) {
             $emailTo = $value->email;
@@ -53,8 +54,8 @@ class SendDailyEvents extends Command
             Mail::send('emails.upcoming-events', [
                 'rectorateDecisionEvents' => $rectorateDecisionEvents,
                 'upbringingEvents' => $upbringingEvents
-            ], function ($message) use ($emailTo) {
-                $message->from('lms@iubip.space', 'ЧОУ ВО ЮУ (ИУБиП)');
+            ], function ($message) use ($emailFrom, $emailTo) {
+                $message->from($emailFrom, 'ЧОУ ВО ЮУ (ИУБиП)');
                 $message->to($emailTo)->subject('ИУБиП список ближайших мероприятий на период с ' . Carbon::now()->format('d.m.Y') . ' по ' . Carbon::now()->addDays(3)->format('d.m.Y'));
             });
         }

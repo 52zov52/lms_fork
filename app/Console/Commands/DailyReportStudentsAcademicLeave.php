@@ -45,11 +45,13 @@ class DailyReportStudentsAcademicLeave extends Command
             ->orderBy('students_academic_leaves.academic_leave_end_date')
             ->get();
 
+        $emailFrom = env('MAIL_FROM_ADDRESS');
+
         if (count($studentsAcademicLeaves) != 0) {
             Mail::send('emails.daily-report-students-academic-leave', [
                 'studentsAcademicLeaves' => $studentsAcademicLeaves
-            ], function ($message) {
-                $message->from('lms@iubip.space', 'ИУБиП отчет по академическим отпускам');
+            ], function ($message) use ($emailFrom) {
+                $message->from($emailFrom, 'ИУБиП отчет по академическим отпускам');
                 $message->to(['ak.direktor@iubip.ru', 'miziukov@iubip.ru'])->subject('Список студентов, которые должны выйти из академ. отпуска на '. Carbon::now()->format('d.m.Y'));
             });
 

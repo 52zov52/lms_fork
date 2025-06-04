@@ -57,11 +57,13 @@ class DailyReportOnStudentCertificates extends Command
                 )
             ->first();
 
+        $emailFrom = env('MAIL_FROM_ADDRESS');
+
         Mail::send('emails.daily-report-on-student-certificates', [
             'orderRequestSPO' => $orderRequestSPO,
             'orderRequestVO' => $orderRequestVO
-        ], function ($message) {
-            $message->from('lms@iubip.space', 'ИУБиП отчет по справкам о статусе студента');
+        ], function ($message) use ($emailFrom) {
+            $message->from($emailFrom, 'ИУБиП отчет по справкам о статусе студента');
             $message->to(['ak.direktor@iubip.ru', 'miziukov@iubip.ru'])->subject('Количество заявок от студентов на справки о статусе студента на ' . Carbon::now()->format('d.m.Y'));
         });
 
