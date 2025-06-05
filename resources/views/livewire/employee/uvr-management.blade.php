@@ -187,7 +187,7 @@
                 {{ $data->links() }}
             </div>
             @else
-                <x-alert type="info" title="Информация" message="Список мероприятия по воспитательной работы и социализации отсутствует" />
+                <x-alert type="info" title="Информация" message="Список мероприятий по воспитательной работы и социализации отсутствует" />
             @endif
         </div>
         <!-- Preloader -->
@@ -198,6 +198,7 @@
             </div>
         </div>
     </div>
+    
     <!-- Modal dialog to create or edit record -->
     <x-dialog-modal wire:model="isCreateOrEditModalVisible" maxWidth="4xl">
         <form enctype="multipart/form-data">
