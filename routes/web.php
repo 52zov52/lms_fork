@@ -118,6 +118,16 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return view('pages.employee.milatary');
         })->name('military');
 
+        //Управление ВР и социализации
+        Route::get('uvr-management', function () {
+            return view('pages.employee.uvr-management');
+        })->name('uvr.management');
+
+        //Мероприятия по ВР и социализации
+        Route::get('uvr-event', function () {
+            return view('pages.employee.uvr-event');
+        })->name('uvr.event');
+
         Route::get('download-uvr-report', [UvrController::class, 'downloadReport'])->name('download.uvr.report');
 
         Route::get('/download-student-social-passport/{userId}', [StudentSocialPassportReviewController::class, 'downloadStudentSocialPassport'])->name('download.student.social.passport');

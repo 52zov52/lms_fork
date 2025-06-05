@@ -156,26 +156,22 @@
         </div>
     </a>
     @endcan
-    @can('manage-educational-and-youth-policy-events')
-    <a href="{{ route('upbringing.management') }}">
-        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('upbringing.management')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+    <a href="{{ route('uvr.management') }}">
+        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('uvr.management')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <div class="w-8 h-8 flex items-center justify-center">
                 <i class="fa-solid fa-briefcase fa-lg"></i>
             </div>
-            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Управление мероприятиями по ВР и МП</span>
+            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Управление ВР и социализации</span>
         </div>
     </a>
-    @endcan
-    @can('show-educational-and-youth-policy-events')
-    <a href="{{ route('youth.upbringing.event.info.report') }}">
-        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('youth.upbringing.event.info.report')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+    <a href="{{ route('uvr.event') }}">
+        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('uvr.event')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <div class="w-8 h-8 flex items-center justify-center">
                 <i class="fa-solid fa-business-time fa-lg"></i>
             </div>
-            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Мероприятия по ВР и МП</span>
+            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Мероприятия по ВР и социализации</span>
         </div>
     </a>
-    @endcan
     @can('access-to-student-social-passport-review')
     <a href="{{ route('employee.student.social.passport.review') }}">
         <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('employee.student.social.passport.review')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">

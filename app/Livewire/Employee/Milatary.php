@@ -8,8 +8,6 @@ use App\Models\Group;
 use Illuminate\Support\Facades\Response;
 use Livewire\Component;
 
-use function PHPSTORM_META\type;
-
 class Milatary extends Component
 {
     public int $selectedGroupId = 0;
