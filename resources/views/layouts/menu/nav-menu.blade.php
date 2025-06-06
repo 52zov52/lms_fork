@@ -156,6 +156,7 @@
         </div>
     </a>
     @endcan
+    @can('access-to-uvr')
     <a href="{{ route('uvr.management') }}">
         <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('uvr.management')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <div class="w-8 h-8 flex items-center justify-center">
@@ -172,6 +173,7 @@
             <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Мероприятия по ВР и социализации</span>
         </div>
     </a>
+    @endcan
     @can('access-to-student-social-passport-review')
     <a href="{{ route('employee.student.social.passport.review') }}">
         <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('employee.student.social.passport.review')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
