@@ -8,6 +8,7 @@
                 <span class="bg-green-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">В рамках Академии</span>
             </div>
 
+            @can('access-to-change-uvr-events')
             <div class="flex flex-col space-x-0 space-y-1 md:flex-row md:space-x-2 md:space-y-0">
                 <button wire:click="toggleCreateOrEditModalVisible(0)" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-center text-green-400 hover:text-white font-bold">
                     <span wire:loading.remove wire:target="toggleCreateOrEditModalVisible(0)">
@@ -27,6 +28,7 @@
                     </span>
                 </button>
             </div>
+            @endcan
         </div>
 
         <div wire:loading.remove wire:target="getData">
@@ -91,6 +93,7 @@
                                                 <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                                             </span>
                                         </button>
+                                        @can('access-to-change-uvr-events')
                                         <button wire:click="toggleCreateOrEditModalVisible({{ $value->id }}, true)" class="w-9 bg-white hover:bg-orange-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-orange-400 px-2 py-1 text-xs text-center text-orange-400 hover:text-white" title="" data-tippy-content="Редактировать">
                                             <span wire:loading.remove wire:target="toggleCreateOrEditModalVisible({{ $value->id }}, true)">
                                                 <i class="fa-solid fa-pen"></i>
@@ -102,6 +105,7 @@
                                         <button onclick="confirmDestroy('{{ $value->id }}')" class="w-9 bg-white hover:bg-red-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-red-400 px-2 py-1 text-xs text-center text-red-400 hover:text-white" title="" data-tippy-content="Удалить">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
@@ -166,6 +170,7 @@
                                         <i class="fa-solid fa-spinner fa-spin-pulse"></i>
                                     </span>
                                 </button>
+                                @can('access-to-change-uvr-events')
                                 <button wire:click="toggleCreateOrEditModalVisible({{ $value->id }}, true)" class="w-auto grow btn-edit" data-tippy-content="Редактировать">
                                     <span wire:loading.remove wire:target="toggleCreateOrEditModalVisible({{ $value->id }}, true)">
                                         <i class="fa-solid fa-pen"></i>
@@ -177,6 +182,7 @@
                                 <button onclick="confirmDestroy('{{ $value->id }}')" class="w-auto grow btn-destroy" title="" data-tippy-content="Удалить">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
+                                @endcan
                             </div>
                         </div>
                     </div>

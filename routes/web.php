@@ -273,14 +273,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         })->name('student.async.interact.chat.view.files');
     });
 
-    Route::get('/upbringing-management', function () {
-        return view('pages.upbringing-management');
-    })->name('upbringing.management');
-
-    Route::get('/youth-upbringing-event-info-report', function () {
-        return view('pages.youth-upbringing-event-info-report');
-    })->name('youth.upbringing.event.info.report');
-
     Route::get('/admission-campaign', function () {
         return view('pages.admission-campaign');
     })->name('admission.campaign');
@@ -353,25 +345,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     })->name('bulletin');
 
     Route::get('/print-defense-ministry-form-10/{userId}', [PrintDefenseMinistryForm10Controller::class, 'print'])->name('print.defense.ministry.form.10');
-
-    /*
-    //Удалить
-    Route::group(['middleware' => 'permission:access-to-data-on-students-academic-leaves'], function () {
-        Route::get('/academic-leave-calendar', function () {
-            return view('pages.academic-leave-calendar');
-        })->name('academic.leave.calendar');
-    });
-
-    //Удалить
-    Route::get('/documents-students-academic-leaves/{user_id}/{group_id}', function ($user_id, $group_id) {
-        return view('pages.documents-students-academic-leaves', ['user_id' => $user_id, 'group_id' => $group_id]);
-    })->name('documents.students.academic.leaves');
-
-    //Удалить
-    Route::get('/personal-records-check-sheet/{user_id}/{group_id}', function ($user_id, $group_id) {
-        return view('pages.academic-leave.personal-records-check-sheet', ['user_id' => $user_id, 'group_id' => $group_id]);
-    })->name('personal.records.check.sheet');
-    */
 
     Route::get('/form-z01/{user_id}/{group_id}', function ($user_id, $group_id) {
         return view('pages.academic-leave.form-z01', ['user_id' => $user_id, 'group_id' => $group_id]);
