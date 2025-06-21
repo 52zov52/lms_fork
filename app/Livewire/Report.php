@@ -30,7 +30,7 @@ class Report extends Component
     public $listOfDiscipline = [];
     public $listOfGroups = [];
 
-    public $childCategories = [];
+    public $childCategories = '';
     public $hasPushkinCard = 2;
 
     public function render()
@@ -237,7 +237,7 @@ class Report extends Component
     public function downloadSocialPassportReport()
     {
         $socialPassportController = new SocialPassportController();
-        $data = $socialPassportController->downloadSocialPassportReport($this->childCategories, $this->hasPushkinCard);
+        $data = $socialPassportController->downloadSocialPassportReport(array($this->childCategories), $this->hasPushkinCard);
 
         return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend();
     }

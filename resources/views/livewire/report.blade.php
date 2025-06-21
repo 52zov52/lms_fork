@@ -206,27 +206,27 @@
                         <div class="flex flex-col space-y-2">
                             <div class="mr-2">
                                 <label for="child-categories-1" class="flex space-x-1 items-center">
-                                    <input wire:model="childCategories" value="Дети-инвалиды" type="checkbox" id="child-categories-1" class="mr-1">Дети-инвалиды
+                                    <input wire:model="childCategories" value="Дети-инвалиды" type="radio" id="child-categories-1" class="mr-1">Дети-инвалиды
                                 </label>
                             </div>
                             <div class="mr-2">
                                 <label for="child-categories-2" class="flex space-x-1 items-center">
-                                    <input wire:model="childCategories" value="Сироты" type="checkbox" id="child-categories-2" class="mr-1">Сироты
+                                    <input wire:model="childCategories" value="Сироты" type="radio" id="child-categories-2" class="mr-1">Сироты
                                 </label>
                             </div>
                             <div class="mr-2">
                                 <label for="child-categories-3" class="flex space-x-1 items-center">
-                                    <input wire:model="childCategories" value="Дети под опекой" type="checkbox" id="child-categories-3" class="mr-1">Дети под опекой
+                                    <input wire:model="childCategories" value="Дети под опекой" type="radio" id="child-categories-3" class="mr-1">Дети под опекой
                                 </label>
                             </div>
                             <div class="mr-2">
                                 <label for="child-categories-4" class="flex space-x-1 items-center">
-                                    <input wire:model="childCategories" value="Дети участников СВО" type="checkbox" id="child-categories-4" class="mr-1">Дети участников СВО
+                                    <input wire:model="childCategories" value="Дети участников СВО" type="radio" id="child-categories-4" class="mr-1">Дети участников СВО
                                 </label>
                             </div>
                             <div class="mr-2">
                                 <label for="child-categories-5" class="flex space-x-1 items-center">
-                                    <input wire:model="childCategories" value="Многодетная семья" type="checkbox" id="child-categories-5" class="mr-1">Многодетная семья
+                                    <input wire:model="childCategories" value="Многодетная семья" type="radio" id="child-categories-5" class="mr-1">Многодетная семья
                                 </label>
                             </div>
                         </div>
