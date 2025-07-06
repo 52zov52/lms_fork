@@ -15,6 +15,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/a/appiub95/lms.iubip.ru || exit 1
+            pwd
             set -e
             php8.2 artisan down
             echo "Deploying ..."
