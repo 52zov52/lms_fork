@@ -14,8 +14,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/a/appiub95/lms.iubip.ru || exit 1
-            pwd
+            cd /home/a/appiub95/lms.iubip.ru/public_html
             set -e
             php8.2 artisan down
             echo "Deploying ..."
