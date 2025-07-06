@@ -1,0 +1,28 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Beget
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/a/appiub95/lms.iubip.ru
+            set -e
+            php8.2 artisan down
+            echo "Deploying ..."
+            git pull origin main
+            php8.2 artisan optimize:clear
+            php8.2 artisan permission:cache-reset
+            php8.2 artisan config:cache
+            php8.2 artisan route:cache
+            php8.2 artisan view:cache
+            php8.2 artisan up
+            echo "Done!"
