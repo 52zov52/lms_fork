@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdmissionCampaign;
 use App\Models\ApplicantAverageScore;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -12,8 +13,10 @@ class PrintApplicantAverageScoreController extends Controller
 {
     public function print()
     {
+        $activeAdmissionCampaign = AdmissionCampaign::where('is_active', 1)->select('id')->first();
+
         $data = ApplicantAverageScore::join('admission_campaign_directions', 'applicant_average_scores.admission_campaign_direction_id', '=', 'admission_campaign_directions.id')
-            ->where('applicant_average_scores.admission_campaign_id', '=', 1)
+            ->where('applicant_average_scores.admission_campaign_id', '=', $activeAdmissionCampaign->id)
             ->select(
                 'applicant_average_scores.last_name',
                 'applicant_average_scores.first_name',
