@@ -136,13 +136,15 @@ class RectorateDecision extends Component
             ->distinct()
             ->get();
 
-        $this->listOfDueDates = RectorateAndCouncilDecision::where('category', '=', 1)
-            ->where('due_date', 'like', $this->selectedYear . '%')
-            ->where('due_date', 'like', Carbon::createFromFormat('m.Y', $this->selectedMonth)->format('Y-m') . '%')
-            ->select(DB::raw("DATE_FORMAT(due_date, '%d.%m.%Y') as due_date"))
-            ->orderBy('due_date', 'ASC')
-            ->distinct()
-            ->get();
+        if ($this->selectedYear != 0 && $this->selectedMonth != 0) {
+            $this->listOfDueDates = RectorateAndCouncilDecision::where('category', '=', 1)
+                ->where('due_date', 'like', $this->selectedYear . '%')
+                ->where('due_date', 'like', Carbon::createFromFormat('m.Y', $this->selectedMonth)->format('Y-m') . '%')
+                ->select(DB::raw("DATE_FORMAT(due_date, '%d.%m.%Y') as due_date"))
+                ->orderBy('due_date', 'ASC')
+                ->distinct()
+                ->get();
+        }
 
         $rectorateDecisions = RectorateAndCouncilDecision::where('category', '=', 1);
 
@@ -295,7 +297,7 @@ class RectorateDecision extends Component
 
         $operatingActivity = new OperatingActivity();
         $operatingActivity->activity_direction = 'Исполнение решений ректората';
-        $operatingActivity->description = 'В соответствии с решением ректората от ' . Carbon::parse($rectorateDecision->date_decision)->format('d.m.Y') . ' №' . $rectorateDecision->number_decision . ' ...';
+        $operatingActivity->description = 'В соответствии с решением ректората от ' . Carbon::parse($rectorateDecision->date_decision)->format('d.m.Y') . ' №' . $rectorateDecision->number_decision . ' "' . $rectorateDecision->task . '".';
         $operatingActivity->status = 2;
         $operatingActivity->user_id = Auth::user()->id;
         $operatingActivity->week_start_date = Carbon::parse(now())->startOfWeek()->format('Y-m-d');
@@ -350,9 +352,9 @@ class RectorateDecision extends Component
             $rectorateDecisions = RectorateAndCouncilDecision::where('due_date', '=', Carbon::parse($this->selectedDueDate)->format('Y-m-d'))
                 ->orderBy('position')
                 ->get();
-                
+
             $report = new PrintDecisionsRectorateAndCouncilController();
-            $data = $report->downloadReport($rectorateDecisions);
+            $data = $report->downloadReport($rectorateDecisions, 1);
 
             return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
         }

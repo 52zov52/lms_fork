@@ -5,28 +5,20 @@ use App\Http\Controllers\ContingentReportController as OldContingentReportContro
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Employee\StudentSocialPassportReviewController;
 use App\Http\Controllers\OperatingActivityReportController;
-use App\Http\Controllers\PrintConfirmedDocumentRequestsController;
 use App\Http\Controllers\PrintDecisionsRectorateAndCouncilController;
-use App\Http\Controllers\PrintDocumentsStudentsAcademicLeaves;
-use App\Http\Controllers\QrCodeController;
-use App\Http\Controllers\Report\ContingentReportController;
 use App\Http\Controllers\Report\GroupStudentGradeController;
-use App\Http\Controllers\Report\IndividualStudentGradeController;
 use App\Http\Controllers\Report\SptController;
 use App\Http\Controllers\Report\UvrController;
 use App\Http\Controllers\Reports\PrintAdmissionCampaignController;
 use App\Http\Controllers\Reports\PrintApplicantAverageScoreController;
 use App\Http\Controllers\Reports\PrintDefenseMinistryForm10Controller;
 use App\Http\Controllers\Reports\PrintPublicationController;
-use App\Http\Controllers\Reports\PrintCurrentAssessmentController;
-use App\Http\Controllers\Reports\PrintInterimAssessmentController;
 use App\Http\Controllers\Reports\PrintScienceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ScheduleReportController;
 use App\Http\Controllers\Student\SptConsentStatusController;
 use App\Http\Controllers\StudyPlanController;
 use App\Http\Controllers\VideoConferenceFallbackController;
-use App\Livewire\Employee\OperatingActivity;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +75,13 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/rectorate-decision', function () {
             return view('pages.employee.rectorate-decision');
         })->name('employee.rectorate.decision');
+
+        //Решения уч. совета
+        Route::get('/academic-council-decision', function () {
+            return view('pages.employee.academic-council-decision');
+        })->name('employee.academic.council.decision');
+
+        Route::get('/print-decisions/{category}/{dateAndNumberDecision}', [PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
 
         //Справочник нормативных документов
         Route::get('/regulatory-documents', function () {
@@ -288,23 +287,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/print-admission-campaign-to-day-report', [PrintAdmissionCampaignController::class, 'printToDayReport'])->name('print.admission.campaign.to.day.report');
     Route::get('/print-admission-campaign-full-report', [PrintAdmissionCampaignController::class, 'printFullReport'])->name('print.admission.campaign.full.report');
 
-    Route::group(['middleware' => ['permission:show-operating-activity-and-decisions-rectorate-and-council']], function () {
-        /*
-        Route::get('/operating-activity', function () {
-            return view('pages.operating-activity');
-        })->name('operating.activity');
-
-        Route::get('/decisions-rectorate', function () {
-            return view('pages.decisions-rectorate');
-        })->name('decisions.rectorate');*/
-
-        Route::get('/decisions-council', function () {
-            return view('pages.decisions-council');
-        })->name('decisions.council');
-
-        Route::get('/print-decisions/{category}/{dateAndNumberDecision}', [PrintDecisionsRectorateAndCouncilController::class, 'printDecisions'])->name('print.decisions');
-    });
-
     Route::group(['middleware' => ['role:Teacher']], function () {
         Route::get('/my-publications', function () {
             return view('pages.my-publications');
@@ -315,9 +297,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/list-publications', function () {
             return view('pages.list-publications');
         })->name('list.publications');
-
-        Route::get('/print-current-assessment/{courseTeacherId}', [PrintCurrentAssessmentController::class, 'printCurrentAssessment'])->name('print.current.assessment');
-        Route::get('/print-interim-assessment/{courseTeacherId}', [PrintInterimAssessmentController::class, 'printInterimAssessment'])->name('print.interim.assessment');
     });
 
     //Url для сервиса заказа справок
@@ -345,18 +324,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     })->name('bulletin');
 
     Route::get('/print-defense-ministry-form-10/{userId}', [PrintDefenseMinistryForm10Controller::class, 'print'])->name('print.defense.ministry.form.10');
-
-    Route::get('/form-z01/{user_id}/{group_id}', function ($user_id, $group_id) {
-        return view('pages.academic-leave.form-z01', ['user_id' => $user_id, 'group_id' => $group_id]);
-    })->name('form.z01');
-
-    Route::get('/form-claim-template-dp01/{user_id}/{group_id}', function ($user_id, $group_id) {
-        return view('pages.academic-leave.form-claim-template-dp01', ['user_id' => $user_id, 'group_id' => $group_id]);
-    })->name('form.claim.template.dp01');
-
-    Route::get('/print-document-academic-leaves-301/{user_id}/{group_id}', [PrintDocumentsStudentsAcademicLeaves::class, 'printDocumentAcademicLeaves301'])->name('print.document.academic.leaves.301');
-    Route::get('/print-document-academic-leaves-aa-01/{user_id}/{group_id}', [PrintDocumentsStudentsAcademicLeaves::class, 'printDocumentAcademicLeavesAA01'])->name('print.document.academic.leaves.aa.01');
-    Route::get('/print-personal-file-verification-sheet/{user_id}/{group_id}', [PrintDocumentsStudentsAcademicLeaves::class, 'printPersonalFileVerificationSheet'])->name('print.personal.file.verification.sheet');
 
     Route::get('/achievement', function () {
         return view('pages.achievement');

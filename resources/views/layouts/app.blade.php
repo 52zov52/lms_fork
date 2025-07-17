@@ -73,9 +73,6 @@
                                 <i class="fa-solid fa-moon"></i>
                             </template>
                         </button>
-                        <a href="#" class="header-icon">
-                            <i class="fa-solid fa-bell"></i>
-                        </a>
                         <form method="POST" action="{{ route('logout') }}" x-data>
                             @csrf
                             <a @click.prevent="$root.submit();" href="{{ route('logout') }}" class="header-icon">
