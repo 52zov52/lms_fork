@@ -1356,14 +1356,23 @@ class PrintAdmissionCampaignController extends Controller
         $writer->save('php://output');
     }
 
-    public function printFullReport()
+    public function printFullReport($id)
     {
-        $activeAdmissionCampaign = AdmissionCampaign::where('is_active', 1)->select('id')->first();
-        $activeAdmissionCampaignId = $activeAdmissionCampaign->id;
+        if ($id == 0) {
+            $activeAdmissionCampaign = AdmissionCampaign::where('is_active', 1)->select('id')->first();
+            $activeAdmissionCampaignId = $activeAdmissionCampaign->id;
 
-        $applicationPeriodStartDate = Carbon::parse(AdmissionCampaign::where('is_active', '=', true)
-            ->select('application_period_start_date')
-            ->first()->application_period_start_date)->format('d.m.Y');
+            $applicationPeriodStartDate = Carbon::parse(AdmissionCampaign::where('is_active', '=', true)
+                ->select('application_period_start_date')
+                ->first()->application_period_start_date)->format('d.m.Y');
+        } else {
+            $activeAdmissionCampaign = AdmissionCampaign::where('id', $id)->select('id')->first();
+            $activeAdmissionCampaignId = $activeAdmissionCampaign->id;
+
+            $applicationPeriodStartDate = Carbon::parse(AdmissionCampaign::where('id', $id)
+                ->select('application_period_start_date')
+                ->first()->application_period_start_date)->format('d.m.Y');
+        }
 
         $collegeCommerce = $this->dataTransformToCollege(1, $activeAdmissionCampaignId);
         $bachelorCommerce = $this->dataTransformToBachelor(1, $activeAdmissionCampaignId);
@@ -1405,7 +1414,9 @@ class PrintAdmissionCampaignController extends Controller
         $offsetContentFirst = 1;
         $offsetContentLast = 1;
 
-        $sheet->setCellValue('A' . $offset, 'ИТОГО НА ' . now()->format('d.m.Y'));
+        $studyYear = Carbon::parse($applicationPeriodStartDate)->format('Y') . '/' . Carbon::parse($applicationPeriodStartDate)->addYear()->format('Y');
+
+        $sheet->setCellValue('A' . $offset, 'ИТОГО НА ' . $studyYear);
         $sheet->setCellValue('B' . $offset, 'СПО');
         $sheet->setCellValue('C' . $offset, 'Бакалавриат');
         $sheet->setCellValue('D' . $offset, 'Магистратура');
@@ -1515,7 +1526,7 @@ class PrintAdmissionCampaignController extends Controller
             $sheet->setCellValue('E' . $offset, 'Всего договоров с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('E' . $offset . ':G' . $offset);
 
-            $sheet->setCellValue('H' . $offset, now()->format('d.m.Y'));
+            $sheet->setCellValue('H' . $offset, $studyYear);
             $sheet->mergeCells('H' . $offset . ':I' . $offset);
 
             $offset++;
@@ -1795,7 +1806,7 @@ class PrintAdmissionCampaignController extends Controller
             $sheet->setCellValue('K' . $offset, 'Всего договоров с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('K' . $offset . ':S' . $offset);
 
-            $sheet->setCellValue('T' . $offset, now()->format('d.m.Y'));
+            $sheet->setCellValue('T' . $offset, $studyYear);
             $sheet->mergeCells('T' . $offset . ':U' . $offset);
 
             $offset++;
@@ -2194,7 +2205,7 @@ class PrintAdmissionCampaignController extends Controller
             $sheet->setCellValue('E' . $offset, 'Всего договоров с ' . $applicationPeriodStartDate);
             $sheet->mergeCells('E' . $offset . ':G' . $offset);
 
-            $sheet->setCellValue('H' . $offset, now()->format('d.m.Y'));
+            $sheet->setCellValue('H' . $offset, $studyYear);
             $sheet->mergeCells('H' . $offset . ':I' . $offset);
 
             $offset++;
@@ -2466,7 +2477,7 @@ class PrintAdmissionCampaignController extends Controller
 
             $sheet->getStyle('B' . $offset . ':D' . $offset)->getAlignment()->setWrapText(true);
 
-            $sheet->setCellValue('F' . $offset, now()->format('d.m.Y'));
+            $sheet->setCellValue('F' . $offset, $studyYear);
             $sheet->mergeCells('F' . $offset . ':G' . $offset);
 
             $sheet->getRowDimension($offset)->setRowHeight(25);

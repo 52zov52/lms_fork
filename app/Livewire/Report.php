@@ -147,7 +147,7 @@ class Report extends Component
 
     public function printAdmissionCampaignFull()
     {
-        return redirect()->route('print.admission.campaign.full.report');
+        return redirect()->route('print.admission.campaign.full.report', ['id' => 0]);
     }
 
     /**

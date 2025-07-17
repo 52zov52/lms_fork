@@ -285,7 +285,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     })->name('applicant.average.score');
 
     Route::get('/print-admission-campaign-to-day-report', [PrintAdmissionCampaignController::class, 'printToDayReport'])->name('print.admission.campaign.to.day.report');
-    Route::get('/print-admission-campaign-full-report', [PrintAdmissionCampaignController::class, 'printFullReport'])->name('print.admission.campaign.full.report');
+    Route::get('/print-admission-campaign-full-report/{id}', [PrintAdmissionCampaignController::class, 'printFullReport'])->name('print.admission.campaign.full.report');
 
     Route::group(['middleware' => ['role:Teacher']], function () {
         Route::get('/my-publications', function () {
