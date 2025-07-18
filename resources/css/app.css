@@ -93,3 +93,16 @@
 [x-cloak] {
     display: none;
 }
+
+.tippy-box[data-theme~='blue'] {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.tippy-box[data-theme~='blue'] > .tippy-svg-arrow {
+  fill: #3b82f6;
+}
+
+.tippy-box[data-theme~='blue'] .tippy-arrow {
+  color: #3b82f6;
+}
