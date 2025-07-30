@@ -45,7 +45,7 @@ class DailyReportStudentsAcademicLeave extends Command
             ->orderBy('students_academic_leaves.academic_leave_end_date')
             ->get();
 
-        $emailFrom = env('MAIL_FROM_ADDRESS');
+        $emailFrom = config('mail.from.address');
 
         if (count($studentsAcademicLeaves) != 0) {
             Mail::send('emails.daily-report-students-academic-leave', [

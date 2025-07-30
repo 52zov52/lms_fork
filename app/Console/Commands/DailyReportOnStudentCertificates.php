@@ -57,7 +57,7 @@ class DailyReportOnStudentCertificates extends Command
                 )
             ->first();
 
-        $emailFrom = env('MAIL_FROM_ADDRESS');
+        $emailFrom = config('mail.from.address');
 
         Mail::send('emails.daily-report-on-student-certificates', [
             'orderRequestSPO' => $orderRequestSPO,

@@ -31,7 +31,7 @@ class SendDailyEvents extends Command
     public function handle()
     {
         $users = User::whereNotNull('email')->select('id', 'email')->get();
-        $emailFrom = env('MAIL_FROM_ADDRESS');
+        $emailFrom = config('mail.from.address');
 
         foreach ($users as $key => $value) {
             $emailTo = $value->email;
