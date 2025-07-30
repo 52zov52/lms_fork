@@ -93,4 +93,17 @@ class ContingentController extends Controller
             return $item['id'];
         }, $listGroupId);
     }
+
+    public function getGroupIdsByTeachingForm($teachingForm) : array
+    {
+        return $this->extractGroupIds(StudyThread::join('study_thread_subgroups', 'study_threads.id', '=', 'study_thread_subgroups.study_thread_id')
+            ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
+            ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
+            ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
+            ->where('study_threads.year', '=', AcademicYearController::getYear())
+            ->where('work_study_plans.teaching_form_id', '=', $teachingForm)
+            ->select('groups.id')
+            ->distinct()
+            ->get()->toArray());
+    }
 }

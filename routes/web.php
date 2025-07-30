@@ -58,7 +58,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         return view('pages.schedule');
     })->name('schedule');
 
-    Route::get('/generate-unconfirmed-consents', [SptConsentStatusController::class, 'generateUnconfirmedConsents']);
     Route::get('/download-informed-consent/{id}', [SptConsentStatusController::class, 'downloadInformedConsent'])->name('download.informed.consent');
 
     //Отчеты
@@ -107,6 +106,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/student-document-order-issuances', function () {
             return view('pages.employee.student-document-order-issuances');
         })->name('employee.student.document.order.issuances');
+
+        //Генерация групп для СПТ
+        Route::get('/generate-spt-groups', function () {
+            return view('pages.employee.generate-spt-groups');
+        })->name('employee.generate.spt.groups');
 
         Route::get('/student-social-passport-review', function () {
             return view('pages.employee.student-social-passport-review');

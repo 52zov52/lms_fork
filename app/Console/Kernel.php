@@ -33,6 +33,8 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('app:send-daily-events')
             ->dailyAt('09:00');
+
+        $schedule->command('queue:work --daemon')->everyMinute()->withoutOverlapping();
     }
 
     /**

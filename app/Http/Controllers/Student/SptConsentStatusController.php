@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\Student;
 
-use App\Http\Controllers\AcademicYearController;
-use App\Http\Controllers\ContingentController;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
 use App\Models\StudentSptConsentStatus;
@@ -15,26 +13,6 @@ use Illuminate\Support\Facades\DB;
 
 class SptConsentStatusController extends Controller
 {
-    public function generateUnconfirmedConsents()
-    {
-        $contingentController = new ContingentController();
-        $groupIds = $contingentController->getGroupIdsByTeachingForm(1);
-
-        foreach ($groupIds as $groupId) {
-            $contingent = $contingentController->getContingent($groupId);
-
-            foreach ($contingent as $key => $value) {
-                StudentSptConsentStatus::create([
-                    'user_id' => $value->user_id,
-                    'academic_year' => AcademicYearController::getAcademicYear(),
-                    'half_year' => AcademicYearController::getHalfYear()
-                ]);
-            }
-        }
-
-        return 'OK';
-    }
-
     public static function getSignature($userId): string
     {
         $userData = UserData::select(DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"))
