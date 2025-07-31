@@ -19,7 +19,6 @@ jobs:
             php8.2 artisan down
             echo "Deploying ..."
             git pull origin main
-            php8.2 artisan migrate
             php8.2 artisan optimize:clear
             php8.2 artisan permission:cache-reset
             php8.2 artisan config:cache
