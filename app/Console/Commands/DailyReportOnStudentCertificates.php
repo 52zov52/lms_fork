@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\DocumentOrderRequest;
+use App\Models\StudentDocumentOrderRequest;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -31,30 +31,30 @@ class DailyReportOnStudentCertificates extends Command
     {
         $today = Carbon::now()->format('Y-m-d');
 
-        $orderRequestSPO = DocumentOrderRequest::join('users', 'document_order_requests.requester_id', '=', 'users.id')
+        $orderRequestSPO = StudentDocumentOrderRequest::join('users', 'student_document_order_requests.requester_id', '=', 'users.id')
             ->join('group_student', 'users.id', '=', 'group_student.user_id')
             ->join('groups', 'group_student.group_id', '=', 'groups.id')
             ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
             ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
             ->where('specialities.level_education_id', '=', 2)
-            ->where('document_order_requests.status', '=', 1)
+            ->where('student_document_order_requests.status', '=', 1)
             ->select(
-                DB::raw('CAST(COALESCE(SUM(CASE WHEN document_order_requests.created_at LIKE "' . $today . '%" THEN 1 ELSE 0 END), 0) AS SIGNED) AS current_count_requests'),
-                DB::raw('COUNT(document_order_requests.id) AS total_count_requests')
-                )
+                DB::raw('CAST(COALESCE(SUM(CASE WHEN student_document_order_requests.created_at LIKE "' . $today . '%" THEN 1 ELSE 0 END), 0) AS SIGNED) AS current_count_requests'),
+                DB::raw('COUNT(student_document_order_requests.id) AS total_count_requests')
+            )
             ->first();
 
-        $orderRequestVO = DocumentOrderRequest::join('users', 'document_order_requests.requester_id', '=', 'users.id')
+        $orderRequestVO  = StudentDocumentOrderRequest::join('users', 'student_document_order_requests.requester_id', '=', 'users.id')
             ->join('group_student', 'users.id', '=', 'group_student.user_id')
             ->join('groups', 'group_student.group_id', '=', 'groups.id')
             ->join('study_plans', 'groups.study_plan_id', '=', 'study_plans.id')
             ->join('specialities', 'study_plans.speciality_id', '=', 'specialities.id')
             ->where('specialities.level_education_id', '<>', 2)
-            ->where('document_order_requests.status', '=', 1)
+            ->where('student_document_order_requests.status', '=', 1)
             ->select(
-                DB::raw('CAST(COALESCE(SUM(CASE WHEN document_order_requests.created_at LIKE "' . $today . '%" THEN 1 ELSE 0 END), 0) AS SIGNED) AS current_count_requests'),
-                DB::raw('COUNT(document_order_requests.id) AS total_count_requests')
-                )
+                DB::raw('CAST(COALESCE(SUM(CASE WHEN student_document_order_requests.created_at LIKE "' . $today . '%" THEN 1 ELSE 0 END), 0) AS SIGNED) AS current_count_requests'),
+                DB::raw('COUNT(student_document_order_requests.id) AS total_count_requests')
+            )
             ->first();
 
         $emailFrom = 'lms@iubip-mail.ru';
