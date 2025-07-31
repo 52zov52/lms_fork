@@ -263,13 +263,14 @@ class EJournal extends Component
         if ($isExistExams == 0) {
             $this->dispatch('show-toast', message: 'У данной группы в эл. журнале отсутствует занятие с типом пр. аттестации. Добавьте новую запись и выберите тип: экзамен, диф. зачёт или зачёт.', type: 'error');
         } else {
-            $emailTo = env('AD_EMAIL');
+            $emailFrom = config('mail.from.address');
+            $emailTo = config('mail.to.address');
 
             $interimAssessmentStatementController = new InterimAssessmentStatementController();
             $data = $interimAssessmentStatementController->index($this->wspCoursesInSemesterId, $this->groupId);
 
-            Mail::send('reports.pdf.empty', [], function ($message) use ($emailTo, $data) {
-                $message->from('lms@iubip.space', 'ИУБиП. Ведомости');
+            Mail::send('reports.pdf.empty', [], function ($message) use ($emailFrom ,$emailTo, $data) {
+                $message->from($emailFrom, 'ИУБиП. Ведомости');
                 $message->to($emailTo)
                     ->subject(Auth::user()->userData->last_name . ' ' .
                         mb_substr(Auth::user()->userData->first_name, 0, 1) . '. ' .

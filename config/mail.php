@@ -103,6 +103,11 @@ return [
         'name' => env('MAIL_FROM_NAME', 'ЧОУ ВО ЮУ (ИУБиП)'),
     ],
 
+    'to' => [
+        'address' => env('AD_EMAIL_TO_ADDRESS', 'ak.direktor@iubip.ru'),
+        'name' => env('AD_MAIL_TO_NAME', ' Академическая дирекция ЧОУ ВО ЮУ (ИУБиП)'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Markdown Mail Settings
