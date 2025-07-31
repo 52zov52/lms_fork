@@ -47,6 +47,7 @@
         </div>
     </a>
     @endcan
+    @can('access-to-generate-spt-groups')
     <a x-bind:class="{ 'hovered': hovered === 'generate_spt_groups' }" @mouseover="hovered = 'generate_spt_groups'" @mouseout="hovered = null" class="w-auto" href="{{ route('employee.generate.spt.groups') }}">
         <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
             <div class="h-14 px-4 py-2 font-bold">Генерация групп для СПТ</div>
@@ -58,4 +59,5 @@
             </div>
         </div>
     </a>
+    @endcan
 </div>
