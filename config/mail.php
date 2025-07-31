@@ -29,7 +29,7 @@ return [
     | mailers below. You are free to add additional mailers as required.
     |
     | Supported: "smtp", "sendmail", "mailgun", "ses", "ses-v2",
-    |            "postmark", "log", "array", "failover"
+    |            "postmark", "log", "array", "failover", "roundrobin"
     |
     */
 
@@ -50,15 +50,16 @@ return [
             'transport' => 'ses',
         ],
 
-        'mailgun' => [
-            'transport' => 'mailgun',
+        'postmark' => [
+            'transport' => 'postmark',
+            // 'message_stream_id' => null,
             // 'client' => [
             //     'timeout' => 5,
             // ],
         ],
 
-        'postmark' => [
-            'transport' => 'postmark',
+        'mailgun' => [
+            'transport' => 'mailgun',
             // 'client' => [
             //     'timeout' => 5,
             // ],
@@ -85,6 +86,14 @@ return [
                 'log',
             ],
         ],
+
+        'roundrobin' => [
+            'transport' => 'roundrobin',
+            'mailers' => [
+                'ses',
+                'postmark',
+            ],
+        ],
     ],
 
     /*
@@ -99,13 +108,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'lms@iubip-mail.ru'),
-        'name' => env('MAIL_FROM_NAME', 'ЧОУ ВО ЮУ (ИУБиП)'),
-    ],
-
-    'to' => [
-        'address' => env('AD_EMAIL_TO_ADDRESS', 'ak.direktor@iubip.ru'),
-        'name' => env('AD_MAIL_TO_NAME', ' Академическая дирекция ЧОУ ВО ЮУ (ИУБиП)'),
+        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+        'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
     /*

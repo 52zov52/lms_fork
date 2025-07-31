@@ -45,7 +45,7 @@ class DailyReportStudentsAcademicLeave extends Command
             ->orderBy('students_academic_leaves.academic_leave_end_date')
             ->get();
 
-        $emailFrom = config('mail.from.address');
+        $emailFrom = 'lms@iubip-mail.ru';
 
         if (count($studentsAcademicLeaves) != 0) {
             Mail::send('emails.daily-report-students-academic-leave', [

@@ -263,8 +263,8 @@ class EJournal extends Component
         if ($isExistExams == 0) {
             $this->dispatch('show-toast', message: 'У данной группы в эл. журнале отсутствует занятие с типом пр. аттестации. Добавьте новую запись и выберите тип: экзамен, диф. зачёт или зачёт.', type: 'error');
         } else {
-            $emailFrom = config('mail.from.address');
-            $emailTo = config('mail.to.address');
+            $emailFrom = 'lms@iubip-mail.ru';
+            $emailTo = 'ak.direktor@iubip.ru';
 
             $interimAssessmentStatementController = new InterimAssessmentStatementController();
             $data = $interimAssessmentStatementController->index($this->wspCoursesInSemesterId, $this->groupId);

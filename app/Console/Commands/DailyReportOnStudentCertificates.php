@@ -39,7 +39,7 @@ class DailyReportOnStudentCertificates extends Command
             ->where('specialities.level_education_id', '=', 2)
             ->where('document_order_requests.status', '=', 1)
             ->select(
-                DB::raw('SUM(CASE WHEN document_order_requests.created_at LIKE "' . $today . '%" THEN 1 ELSE 0 END) AS current_count_requests'),
+                DB::raw('CAST(COALESCE(SUM(CASE WHEN document_order_requests.created_at LIKE "' . $today . '%" THEN 1 ELSE 0 END), 0) AS SIGNED) AS current_count_requests'),
                 DB::raw('COUNT(document_order_requests.id) AS total_count_requests')
                 )
             ->first();
@@ -52,12 +52,12 @@ class DailyReportOnStudentCertificates extends Command
             ->where('specialities.level_education_id', '<>', 2)
             ->where('document_order_requests.status', '=', 1)
             ->select(
-                DB::raw('SUM(CASE WHEN document_order_requests.created_at LIKE "' . $today . '%" THEN 1 ELSE 0 END) AS current_count_requests'),
+                DB::raw('CAST(COALESCE(SUM(CASE WHEN document_order_requests.created_at LIKE "' . $today . '%" THEN 1 ELSE 0 END), 0) AS SIGNED) AS current_count_requests'),
                 DB::raw('COUNT(document_order_requests.id) AS total_count_requests')
                 )
             ->first();
 
-        $emailFrom = config('mail.from.address');
+        $emailFrom = 'lms@iubip-mail.ru';
 
         Mail::send('emails.daily-report-on-student-certificates', [
             'orderRequestSPO' => $orderRequestSPO,
