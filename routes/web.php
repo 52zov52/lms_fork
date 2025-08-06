@@ -274,6 +274,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/async-interact/chat/view/files/{chatId}', function ($chatId) {
             return view('pages.common.async-interact-chat-view-file', ['chatId' => $chatId]);
         })->name('student.async.interact.chat.view.files');
+
+        Route::get('/military-registration', function () {
+            return view('pages.student.military-registration');
+        })->name('student.military.registration');
     });
 
     Route::get('/admission-campaign', function () {

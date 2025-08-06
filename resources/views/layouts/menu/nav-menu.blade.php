@@ -216,6 +216,23 @@
             <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Асинхронное взаимодействие</span>
         </div>
     </a>
+    <a href="{{ route('student.military.registration') }}">
+        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('student.military.registration')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <div class="w-8 h-8 flex items-center justify-center"
+                x-effect="
+                    if (isMobileMenuVisible) {
+                        $el.removeAttribute('data-tippy-content');
+                        $el.removeAttribute('data-tippy-placement');
+                    } else {
+                        $el.setAttribute('data-tippy-content', 'Сведения о воинском учете');
+                        $el.setAttribute('data-tippy-placement', 'right');
+                    }
+                ">
+                <i class="fa-solid fa-shield-halved fa-lg"></i>
+            </div>
+            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Сведения о воинском учете</span>
+        </div>
+    </a>
     @endrole
     <!-- Employee -->
     @can('access-to-admission-campaign')
