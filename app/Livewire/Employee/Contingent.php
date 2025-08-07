@@ -27,7 +27,7 @@ class Contingent extends Component
             ->get();
 
         if ($this->selectedGroupId != 0) {
-            $this->contingent = $contingentController->getContingent($this->selectedGroupId);
+            $this->contingent = $contingentController->getContingentWithMilitaryStatus($this->selectedGroupId);
         } else {
             if (!empty($this->ticketNumber)) {
                 $this->contingent = $contingentController->searchContingentByTicketNumber($this->ticketNumber);
@@ -42,7 +42,7 @@ class Contingent extends Component
         $this->ticketNumber = '';
 
         $contingentController = new ContingentController();
-        $this->contingent = $contingentController->getContingent($this->selectedGroupId);
+        $this->contingent = $contingentController->getContingentWithMilitaryStatus($this->selectedGroupId);
     }
 
     public function searchContingentByTicketNumber(): void
@@ -57,7 +57,7 @@ class Contingent extends Component
     {
         if ($this->selectedGroupId != 0) {
             $contingentReportController = new ContingentReportController();
-            $data = $contingentReportController->downloadListOfStudents($this->selectedGroupId);
+            $data = $contingentReportController->downloadFullListOfStudents($this->selectedGroupId);
 
             return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
         } else {

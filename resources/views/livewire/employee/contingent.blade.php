@@ -38,7 +38,7 @@
 
         <div wire:loading.remove wire:target="getContingent, searchContingentByTicketNumber">
             @if(!is_null($contingent) && count($contingent) != 0)
-            <div class="border rounded border-slate-400/20">
+            <div class="hidden lg:block border rounded border-slate-400/20">
                 <table class="w-full text-xs md:text-sm">
                     <thead class="bg-slate-200 dark:bg-slate-700 uppercase">
                         <tr class="border-b border-slate-400/20">
@@ -46,6 +46,7 @@
                             <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">ФИО</th>
                             <th scope="col" class="w-64 px-2 py-2 font-semibold">Группа</th>
                             <th scope="col" class="w-64 px-2 py-2 font-semibold">№ зачетки</th>
+                            <th scope="col" class="w-64 px-2 py-2 font-semibold">Статус воинского учета</th>
                             <th scope="col" class="w-24 px-2 py-2 font-semibold">Действия</th>
                         </tr>
                     </thead>
@@ -56,6 +57,13 @@
                             <td class="w-auto px-2 py-2">{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</td>
                             <td class="w-64 px-2 py-2 text-center">{{ $item->group_name }}</td>
                             <td class="w-64 px-2 py-2 text-center">{{ $item->ticket_number }}</td>
+                            <td class="w-64 px-2 py-2 text-center">
+                                @if(is_null($item->military_status))
+                                не заполнен
+                                @else
+                                заполнен
+                                @endif
+                            </td>
                             <td class="w-24 px-2 py-2 text-center">
                                 <button wire:click="downloadIndividualStudentGrade({{ $item->user_id }})" class="w-9 btn-download" title="" data-tippy-content="Скачать индивидуальную ведомость">
                                     <span wire:loading.remove wire:target="downloadIndividualStudentGrade({{ $item->user_id }})">
@@ -70,6 +78,48 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            <div class="lg:hidden flex flex-col space-y-2">
+                @foreach($contingent as $item)
+                <div class="flex flex-col space-y-2 bg-slate-200 dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 p-4 text-xs">
+                    <div class="flex flex-col">
+                        <span class="font-semibold">ФИО:</span>
+                        <span>{{ $item->last_name }} {{ $item->first_name }} {{ $item->middle_name }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Группа:</span>
+                        <span>{{ $item->group_name }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">№ зачетки:</span>
+                        <span>{{ $item->ticket_number }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Статус воинского учета:</span>
+                        <span>
+                            @if(is_null($item->military_status))
+                            не заполнен
+                            @else
+                            заполнен
+                            @endif
+                        </span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Действия:</span>
+                        <div class="flex flex-row space-x-2">
+                            <button wire:click="downloadIndividualStudentGrade({{ $item->user_id }})" class="w-auto grow btn-download" title="" data-tippy-content="Скачать индивидуальную ведомость">
+                                <span wire:loading.remove wire:target="downloadIndividualStudentGrade({{ $item->user_id }})">
+                                    <i class="fa-solid fa-download"></i>
+                                </span>
+                                <span wire:loading wire:target="downloadIndividualStudentGrade({{ $item->user_id }})">
+                                    <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
             </div>
             @else
             <x-alert type="info" title="Информация" message="Для просмотра списочного состава учебной группы, выберите нужную группу из списка или воспользуйтесь формой поиска" />

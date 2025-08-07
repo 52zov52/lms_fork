@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Reports;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\QrCodeController;
 use App\Models\Group;
+use App\Models\MilitaryRegistrationStudent;
 use App\Models\QRCodeDocumentVerification;
 use App\Models\Speciality;
 use App\Models\StudyPlan;
@@ -102,6 +103,8 @@ class PrintDefenseMinistryForm10Controller extends Controller
             ->select('orders.order_date', 'orders.order_number', 'orders.description')
             ->get();
 
+        $militaryRegistration = MilitaryRegistrationStudent::where('user_id', '=', $userId)->first();
+
         $path  = Storage::disk('public')->path('template/forma_10.docx');
 
         $filename = time() . '.docx';
@@ -121,6 +124,23 @@ class PrintDefenseMinistryForm10Controller extends Controller
         $templateProcessor->setValue('end_year', $userEducationBackgound->end_year);
         $templateProcessor->setValue('address', $address);
         $templateProcessor->setValue('mobile_phone', $userInfo->phone);
+
+        $templateProcessor->setValue('reserve_category', $militaryRegistration?->reserve_category);
+        $templateProcessor->setValue('military_rank', $militaryRegistration?->military_rank);
+        $templateProcessor->setValue('military_occupation_profile', $militaryRegistration?->military_occupation_profile);
+        $templateProcessor->setValue('full_military_specialty_code', $militaryRegistration?->full_military_specialty_code);
+        $templateProcessor->setValue('fitness_category', $militaryRegistration?->fitness_category);
+        $templateProcessor->setValue('military_commissariat_name', $militaryRegistration?->military_commissariat_name);
+        $templateProcessor->setValue('military_registration_type_general', $militaryRegistration?->military_registration_type_general);
+        $templateProcessor->setValue('military_registration_type_special', $militaryRegistration?->military_registration_type_special);
+
+        $militaryRegistrationDocument = $militaryRegistration?->military_document . ' ' .
+            $militaryRegistration?->document_series . ' ' .
+            $militaryRegistration?->document_number . ' ' .
+            $militaryRegistration?->issued_by . ' ' .
+            $militaryRegistration?->issue_date;
+
+        $templateProcessor->setValue('military_registration_document', $militaryRegistrationDocument);
 
         $tableFontHeaderStyle = array('name' => 'Times New Roman');
         $tableFontStyle = array('name' => 'Times New Roman');
@@ -235,10 +255,10 @@ class PrintDefenseMinistryForm10Controller extends Controller
         $tempFile = tempnam(sys_get_temp_dir(), $filename);
         $templateProcessor->saveAs($tempFile);
 
-        if(file_exists(storage_path('app/public/' . $data['imgPath']))) {
+        if (file_exists(storage_path('app/public/' . $data['imgPath']))) {
             unlink(storage_path('app/public/' . $data['imgPath']));
         }
-        
+
         QRCodeDocumentVerification::create([
             'user_id' => $userId,
             'document_number' => $docNumber,
