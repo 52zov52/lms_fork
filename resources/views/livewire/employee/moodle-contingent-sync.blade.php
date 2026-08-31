@@ -1,0 +1,273 @@
+{{-- ═══════════════════════════════════════════════════════════════
+     Contingent Management — Livewire-компонент
+
+     Управление контингентом: сравнение ЛК ↔ Moodle, генерация SQL.
+     Используется компонент App\Livewire\Employee\ContingentManagement.
+     ═══════════════════════════════════════════════════════════════ --}}
+<div class="space-y-6">
+
+    {{-- ─── Заголовок страницы ─── --}}
+    <div>
+        <h2 class="text-xl font-bold text-slate-800">Формирование запроса на синхронизацию контингента</h2>
+        <p class="text-sm text-slate-500 mt-1">
+            Сравнение данных ЛК и Moodle и генерация SQL-запросов для приведения базы Moodle в соответствие с ЛК.
+        </p>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════════
+         СЕКЦИЯ 1: SQL-запрос для Moodle
+
+         Пользователь копирует запрос, выполняет в Moodle DB,
+         выгружает результат в CSV для загрузки в Section 2.
+         ═══════════════════════════════════════════════════════════ --}}
+    <section class="bg-white rounded-xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+        <header class="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold shadow-sm">1</span>
+            <span class="font-semibold text-slate-700">Скопировать запрос мудл</span>
+        </header>
+        <div class="p-5 space-y-3">
+            <p class="text-sm text-slate-500">
+                Выполните SQL-запрос в базе данных Moodle, затем выгрузите результат в CSV-файл для загрузки в разделе 2.
+            </p>
+            <div class="flex justify-end">
+                <button type="button" onclick="copyMoodleQuery(this)"
+                    class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition">
+                    <i class="fa-solid fa-copy"></i> Копировать
+                </button>
+            </div>
+            <pre id="moodle-query" class="text-xs whitespace-pre overflow-x-auto bg-slate-50 text-slate-800 rounded-lg p-4 ring-1 ring-slate-200">{{ $moodleQuery }}</pre>
+        </div>
+    </section>
+
+    {{-- ═══════════════════════════════════════════════════════════
+         СЕКЦИЯ 2: Загрузка CSV-файла Moodle
+
+         Загрузка CSV → клик «Обработать» → сравнение с ЛК.
+         ═══════════════════════════════════════════════════════════ --}}
+    <section class="bg-white rounded-xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+        <header class="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold shadow-sm">2</span>
+            <span class="font-semibold text-slate-700">Загрузка файла</span>
+        </header>
+        <div class="p-5 flex flex-wrap items-end gap-5">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-sm font-medium text-slate-700 mb-1">Файл Мудл <span class="text-slate-400">(обязательно)</span></label>
+                <input type="file" wire:model="csvFile" accept=".csv,.txt"
+                    class="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
+                @error('csvFile') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div class="sm:col-span-2 flex justify-end">
+                <button type="button" wire:click="process" wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 shadow-sm transition">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    <span wire:loading.remove>Обработать</span>
+                    <span wire:loading>Обработка…</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    {{-- ═══════════════════════════════════════════════════════════
+         Предупреждения парсинга CSV
+
+         Отображаются при дублях логинов или пропущенных строках.
+         ═══════════════════════════════════════════════════════════ --}}
+    @if (!empty($csvWarnings))
+    <div class="rounded-lg bg-amber-50 ring-1 ring-amber-200 p-4 space-y-1">
+        @foreach ($csvWarnings as $warning)
+            <p class="text-sm text-amber-700"><i class="fa-solid fa-triangle-exclamation mr-1"></i>{{ $warning }}</p>
+        @endforeach
+    </div>
+    @endif
+
+    {{-- ═══════════════════════════════════════════════════════════
+         СЕКЦИЯ 3: Результаты сравнения
+
+         Статистика → вкладки (ФИО / Зачисления / Перевод / Отчисления)
+         → таблицы с чекбоксами → предпросмотр SQL.
+         ═══════════════════════════════════════════════════════════ --}}
+    @if ($parsed)
+    <section class="bg-white rounded-xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+        <header class="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
+            <span class="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold shadow-sm">3</span>
+            <span class="font-semibold text-slate-700">Списки изменений</span>
+            <button type="button" wire:click="downloadSql"
+                class="ml-auto inline-flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition">
+                <i class="fa-solid fa-download"></i> Скачать запрос в txt
+            </button>
+            <button type="button" onclick="copySql(this)"
+                class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition">
+                <i class="fa-solid fa-copy"></i> Копировать запрос
+            </button>
+        </header>
+
+        <div class="p-5 space-y-4">
+
+            {{-- ─── Статистика ─── --}}
+            <div class="flex flex-wrap gap-2 text-sm">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-medium bg-blue-50 text-blue-700 ring-1 ring-blue-200">
+                    <i class="fa-solid fa-user-pen"></i> ФИО: <b class="ml-0.5">{{ $stats['fio'] }}</b>
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-medium bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                    <i class="fa-solid fa-user-plus"></i> Зачисления: <b class="ml-0.5">{{ $stats['enroll'] }}</b>
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-medium bg-amber-50 text-amber-700 ring-1 ring-amber-200">
+                    <i class="fa-solid fa-right-left"></i> Перевод: <b class="ml-0.5">{{ $stats['transfer'] }}</b>
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-medium bg-rose-50 text-rose-700 ring-1 ring-rose-200">
+                    <i class="fa-solid fa-user-minus"></i> Отчисления: <b class="ml-0.5">{{ $stats['expel'] }}</b>
+                </span>
+            </div>
+
+            @if ($stats['fio'] === 0 && $stats['enroll'] === 0 && $stats['transfer'] === 0 && $stats['expel'] === 0)
+                <p class="text-sm text-slate-500">Расхождений не обнаружено. Контингент Мудл соответствует ЛК.</p>
+            @endif
+
+            {{-- ─── Вкладки ─── --}}
+            <div class="flex flex-wrap gap-1 border-b border-slate-200" role="tablist" aria-label="Типы изменений">
+                <button type="button" onclick="showTab('fio', this)"
+                    role="tab" aria-selected="true" aria-controls="tab-fio" id="tab-btn-fio"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600">ФИО ({{ $stats['fio'] }})</button>
+                <button type="button" onclick="showTab('enroll', this)"
+                    role="tab" aria-selected="false" aria-controls="tab-enroll" id="tab-btn-enroll"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">Зачисления ({{ $stats['enroll'] }})</button>
+                <button type="button" onclick="showTab('transfer', this)"
+                    role="tab" aria-selected="false" aria-controls="tab-transfer" id="tab-btn-transfer"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">Перевод ({{ $stats['transfer'] }})</button>
+                <button type="button" onclick="showTab('expel', this)"
+                    role="tab" aria-selected="false" aria-controls="tab-expel" id="tab-btn-expel"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">Отчисления ({{ $stats['expel'] }})</button>
+            </div>
+
+            {{-- ─── Таблица: ФИО ─── --}}
+            <div id="tab-fio" role="tabpanel" aria-labelledby="tab-btn-fio" tabindex="0" class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Логин</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">ФИО</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Группа</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Было</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Станет</th>
+                            <th class="text-center p-2.5 w-16 border border-slate-200 text-slate-600 font-semibold">✓</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($changes as $change)
+                            @if ($change['type'] === 'fio')
+                                <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                    <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
+                                    <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
+                                    <td class="p-2.5 border border-slate-200 bg-white">{{ $change['groupNew'] }}</td>
+                                    <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['surnameOld'] }} {{ $change['nameOld'] }}</td>
+                                    <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
+                                    <td class="p-2.5 text-center border border-slate-200 bg-white">
+                                        <input type="checkbox" wire:model.live="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- ─── Таблица: Зачисления ─── --}}
+            <div id="tab-enroll" role="tabpanel" aria-labelledby="tab-btn-enroll" tabindex="0" class="overflow-x-auto" style="display:none">
+                <table class="w-full text-sm border-collapse">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Логин</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">ФИО</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Группа</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Статус</th>
+                            <th class="text-center p-2.5 w-16 border border-slate-200 text-slate-600 font-semibold">✓</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($changes as $change)
+                            @if ($change['type'] === 'enroll')
+                                <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                    <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
+                                    <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
+                                    <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['groupNew'] }}</td>
+                                    <td class="p-2.5 text-slate-400 border border-slate-200 bg-white">— (нет в Мудл)</td>
+                                    <td class="p-2.5 text-center border border-slate-200 bg-white">
+                                        <input type="checkbox" wire:model.live="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- ─── Таблица: Перевод ─── --}}
+            <div id="tab-transfer" role="tabpanel" aria-labelledby="tab-btn-transfer" tabindex="0" class="overflow-x-auto" style="display:none">
+                <table class="w-full text-sm border-collapse">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Логин</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">ФИО</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Было (группа)</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Станет (группа)</th>
+                            <th class="text-center p-2.5 w-16 border border-slate-200 text-slate-600 font-semibold">✓</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($changes as $change)
+                            @if ($change['type'] === 'transfer')
+                                <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                    <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
+                                    <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
+                                    <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['groupOld'] }}</td>
+                                    <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['groupNew'] }}</td>
+                                    <td class="p-2.5 text-center border border-slate-200 bg-white">
+                                        <input type="checkbox" wire:model.live="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- ─── Таблица: Отчисления ─── --}}
+            <div id="tab-expel" role="tabpanel" aria-labelledby="tab-btn-expel" tabindex="0" class="overflow-x-auto" style="display:none">
+                <table class="w-full text-sm border-collapse">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Логин</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">ФИО</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Группа</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Статус</th>
+                            <th class="text-center p-2.5 w-16 border border-slate-200 text-slate-600 font-semibold">✓</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($changes as $change)
+                            @if ($change['type'] === 'expel')
+                                <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                    <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
+                                    <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameOld'] }} {{ $change['nameOld'] }}</td>
+                                    <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['groupOld'] }}</td>
+                                    <td class="p-2.5 font-semibold text-rose-500 border border-slate-200 bg-white">— (отчислить)</td>
+                                    <td class="p-2.5 text-center border border-slate-200 bg-white">
+                                        <input type="checkbox" wire:model.live="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- ─── Предпросмотр SQL ─── --}}
+            <div id="sql-clipboard-source" class="hidden" aria-hidden="true">{{ $sql }}</div>
+            <details class="text-sm">
+                <summary class="cursor-pointer text-slate-500 hover:text-slate-700 select-none">Предпросмотр SQL</summary>
+                <pre class="mt-2 whitespace-pre overflow-x-auto bg-slate-50 text-slate-800 rounded-lg p-4 ring-1 ring-slate-200">{{ $sql }}</pre>
+            </details>
+        </div>
+    </section>
+    @endif
+</div>

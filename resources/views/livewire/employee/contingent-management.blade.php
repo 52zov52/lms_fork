@@ -60,4 +60,17 @@
         </div>
     </a>
     @endcan
+    @can('access-to-moodle-contingent-sync')
+    <a x-bind:class="{ 'hovered': hovered === 'moodle_contingent_sync' }" @mouseover="hovered = 'moodle_contingent_sync'" @mouseout="hovered = null" class="w-auto" href="{{ route('employee.moodle.contingent.sync') }}">
+        <div class="w-full h-56 flex flex-col hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-400/20 rounded cursor-pointer">
+            <div class="h-14 px-4 py-2 font-bold">Синхронизация с Moodle</div>
+            <div class="grow px-4 py-2 text-sm text-justify">
+                В разделе представлены инструменты для сверки контингента с платформой Moodle, выявления расхождений и формирования сценариев обновления
+            </div>
+            <div class="h-8 px-4 py-2">
+                <div x-bind:class="{ 'w-full': hovered === 'moodle_contingent_sync', 'w-6': hovered != 'moodle_contingent_sync' }" class="bg-gray-600 dark:bg-white border border-slate-400/20 rounded p-0.5 transition-all duration-500"></div>
+            </div>
+        </div>
+    </a>
+    @endcan
 </div>
