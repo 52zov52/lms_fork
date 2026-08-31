@@ -1,0 +1,49 @@
+FROM mysql:8.0 AS mysql
+
+FROM php:8.2-fpm
+
+# MySQL client requires libncurses6
+COPY --from=mysql /usr/bin/mysql /usr/bin/mysql
+COPY --from=mysql /usr/bin/mysqldump /usr/bin/mysqldump
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libonig-dev \
+    libicu-dev \
+    libncurses6 \
+    libzip-dev \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    zip \
+    unzip \
+    gosu \
+    netcat-traditional \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg \
+ && docker-php-ext-install -j$(nproc) pdo_mysql mbstring intl gd zip bcmath exif \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+ARG UID
+ARG GID
+
+# Create a new user with the specified UID and GID, reusing an existing group if GID exists
+# And update php-fpm to use the new user and group
+RUN if getent group ${GID}; then \
+      group_name=$(getent group ${GID} | cut -d: -f1); \
+      useradd -m -u ${UID} -g ${GID} -s /bin/bash www; \
+    else \
+      groupadd -g ${GID} www && \
+      useradd -m -u ${UID} -g www -s /bin/bash www; \
+      group_name=www; \
+    fi && \
+    sed -i "s/user = www-data/user = www/g" /usr/local/etc/php-fpm.d/www.conf && \
+    sed -i "s/group = www-data/group = ${group_name}/g" /usr/local/etc/php-fpm.d/www.conf
+
+COPY --chmod=644 ./docker/php.ini /usr/local/etc/php/conf.d/laravel.ini
+COPY --chmod=+x ./docker/entrypoint.sh /usr/local/bin/
+
+WORKDIR /var/www
+EXPOSE 9000
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["php-fpm"]

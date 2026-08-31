@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\DocumentOrderRequest;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -29,9 +28,7 @@ return new class extends Migration
             $table->unsignedBigInteger('confirmiter_id')->nullable();
             $table->foreign('confirmiter_id')->references('id')->on('users')->onDelete('cascade');
 
-            $table->foreignIdFor(DocumentOrderRequest::class)
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->unsignedBigInteger('document_order_request_id')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
