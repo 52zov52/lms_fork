@@ -33,7 +33,7 @@
         <script>
             function setting() {
                 return {
-                    logo: (localStorage.getItem('theme') === 'dark') ? "{{ asset('storage/logo_dark.png') }}" : "{{ asset('storage/logo_light.png') }}",
+                    logo: (localStorage.getItem('theme') === 'dark') ? "{{ asset('img/logo_dark.png') }}" : "{{ asset('img/logo_light.png') }}",
                     isDarkMode: (localStorage.getItem('theme') === 'dark')
                 }
             }

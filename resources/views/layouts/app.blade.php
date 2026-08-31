@@ -113,7 +113,7 @@
     <script>
         function setting() {
             return {
-                logo: (localStorage.getItem('theme') === 'dark') ? "{{ asset('storage/logo_dark.png') }}" : "{{ asset('storage/logo_light.png') }}",
+                logo: (localStorage.getItem('theme') === 'dark') ? "{{ asset('img/logo_dark.png') }}" : "{{ asset('img/logo_light.png') }}",
                 isDarkMode: (localStorage.getItem('theme') === 'dark'),
                 isMobileMenuVisible: false,
                 toggleDarkMode() {
@@ -121,12 +121,12 @@
                     localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
 
                     if (this.isDarkMode) {
-                        document.getElementById("logo").src = "{{ asset('storage/logo_dark.png') }}";
+                        document.getElementById("logo").src = "{{ asset('img/logo_dark.png') }}";
 
                         document.getElementById('theme').classList.remove('light');
                         document.getElementById('theme').classList.add('dark');
                     } else {
-                        document.getElementById("logo").src = "{{ asset('storage/logo_light.png') }}";
+                        document.getElementById("logo").src = "{{ asset('img/logo_light.png') }}";
 
                         document.getElementById('theme').classList.remove('dark');
                         document.getElementById('theme').classList.add('light');

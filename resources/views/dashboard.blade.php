@@ -3,9 +3,9 @@
         <div class="flex flex-col space-y-4">
             <div class="flex space-x-4 items-center">
                 @if(auth()->user()->userData->sex == 0)
-                <img src="{{ asset('storage/profile-male.png') }}" alt="" class="w-16 h-16">
+                <img src="{{ asset('img/profile-male.png') }}" alt="" class="w-16 h-16">
                 @else
-                <img src="{{ asset('storage/profile-female.png') }}" alt="" class="w-16 h-16">
+                <img src="{{ asset('img/profile-female.png') }}" alt="" class="w-16 h-16">
                 @endif
                 <div class="flex flex-col">
                     <h1>{{ auth()->user()->userData->last_name }} {{ auth()->user()->userData->first_name }}</h1>
