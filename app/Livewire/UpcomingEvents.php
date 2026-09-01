@@ -12,9 +12,9 @@ use Livewire\Component;
 
 class UpcomingEvents extends Component
 {
-    public $schedulesEvents = null;
-    public $rectorateDecisionEvents = null;
-    public $upbringingEvents = null;
+    public $schedulesEvents = [];
+    public $rectorateDecisionEvents = [];
+    public $upbringingEvents = [];
 
     public function render()
     {

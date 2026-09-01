@@ -6,7 +6,7 @@
                 <img id="logo-pc-id" x-bind:src="logo" alt="" class="w-28">
             </a>
             <p class="text-2xl text-center font-semibold">Добро пожаловать</p>
-            <p class="text-2xl text-center font-semibold">в Личный кабинет ИУБиП</p>
+            <p class="text-2xl text-center font-semibold">в Личный Кабинет ЮУ(ИУБиП)</p>
         </div>
         <!-- Auth user form -->
         <div class="flex flex-col w-full bg-white dark:bg-slate-700 border rounded border-slate-400/20 p-6">

@@ -51,7 +51,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     })->name('upcoming.event');
 
     Route::get('/elibrary', function () {
-        return view('pages.elibrary');
+        return redirect()->away('https://www.iubip.ru/student/library/e-libraries/');
+        // return view('pages.elibrary');
     })->name('elibrary');
 
     Route::get('/schedule', function () {

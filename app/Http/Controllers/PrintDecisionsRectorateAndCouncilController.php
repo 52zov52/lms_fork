@@ -45,7 +45,7 @@ class PrintDecisionsRectorateAndCouncilController extends Controller
                 if (count($operatingActivityIds) != 0) {
                     foreach ($operatingActivityIds as $id) {
                         $operatingActivity = OperatingActivity::where('id', $id)->first();
-                        $report .= $operatingActivity->description . " ";
+                        $report .= ($operatingActivity->description ?? '') . " ";
                     }
                 } else {
                     $report .= 'Отсутствует';

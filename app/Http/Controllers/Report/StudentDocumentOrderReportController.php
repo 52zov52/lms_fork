@@ -39,7 +39,11 @@ class StudentDocumentOrderReportController extends Controller
             ->where('user_id', '=', $studentDocumentOrderIssuance->confirmiter_id)->first();
 
         if ($studentDocumentOrderRequest->document_type == 1 || $studentDocumentOrderRequest->document_type == 2) {
-            $path = Storage::disk('public')->path('template/certificates/tmp_about_study.docx');
+            if ($studentDocumentOrderIssuance->level_education_name == 'Среднее профессиональное') {
+                $path = Storage::disk('public')->path('template/certificates/tmp_about_study_spo.docx');
+            } else {
+                $path = Storage::disk('public')->path('template/certificates/tmp_about_study_vo.docx');
+            }
         } else if ($studentDocumentOrderRequest->document_type == 3) {
             $path = Storage::disk('public')->path('template/spravka.docx');
         } else {

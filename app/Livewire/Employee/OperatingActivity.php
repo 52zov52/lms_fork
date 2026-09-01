@@ -194,7 +194,7 @@ class OperatingActivity extends Component
         if (!empty($this->files)) {
             $this->validate([
                 'activityDirection' => 'required|string|max:1000',
-                'description' => 'required|string|max:5000',
+                'description' => 'required|string|max:8000',
                 'status' => 'required|numeric|min:1',
                 'weekStartDate' => 'required',
                 'weekEndDate' => 'required',
@@ -203,7 +203,7 @@ class OperatingActivity extends Component
         } else {
             $this->validate([
                 'activityDirection' => 'required|string|max:1000',
-                'description' => 'required|string|max:5000',
+                'description' => 'required|string|max:8000',
                 'status' => 'required|numeric|min:1',
                 'weekStartDate' => 'required',
                 'weekEndDate' => 'required'
@@ -239,7 +239,7 @@ class OperatingActivity extends Component
         if (!empty($this->files)) {
             $this->validate([
                 'activityDirection' => 'required|string|max:1000',
-                'description' => 'required|string|max:5000',
+                'description' => 'required|string|max:8000',
                 'status' => 'required|numeric|min:1',
                 'weekStartDate' => 'required',
                 'weekEndDate' => 'required',
@@ -248,7 +248,7 @@ class OperatingActivity extends Component
         } else {
             $this->validate([
                 'activityDirection' => 'required|string|max:1000',
-                'description' => 'required|string|max:5000',
+                'description' => 'required|string|max:8000',
                 'status' => 'required|numeric|min:1',
                 'weekStartDate' => 'required',
                 'weekEndDate' => 'required'
