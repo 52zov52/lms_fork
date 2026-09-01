@@ -43,11 +43,18 @@ test:
 lint:
   docker compose exec --user www php-fpm php ./vendor/bin/pint
 
+# Build frontend assets
+build-assets:
+  npm install
+  npm run build
+
 # Update production
 update-prod:
   php artisan down || true
   git pull origin main
   composer install --no-dev --optimize-autoloader --no-interaction
+  npm install
+  npm run build
   php artisan optimize:clear
   php artisan permission:cache-reset
   php artisan optimize
