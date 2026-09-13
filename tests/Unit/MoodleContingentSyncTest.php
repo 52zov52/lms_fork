@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Livewire\Employee\MoodleContingentSync;
+use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -49,13 +50,14 @@ class MoodleContingentSyncTest extends TestCase
     /**
      * Создание тестового массива студента.
      */
-    private function makeStudent(string $login, string $last, string $first, string $group): array
+    private function makeStudent(string $login, string $last, string $first, string $group, string $middle = ''): array
     {
         return [
             $login => [
                 'login' => $login,
                 'last_name' => $last,
                 'first_name' => $first,
+                'middle_name' => $middle,
                 'email' => "{$login}@test.ru",
                 'group' => $group,
             ],
@@ -610,5 +612,222 @@ class MoodleContingentSyncTest extends TestCase
 
         $this->assertStringContainsString('DELETE FROM mdl_cohort_members', $sql);
         $this->assertStringNotContainsString('INSERT INTO mdl_cohort_members', $sql);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // normalizeFioWords()
+    // ═══════════════════════════════════════════════════════════
+
+    #[Test]
+    public function normalizeFioWords_ignores_case_and_yo(): void
+    {
+        $a = $this->callPrivate('normalizeFioWords', ['Пётр ИВАНОВ']);
+        $b = $this->callPrivate('normalizeFioWords', ['иванов пётр']);
+        $c = $this->callPrivate('normalizeFioWords', ['Иванов Петр']);
+        $this->assertSame($a, $b);
+        $this->assertSame($a, $c);
+    }
+
+    #[Test]
+    public function normalizeFioWords_ignores_word_order_and_spaces(): void
+    {
+        $a = $this->callPrivate('normalizeFioWords', ['Иванов   Иван Петрович']);
+        $b = $this->callPrivate('normalizeFioWords', ['Петрович Иван Иванов']);
+        $this->assertSame($a, $b);
+    }
+
+    #[Test]
+    public function normalizeFioWords_treats_hyphen_as_space(): void
+    {
+        $a = $this->callPrivate('normalizeFioWords', ['Салтыков-Щедрин Михаил']);
+        $b = $this->callPrivate('normalizeFioWords', ['Салтыков Щедрин Михаил']);
+        $this->assertSame($a, $b);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // compare() с отчеством и переставленными полями Moodle
+    // ═══════════════════════════════════════════════════════════
+
+    #[Test]
+    public function compare_reversed_moodle_layout_with_patronymic_no_changes(): void
+    {
+        // ЛК: Фамилия/Имя/Отчество раздельно.
+        $lk = $this->makeStudent('100001', 'Иванов', 'Иван', 'ИТ-24 К1', 'Петрович');
+        // Moodle (перевёрнутая раскладка): firstname=Фамилия, lastname=Имя Отчество.
+        // В parse-массиве last_name = Moodle firstname, first_name = Moodle lastname.
+        $moodle = $this->makeStudent('100001', 'Иванов', 'Иван Петрович', 'ИТ-24 К1');
+        $result = $this->compareDirect($lk, $moodle);
+
+        $this->assertCount(0, $result);
+    }
+
+    #[Test]
+    public function compare_swapped_moodle_fields_no_changes(): void
+    {
+        $lk = $this->makeStudent('100001', 'Иванов', 'Иван', 'ИТ-24 К1', 'Петрович');
+        // Moodle со стандартной раскладкой: firstname=Имя Отчество, lastname=Фамилия.
+        $moodle = $this->makeStudent('100001', 'Иван Петрович', 'Иванов', 'ИТ-24 К1');
+        $result = $this->compareDirect($lk, $moodle);
+
+        $this->assertCount(0, $result);
+    }
+
+    #[Test]
+    public function compare_missing_patronymic_in_moodle_creates_fio_with_full_name(): void
+    {
+        $lk = $this->makeStudent('100001', 'Иванов', 'Иван', 'ИТ-24 К1', 'Петрович');
+        // В Moodle отчества нет вовсе.
+        $moodle = $this->makeStudent('100001', 'Иванов', 'Иван', 'ИТ-24 К1');
+        $result = $this->compareDirect($lk, $moodle);
+
+        $this->assertCount(1, $result);
+        $this->assertSame('fio', $result[0]['type']);
+        // «Станет» должно содержать отчество — иначе оно затрётся в Moodle.
+        $this->assertSame('Иван Петрович', $result[0]['nameNew']);
+        $this->assertSame('Иванов', $result[0]['surnameNew']);
+    }
+
+    #[Test]
+    public function compare_patronymic_only_in_one_moodle_field_still_matches(): void
+    {
+        $lk = $this->makeStudent('100001', 'Петрова', 'Анна', 'ИТ-24 К1', 'Сергеевна');
+        // Отчество приклеено к фамилии в одном поле Moodle.
+        $moodle = $this->makeStudent('100001', 'Петрова Сергеевна', 'Анна', 'ИТ-24 К1');
+        $result = $this->compareDirect($lk, $moodle);
+
+        $this->assertCount(0, $result);
+    }
+
+    #[Test]
+    public function compare_enroll_name_new_includes_patronymic(): void
+    {
+        $lk = $this->makeStudent('100001', 'Иванов', 'Иван', 'ИТ-24 К1', 'Петрович');
+        $result = $this->compareDirect($lk, []);
+
+        $this->assertCount(1, $result);
+        $this->assertSame('enroll', $result[0]['type']);
+        $this->assertSame('Иван Петрович', $result[0]['nameNew']);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // buildSql(): перевёрнутый INSERT и UPDATE с раскладкой
+    // ═══════════════════════════════════════════════════════════
+
+    #[Test]
+    public function buildSql_enroll_uses_reversed_layout(): void
+    {
+        $sql = $this->buildSqlWithChanges([
+            [
+                'type' => 'enroll', 'reason' => 'test',
+                'login' => '100001', 'surnameOld' => '', 'surnameNew' => 'Иванов',
+                'nameOld' => '', 'nameNew' => 'Иван Петрович', 'groupOld' => '', 'groupNew' => 'ИТ-24 К1',
+                'email' => '100001@test.ru',
+            ],
+        ]);
+
+        // Moodle firstname = Фамилия, lastname = «Имя Отчество».
+        $this->assertMatchesRegularExpression(
+            "/'100001',\s*'\S+',\s*'Иванов',\s*'Иван Петрович',\s*'100001@test\.ru'/u",
+            $sql
+        );
+    }
+
+    #[Test]
+    public function buildSql_fio_preserves_reversed_layout(): void
+    {
+        $sql = $this->buildSqlWithChanges([
+            [
+                'type' => 'fio', 'reason' => 'test',
+                'login' => '100001', 'surnameOld' => 'Иванов', 'surnameNew' => 'Иванов',
+                'nameOld' => 'Иван', 'nameNew' => 'Иван Петрович', 'groupOld' => 'Г1', 'groupNew' => 'Г1',
+                'email' => '', 'surnameInFirstname' => true,
+            ],
+        ]);
+
+        $this->assertStringContainsString('firstname = CASE username', $sql);
+        $this->assertMatchesRegularExpression("/WHEN '100001' THEN 'Иванов'/u", $sql);
+        $this->assertMatchesRegularExpression("/WHEN '100001' THEN 'Иван Петрович'/u", $sql);
+    }
+
+    #[Test]
+    public function buildSql_fio_preserves_standard_layout(): void
+    {
+        $sql = $this->buildSqlWithChanges([
+            [
+                'type' => 'fio', 'reason' => 'test',
+                'login' => '100001', 'surnameOld' => 'Иванов', 'surnameNew' => 'Иванов',
+                'nameOld' => 'Иван', 'nameNew' => 'Иван Петрович', 'groupOld' => 'Г1', 'groupNew' => 'Г1',
+                'email' => '', 'surnameInFirstname' => false,
+            ],
+        ]);
+
+        // Фамилия должна уйти в lastname, «Имя Отчество» — в firstname.
+        $this->assertMatchesRegularExpression(
+            "/lastname = CASE username\s+WHEN '100001' THEN 'Иванов'/u",
+            $sql
+        );
+        $this->assertMatchesRegularExpression(
+            "/firstname = CASE username\s+WHEN '100001' THEN 'Иван Петрович'/u",
+            $sql
+        );
+    }
+
+    #[Test]
+    public function component_renders_initial_state(): void
+    {
+        Livewire::test(MoodleContingentSync::class)
+            ->assertOk()
+            ->assertSee('Скопировать запрос мудл');
+    }
+
+    #[Test]
+    public function component_renders_paginated_results(): void
+    {
+        Livewire::test(MoodleContingentSync::class)
+            ->set('changes', [
+                [
+                    'id' => 0, 'type' => 'fio', 'reason' => 'test',
+                    'login' => 'st200001', 'surnameOld' => 'Иванов', 'surnameNew' => 'Иванов',
+                    'nameOld' => 'Иван', 'nameNew' => 'Иван Петрович',
+                    'groupOld' => 'Г1', 'groupNew' => 'Г1', 'email' => '',
+                    'surnameInFirstname' => true,
+                ],
+                [
+                    'id' => 1, 'type' => 'enroll', 'reason' => 'test',
+                    'login' => 'st200002', 'surnameOld' => '', 'surnameNew' => 'Петров',
+                    'nameOld' => '', 'nameNew' => 'Пётр Петрович',
+                    'groupOld' => '', 'groupNew' => 'Г1', 'email' => 'st200002@test.ru',
+                ],
+            ])
+            ->set('selected', [0 => true, 1 => true])
+            ->set('stats', ['enroll' => 1, 'expel' => 0, 'fio' => 1, 'transfer' => 0])
+            ->set('parsed', true)
+            ->assertOk()
+            ->assertSee('st200001')
+            ->assertSee('Иван Петрович')
+            ->assertSee('Показать SQL')
+            ->call('buildPreview')
+            ->assertSee('UPDATE mdl_user SET');
+    }
+
+    #[Test]
+    public function buildSql_fio_mixed_layouts_produce_two_updates(): void
+    {
+        $sql = $this->buildSqlWithChanges([
+            [
+                'type' => 'fio', 'reason' => 'test',
+                'login' => '100001', 'surnameOld' => 'A', 'surnameNew' => 'A',
+                'nameOld' => 'B', 'nameNew' => 'B C', 'groupOld' => 'Г1', 'groupNew' => 'Г1',
+                'email' => '', 'surnameInFirstname' => true,
+            ],
+            [
+                'type' => 'fio', 'reason' => 'test',
+                'login' => '100002', 'surnameOld' => 'D', 'surnameNew' => 'D',
+                'nameOld' => 'E', 'nameNew' => 'E F', 'groupOld' => 'Г1', 'groupNew' => 'Г1',
+                'email' => '', 'surnameInFirstname' => false,
+            ],
+        ]);
+
+        $this->assertSame(2, substr_count($sql, 'UPDATE mdl_user SET'));
     }
 }

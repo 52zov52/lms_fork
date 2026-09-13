@@ -15,9 +15,21 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
  *
  * Пайплайн:
  *   1. Получить список студентов из БД ЛК (кеш 30 мин).
- *   2. Загрузить CSV-файл с данными Moodle.
+ *   2. Загрузить CSV-файл с данными Moodle (стриминг, построчно).
  *   3. Сравнить по логину → определить зачисления, отчисления, смены ФИО, переводы.
  *   4. Сгенерировать SQL-запрос (Блоки 1–5) для приведения Moodle в соответствие с ЛК.
+ *
+ * Особенности ФИО:
+ *   - В ЛК фамилия/имя/отчество хранятся раздельно (users_data).
+ *   - В Moodle всего два поля (firstname/lastname), отчество НЕ закреплено:
+ *     может лежать в любом из них, сами поля тоже могут быть переставлены
+ *     (при создании их меняют местами, т.к. Moodle сортирует списки по firstname).
+ *   - Поэтому сравнение ФИО — по неупорядоченному набору слов полного ФИО
+ *     (регистр/ё/пробелы/раскладка по полям игнорируются).
+ *   - Обновление ФИО (Блок 2) сохраняет существующую раскладку пользователя:
+ *     фамилия пишется в ту же колонку, где уже лежит, «Имя Отчество» — в другую.
+ *     Новых пользователей (Блок 1) создаём в перевёрнутой раскладке
+ *     (firstname=Фамилия, lastname=Имя Отчество), как при ручном создании.
  *
  * SQL-блоки:
  *   1 — создание пользователей (INSERT mdl_user)
@@ -55,14 +67,23 @@ class MoodleContingentSync extends Component
         'transfer' => 0,
     ];
 
-    /** Сгенерированный SQL-запрос для Moodle (отображается в предпросмотре). */
+    /** Сгенерированный SQL-запрос для Moodle (строится ТОЛЬКО по требованию, см. buildPreview()). */
     public string $sql = '';
+
+    /** Флаг: предпросмотр SQL актуален (сбрасывается при смене чекбоксов). */
+    public bool $sqlBuilt = false;
 
     /** SQL-запрос для выборки студентов из Moodle (скопировать в Step 1). */
     public string $moodleQuery = '';
 
     /** Предупреждения при парсинге CSV (дубли, пропущенные строки). */
     public array $csvWarnings = [];
+
+    /** Текущие страницы таблиц результатов (пагинация — против зависания на тысячах строк). */
+    public array $page = ['fio' => 1, 'enroll' => 1, 'transfer' => 1, 'expel' => 1];
+
+    /** Строк на страницу в таблицах результатов. */
+    public int $perPage = 50;
 
     // ─── Жизненный цикл Livewire ────────────────────────────────
 
@@ -80,14 +101,13 @@ class MoodleContingentSync extends Component
 
     /**
      * Рендер представления.
-     * При наличии обработанных данных — пересчитывает SQL для актуальности чекбоксов.
+     *
+     * ВАЖНО: SQL здесь НЕ строится — на тысячах изменений это мегабайты текста,
+     * которые Livewire гонял бы в браузере при каждом чихе (чекбокс, пагинация)
+     * и страница висла. SQL строится только по кнопке (buildPreview/downloadSql/copySql).
      */
     public function render()
     {
-        if ($this->parsed) {
-            $this->sql = $this->buildSql();
-        }
-
         return view('livewire.employee.moodle-contingent-sync');
     }
 
@@ -103,6 +123,8 @@ class MoodleContingentSync extends Component
         $this->resetValidation();
         $this->reset('changes', 'selected', 'stats', 'sql', 'parsed');
         $this->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0];
+        $this->page = ['fio' => 1, 'enroll' => 1, 'transfer' => 1, 'expel' => 1];
+        $this->sqlBuilt = false;
 
         if (! $this->csvFile) {
             $this->addError('csvFile', 'Загрузите CSV-файл с данными Мудл.');
@@ -110,7 +132,7 @@ class MoodleContingentSync extends Component
         }
 
         $this->validate([
-            'csvFile' => 'required|file|mimes:csv,txt|max:5120',
+            'csvFile' => 'required|file|mimes:csv,txt|max:20480',
         ]);
 
         try {
@@ -136,6 +158,96 @@ class MoodleContingentSync extends Component
 
         $this->parsed = true;
         $this->dispatch('show-toast', message: 'Сравнение выполнено. Найдено изменений: ' . count($this->changes), type: 'success');
+    }
+
+    /**
+     * Переход на страницу таблицы результатов (пагинация против зависания).
+     */
+    public function gotoPage(string $type, int $page): void
+    {
+        if (isset($this->page[$type])) {
+            $this->page[$type] = max(1, $page);
+        }
+    }
+
+    /**
+     * Массовый выбор/снятие всех изменений одного типа.
+     */
+    public function toggleType(string $type, bool $value): void
+    {
+        foreach ($this->changes as $c) {
+            if ($c['type'] === $type) {
+                $this->selected[$c['id']] = $value;
+            }
+        }
+        $this->sqlBuilt = false;
+    }
+
+    /**
+     * Любое изменение чекбоксов делает предпросмотр SQL неактуальным.
+     */
+    public function updatedSelected(): void
+    {
+        $this->sqlBuilt = false;
+    }
+
+    /**
+     * Построение предпросмотра SQL по требованию (кнопка, а не каждый рендер).
+     */
+    public function buildPreview(): void
+    {
+        if (empty($this->changes)) {
+            $this->dispatch('show-toast', message: 'Нет данных для предпросмотра. Сначала загрузите файл.', type: 'error');
+            return;
+        }
+
+        $this->sql = $this->buildSql();
+        $this->sqlBuilt = true;
+    }
+
+    /**
+     * Изменения одного типа с пагинацией (для таблиц результатов).
+     *
+     * @return array{items: array, total: int, pages: int, page: int}
+     */
+    private function pagedChanges(string $type): array
+    {
+        $filtered = array_values(array_filter($this->changes, fn ($c) => $c['type'] === $type));
+        $total = count($filtered);
+        $pages = max(1, (int) ceil($total / $this->perPage));
+        $page = min(max(1, $this->page[$type] ?? 1), $pages);
+        $this->page[$type] = $page;
+
+        return [
+            'items' => array_slice($filtered, ($page - 1) * $this->perPage, $this->perPage),
+            'total' => $total,
+            'pages' => $pages,
+            'page'  => $page,
+        ];
+    }
+
+    /** @return array{items: array, total: int, pages: int, page: int} */
+    public function getFioChangesProperty(): array
+    {
+        return $this->pagedChanges('fio');
+    }
+
+    /** @return array{items: array, total: int, pages: int, page: int} */
+    public function getEnrollChangesProperty(): array
+    {
+        return $this->pagedChanges('enroll');
+    }
+
+    /** @return array{items: array, total: int, pages: int, page: int} */
+    public function getTransferChangesProperty(): array
+    {
+        return $this->pagedChanges('transfer');
+    }
+
+    /** @return array{items: array, total: int, pages: int, page: int} */
+    public function getExpelChangesProperty(): array
+    {
+        return $this->pagedChanges('expel');
     }
 
     /**
@@ -180,31 +292,14 @@ class MoodleContingentSync extends Component
      *
      * @throws Exception  Если файл пуст или отсутствуют обязательные колонки.
      */
-    private function parseMoodleCsv(string $path): array
+    /**
+     * Маппинг имён колонок CSV Moodle в ключи данных.
+     *
+     * @param  array<int, string>  $header  Нормализованные имена колонок (нижний регистр, trim)
+     * @return array<string, int>  ['login' => idx, 'last_name' => idx, ...]
+     */
+    private function mapMoodleCsvHeader(array $header): array
     {
-        $content = file_get_contents($path);
-        if ($content === false) {
-            throw new Exception('Файл недоступен.');
-        }
-
-        // ── Конвертация кодировки ──
-        $encoding = mb_detect_encoding($content, ['UTF-8', 'windows-1251', 'ISO-8859-1', 'ASCII'], true);
-        if ($encoding !== false && $encoding !== 'UTF-8') {
-            $content = mb_convert_encoding($content, 'UTF-8', $encoding);
-        }
-
-        // ── Разбиение на строки ──
-        $lines = preg_split('/\r\n|\r|\n/', $content);
-        $lines = array_filter($lines, fn ($l) => trim($l) !== '');
-        if (empty($lines)) {
-            throw new Exception('Файл пуст.');
-        }
-
-        // ── Определение разделителя и заголовков ──
-        $delimiter = str_contains($lines[0], ';') ? ';' : ',';
-        $header = array_map(fn ($h) => mb_strtolower(trim($h)), str_getcsv($lines[0], $delimiter, '"', '"'));
-
-        // ── Маппинг колонок ──
         $map = [];
         foreach ($header as $i => $h) {
             if (in_array($h, ['st_ticket', 'username', 'логин', 'login'])) {
@@ -220,44 +315,125 @@ class MoodleContingentSync extends Component
             }
         }
 
-        // ── Валидация обязательных колонок ──
-        foreach (['login', 'last_name', 'first_name', 'group'] as $required) {
-            if (! isset($map[$required])) {
-                throw new Exception("В заголовке CSV не найдена колонка '$required'.");
-            }
+        return $map;
+    }
+
+    private function parseMoodleCsv(string $path): array
+    {
+        $handle = @fopen($path, 'rb');
+        if ($handle === false) {
+            throw new Exception('Файл недоступен.');
         }
 
-        // ── Парсинг строк ──
-        $result = [];
-        $skippedRows = 0;
-        $duplicateLogins = [];
-        $seenLogins = [];
-
-        for ($n = 1; $n < count($lines); $n++) {
-            $row = str_getcsv($lines[$n], $delimiter, '"', '"');
-            if (count($row) <= max($map['login'], $map['last_name'], $map['first_name'], $map['group'])) {
-                $skippedRows++;
-                continue;
+        try {
+            // ── Образец для определения кодировки: заголовок + до 100 строк ──
+            // (одного заголовка мало: английские имена колонок — чистый ASCII,
+            // а кириллица в windows-1251 появится только в строках данных).
+            $sampleLines = [];
+            while (count($sampleLines) < 101 && ($line = fgets($handle)) !== false) {
+                if (trim($line) !== '') {
+                    $sampleLines[] = $line;
+                }
+            }
+            if (empty($sampleLines)) {
+                throw new Exception('Файл пуст.');
             }
 
-            $login = trim($row[$map['login']]);
-            if ($login === '') {
-                $skippedRows++;
-                continue;
+            // ── Определение кодировки ──
+            //
+            // Решение — по большинству строк образца: если >=90% строк
+            // валидны как UTF-8, файл считаем UTF-8, а битые байты
+            // в отдельных строках заменяем на «?» построчно (портится
+            // только эта строка, а не весь файл). Иначе — детект
+            // (обычно windows-1251) и конвертация. Это защищает от
+            // ситуации, когда пара битых байт в огромном файле сбивает
+            // детект и весь файл превращается в кракозябры.
+            $validUtf8 = 0;
+            foreach ($sampleLines as $sampleLine) {
+                if (mb_check_encoding($sampleLine, 'UTF-8')) {
+                    $validUtf8++;
+                }
+            }
+            if ($validUtf8 >= count($sampleLines) * 0.9) {
+                $convert = fn (string $s): string => mb_convert_encoding($s, 'UTF-8', 'UTF-8');
+            } else {
+                $encoding = mb_detect_encoding(
+                    implode('', $sampleLines),
+                    ['windows-1251', 'ISO-8859-1', 'ASCII', 'UTF-8'],
+                    true
+                );
+                $convert = ($encoding !== false && $encoding !== 'UTF-8')
+                    ? fn (string $s): string => mb_convert_encoding($s, 'UTF-8', $encoding)
+                    : fn (string $s): string => $s;
             }
 
-            if (isset($seenLogins[$login])) {
-                $duplicateLogins[$login] = ($duplicateLogins[$login] ?? 1) + 1;
-            }
-            $seenLogins[$login] = true;
+            // ── Определение разделителя и заголовков ──
+            $firstLine = $convert($sampleLines[0]);
+            $delimiter = str_contains($firstLine, ';') ? ';' : ',';
+            $header = array_map(fn ($h) => mb_strtolower(trim($h)), str_getcsv($firstLine, $delimiter, '"', '"'));
 
-            $result[$login] = [
-                'login'      => $login,
-                'last_name'  => trim($row[$map['last_name']]),
-                'first_name' => trim($row[$map['first_name']]),
-                'email'      => isset($map['email']) ? trim($row[$map['email']]) : '',
-                'group'      => trim($row[$map['group']]),
-            ];
+            // ── Маппинг колонок ──
+            $map = $this->mapMoodleCsvHeader($header);
+
+            // ── Валидация обязательных колонок ──
+            foreach (['login', 'last_name', 'first_name', 'group'] as $required) {
+                if (! isset($map[$required])) {
+                    throw new Exception("В заголовке CSV не найдена колонка '$required'.");
+                }
+            }
+            $maxIdx = max($map['login'], $map['last_name'], $map['first_name'], $map['group']);
+
+            // ── Парсинг строк: сначала образец, затем остаток файла стримингом ──
+            $result = [];
+            $skippedRows = 0;
+            $duplicateLogins = [];
+            $seenLogins = [];
+
+            $parseLine = function (string $rawLine) use (
+                $convert, $delimiter, $map, $maxIdx,
+                &$result, &$skippedRows, &$duplicateLogins, &$seenLogins
+            ): void {
+                if (trim($rawLine) === '') {
+                    return;
+                }
+                $row = str_getcsv($convert($rawLine), $delimiter, '"', '"');
+                if (count($row) <= $maxIdx) {
+                    $skippedRows++;
+                    return;
+                }
+
+                $login = trim($row[$map['login']]);
+                if ($login === '') {
+                    $skippedRows++;
+                    return;
+                }
+
+                if (isset($seenLogins[$login])) {
+                    $duplicateLogins[$login] = ($duplicateLogins[$login] ?? 1) + 1;
+                }
+                $seenLogins[$login] = true;
+
+                $result[$login] = [
+                    'login'      => $login,
+                    'last_name'  => trim($row[$map['last_name']]),
+                    'first_name' => trim($row[$map['first_name']]),
+                    'email'      => isset($map['email']) ? trim($row[$map['email']]) : '',
+                    'group'      => trim($row[$map['group']]),
+                ];
+            };
+
+            // Строки данных из образца (пропускаем заголовок — первую строку).
+            for ($i = 1; $i < count($sampleLines); $i++) {
+                $parseLine($sampleLines[$i]);
+            }
+            unset($sampleLines);
+
+            // Остаток файла — построчно, в памяти только одна строка.
+            while (($line = fgets($handle)) !== false) {
+                $parseLine($line);
+            }
+        } finally {
+            fclose($handle);
         }
 
         // ── Формирование предупреждений ──
@@ -266,8 +442,16 @@ class MoodleContingentSync extends Component
             $this->csvWarnings[] = "Пропущено строк: $skippedRows (пустой логин или некорректный формат).";
         }
         if (! empty($duplicateLogins)) {
+            // На больших файлах дублей могут быть сотни — показываем первые 20.
+            $shown = 0;
             foreach ($duplicateLogins as $dupLogin => $count) {
+                if ($shown >= 20) {
+                    $rest = count($duplicateLogins) - $shown;
+                    $this->csvWarnings[] = "…и ещё дублей логинов: $rest.";
+                    break;
+                }
                 $this->csvWarnings[] = "Дубль логина \"$dupLogin\": $count записей, используется последняя.";
+                $shown++;
             }
         }
 
@@ -294,6 +478,7 @@ class MoodleContingentSync extends Component
                     CONCAT('st', sub.latest_ticket) AS st_ticket,
                     sub.last_name AS last_name,
                     sub.first_name AS first_name,
+                    sub.middle_name AS middle_name,
                     CONCAT_WS(' ', sub.first_name, sub.middle_name) AS full_name,
                     CONCAT(sub.latest_ticket, '_', YEAR(sub.year_admission), '@iubip.ru') AS email,
                     sub.group_name AS group_name_fixed
@@ -308,7 +493,7 @@ class MoodleContingentSync extends Component
                         MAX(st.ticket_number) AS latest_ticket
                     FROM
                         group_student gs
-                        INNER JOIN groups g ON gs.group_id = g.id AND g.deleted_at IS NULL
+                        INNER JOIN `groups` g ON gs.group_id = g.id AND g.deleted_at IS NULL
                         INNER JOIN users u ON gs.user_id = u.id AND u.deleted_at IS NULL
                         INNER JOIN users_data ud ON u.id = ud.user_id AND ud.deleted_at IS NULL
                         INNER JOIN student_ticket_numbers st ON u.id = st.user_id AND st.deleted_at IS NULL
@@ -338,11 +523,12 @@ class MoodleContingentSync extends Component
             foreach ($rows as $row) {
                 $login = $row->st_ticket;
                 $result[$login] = [
-                    'login'      => $login,
-                    'last_name'  => $row->last_name,
-                    'first_name' => $row->first_name,
-                    'email'      => $row->email,
-                    'group'      => $row->group_name_fixed,
+                    'login'       => $login,
+                    'last_name'   => $row->last_name,
+                    'first_name'  => $row->first_name,
+                    'middle_name' => $row->middle_name ?? '',
+                    'email'       => $row->email,
+                    'group'       => $row->group_name_fixed,
                 ];
             }
 
@@ -361,7 +547,10 @@ class MoodleContingentSync extends Component
      *   - Есть в обоих, различается ФИО → fio
      *   - Есть в обоих, различается группа → transfer (перевод)
      *
-     * Сравнение ФИО/групп — регистронезависимое (mb_strtolower).
+     * Сравнение ФИО — по неупорядоченному набору слов полного имени
+     * (см. normalizeFioWords): ЛК «Фамилия Имя Отчество» против обоих
+     * полей Moodle скопом. Регистр, ё/е, пробелы, дефисы и раскладка
+     * слов по полям Moodle игнорируются. Группы — регистронезависимо.
      *
      * @param  array  $lk       Данные ЛК (login => data)
      * @param  array  $moodle   Данные Moodle (login => data)
@@ -385,7 +574,8 @@ class MoodleContingentSync extends Component
                 'surnameOld' => '',
                 'surnameNew' => $lk[$login]['last_name'],
                 'nameOld'    => '',
-                'nameNew'    => $lk[$login]['first_name'],
+                // «Имя Отчество» целиком — иначе отчество потеряется при создании в Moodle.
+                'nameNew'    => $this->lkNameWithPatronymic($lk[$login]),
                 'groupOld'   => '',
                 'groupNew'   => $targetGroup,
                 'email'      => $lk[$login]['email'],
@@ -409,17 +599,22 @@ class MoodleContingentSync extends Component
         }
 
         // ── Сравнение ФИО и группы для общих студентов ──
+        //
+        // ФИО сравнивается как неупорядоченный набор слов полного имени:
+        // ЛК «Фамилия Имя Отчество» против обоих полей Moodle скопом.
+        // Так переставленные поля Moodle и отчество в любом из них не дают
+        // ложных расхождений, а пропущенное отчество — наоборот, находится.
         foreach ($both as $login) {
             $lkRow = $lk[$login];
             $moodleRow = $moodle[$login];
             $targetGroup = $this->targetGroup($lkRow['group']);
 
-            $surnameDiff = $this->norm($lkRow['last_name']) !== $this->norm($moodleRow['last_name']);
-            $nameDiff = $this->norm($lkRow['first_name']) !== $this->norm($moodleRow['first_name']);
+            $fioDiff = $this->normalizeFioWords($this->lkFullName($lkRow))
+                !== $this->normalizeFioWords($this->moodleFullName($moodleRow));
             $groupDiff = $this->norm($targetGroup) !== $this->norm($moodleRow['group']);
 
             // ── Различие ФИО ──
-            if ($surnameDiff || $nameDiff) {
+            if ($fioDiff) {
                 $this->addChange([
                     'type'       => 'fio',
                     'reason'     => 'Различие ФИО',
@@ -427,10 +622,14 @@ class MoodleContingentSync extends Component
                     'surnameOld' => $moodleRow['last_name'],
                     'surnameNew' => $lkRow['last_name'],
                     'nameOld'    => $moodleRow['first_name'],
-                    'nameNew'    => $lkRow['first_name'],
+                    // «Имя Отчество» целиком — иначе отчество затрётся в Moodle.
+                    'nameNew'    => $this->lkNameWithPatronymic($lkRow),
                     'groupOld'   => $moodleRow['group'],
                     'groupNew'   => $moodleRow['group'],
                     'email'      => '',
+                    // Текущая раскладка пользователя в Moodle (для Блока 2 SQL):
+                    // true — фамилия в колонке Moodle `firstname`.
+                    'surnameInFirstname' => $this->isSurnameInMoodleFirstname($lkRow, $moodleRow),
                 ]);
             }
 
@@ -453,6 +652,88 @@ class MoodleContingentSync extends Component
     }
 
     // ─── Вспомогательные методы сравнения ──────────────────────
+
+    /**
+     * Нормализация ФИО в неупорядоченный набор слов для сравнения.
+     *
+     * Игнорируются: регистр, буква ё/е, лишние пробелы, дефисы/тире
+     * (чтобы «Салтыков-Щедрин» и «Салтыков Щедрин» совпадали),
+     * а также раскладка слов по полям firstname/lastname Moodle.
+     *
+     * @param  string  $value  Произвольная строка ФИО (одно или оба поля Moodle, полное ФИО ЛК)
+     * @return string  Отсортированные слова через пробел, напр. «иван иванов петрович»
+     */
+    private function normalizeFioWords(string $value): string
+    {
+        $value = mb_strtolower(trim($value));
+        $value = str_replace('ё', 'е', $value);
+        // Дефисы/тире всех видов — в пробелы, чтобы двойные фамилии сравнивались одинаково.
+        $value = str_replace(['-', '‐', '‑', '‒', '–', '—', '―'], ' ', $value);
+        $words = preg_split('/\s+/u', $value, -1, PREG_SPLIT_NO_EMPTY);
+        if ($words === false) {
+            return '';
+        }
+        sort($words);
+        return implode(' ', $words);
+    }
+
+    /**
+     * Полное ФИО студента ЛК одной строкой: «Фамилия Имя Отчество» (без двойных пробелов).
+     */
+    private function lkFullName(array $lkRow): string
+    {
+        return trim(($lkRow['last_name'] ?? '') . ' ' . ($lkRow['first_name'] ?? '') . ' ' . ($lkRow['middle_name'] ?? ''));
+    }
+
+    /**
+     * «Имя Отчество» студента ЛК — значение для колонки Moodle с именем.
+     */
+    private function lkNameWithPatronymic(array $lkRow): string
+    {
+        return trim(($lkRow['first_name'] ?? '') . ' ' . ($lkRow['middle_name'] ?? ''));
+    }
+
+    /**
+     * Полное ФИО студента Moodle одной строкой (оба поля, порядок не важен).
+     *
+     * ВАЖНО: из-за маппинга запроса Moodle ($this->getMoodleQuery())
+     * $moodleRow['last_name'] — это колонка Moodle `firstname`,
+     * $moodleRow['first_name'] — это колонка Moodle `lastname`.
+     */
+    private function moodleFullName(array $moodleRow): string
+    {
+        return trim(($moodleRow['last_name'] ?? '') . ' ' . ($moodleRow['first_name'] ?? ''));
+    }
+
+    /**
+     * Определение текущей раскладки пользователя в Moodle.
+     *
+     * Возвращает true, если фамилия лежит в колонке Moodle `firstname`
+     * (в наших данных это $moodleRow['last_name'] из-за маппинга запроса),
+     * и false, если фамилия лежит в колонке Moodle `lastname`.
+     *
+     * Сравниваем по вхождению слов фамилии ЛК в слова каждого поля:
+     * побеждает поле с большим числом совпадений. При ничьей —
+     * перевёрнутая раскладка (фамилия в firstname), как при ручном создании.
+     */
+    private function isSurnameInMoodleFirstname(array $lkRow, array $moodleRow): bool
+    {
+        $surnameWords = explode(' ', $this->normalizeFioWords($lkRow['last_name'] ?? ''));
+        $surnameWords = array_filter($surnameWords);
+        if (empty($surnameWords)) {
+            return true;
+        }
+
+        // $moodleRow['last_name'] = колонка Moodle `firstname` (маппинг запроса).
+        $inFirstname = explode(' ', $this->normalizeFioWords($moodleRow['last_name'] ?? ''));
+        // $moodleRow['first_name'] = колонка Moodle `lastname` (маппинг запроса).
+        $inLastname = explode(' ', $this->normalizeFioWords($moodleRow['first_name'] ?? ''));
+
+        $hitsFirst = count(array_intersect($surnameWords, $inFirstname));
+        $hitsLast = count(array_intersect($surnameWords, $inLastname));
+
+        return $hitsFirst >= $hitsLast;
+    }
 
     /**
      * Добавление изменения в список $this->changes.
@@ -570,6 +851,9 @@ class MoodleContingentSync extends Component
             $sql .= "-- БЛОК 1: СОЗДАНИЕ НОВЫХ ПОЛЬЗОВАТЕЛЕЙ (только в ЛК)\n";
             $sql .= "-- Пароль по умолчанию: Iubip_1234567\n";
             $sql .= "-- ============================================================\n";
+            // Перевёрнутая раскладка, как при ручном создании:
+            // Moodle firstname = Фамилия (для сортировки списков),
+            // Moodle lastname = «Имя Отчество».
             $sql .= "INSERT INTO mdl_user (username, password, firstname, lastname, email, auth, confirmed, timecreated) VALUES\n";
             $vals = [];
             foreach ($enroll as $r) {
@@ -578,8 +862,8 @@ class MoodleContingentSync extends Component
                     "('%s', '%s', '%s', '%s', '%s', 'manual', 1, UNIX_TIMESTAMP())",
                     $this->esc($r['login']),
                     $this->esc($hash),
-                    $this->esc($r['nameNew']),
                     $this->esc($r['surnameNew']),
+                    $this->esc($r['nameNew']),
                     $this->esc($r['email'])
                 );
             }
@@ -587,22 +871,32 @@ class MoodleContingentSync extends Component
         }
 
         // ── Блок 2: Обновление ФИО ──
+        //
+        // Сохраняем существующую раскладку каждого пользователя:
+        // фамилия пишется в ту же колонку Moodle, где уже лежит,
+        // «Имя Отчество» — в другую. Поэтому групп две (максимум два UPDATE).
         if ($fio->isNotEmpty()) {
             $sql .= "-- ============================================================\n";
             $sql .= "-- БЛОК 2: ОБНОВЛЕНИЕ ФАМИЛИЙ И ИМЁН\n";
+            $sql .= "-- Раскладка каждого пользователя сохраняется: фамилия пишется\n";
+            $sql .= "-- в ту же колонку, где уже лежит, «Имя Отчество» — в другую.\n";
             $sql .= "-- ============================================================\n";
-            $sql .= "UPDATE mdl_user SET\n";
-            $sql .= "    lastname = CASE username\n";
-            foreach ($fio as $r) {
-                $sql .= "        WHEN '" . $this->esc($r['login']) . "' THEN '" . $this->esc($r['surnameNew']) . "'\n";
+
+            [$fioFirst, $fioLast] = $this->splitFioByLayout($fio);
+
+            if ($fioFirst->isNotEmpty()) {
+                // Фамилия уже в Moodle `firstname` (перевёрнутая раскладка):
+                // firstname = Фамилия, lastname = «Имя Отчество».
+                $sql .= "-- Фамилия в колонке firstname (перевёрнутая раскладка)\n";
+                $sql .= $this->fioUpdateSql($fioFirst, 'firstname', 'lastname');
             }
-            $sql .= "    END,\n";
-            $sql .= "    firstname = CASE username\n";
-            foreach ($fio as $r) {
-                $sql .= "        WHEN '" . $this->esc($r['login']) . "' THEN '" . $this->esc($r['nameNew']) . "'\n";
+
+            if ($fioLast->isNotEmpty()) {
+                // Фамилия уже в Moodle `lastname` (стандартная раскладка):
+                // firstname = «Имя Отчество», lastname = Фамилия.
+                $sql .= "-- Фамилия в колонке lastname (стандартная раскладка)\n";
+                $sql .= $this->fioUpdateSql($fioLast, 'lastname', 'firstname');
             }
-            $sql .= "    END\n";
-            $sql .= "WHERE username IN (" . $this->inList($fio->pluck('login')) . ");\n\n";
         }
 
         // ── Блок 3: Удаление из старых когорт ──
@@ -658,6 +952,48 @@ class MoodleContingentSync extends Component
         }
 
         $sql .= "COMMIT;\n";
+
+        return $sql;
+    }
+
+    /**
+     * Разделение ФИО-изменений по текущей раскладке пользователя в Moodle.
+     *
+     * @param  \Illuminate\Support\Collection  $fio  Изменения типа 'fio'
+     * @return array{0: \Illuminate\Support\Collection, 1: \Illuminate\Support\Collection}
+     *         [0] — фамилия в Moodle `firstname`, [1] — фамилия в Moodle `lastname`.
+     *         Записи без флага (старые/ручные) считаются перевёрнутой раскладкой.
+     */
+    private function splitFioByLayout($fio): array
+    {
+        $inFirstname = $fio->filter(fn ($r) => ($r['surnameInFirstname'] ?? true) === true)->values();
+        $inLastname = $fio->filter(fn ($r) => ($r['surnameInFirstname'] ?? true) === false)->values();
+
+        return [$inFirstname, $inLastname];
+    }
+
+    /**
+     * Один UPDATE mdl_user для группы пользователей с одинаковой раскладкой.
+     *
+     * @param  \Illuminate\Support\Collection  $rows            Изменения типа 'fio'
+     * @param  string                          $surnameColumn   Колонка для фамилии ('firstname'|'lastname')
+     * @param  string                          $nameColumn      Колонка для «Имя Отчество»
+     * @return string  Готовый UPDATE ... CASE ... оператор
+     */
+    private function fioUpdateSql($rows, string $surnameColumn, string $nameColumn): string
+    {
+        $sql = "UPDATE mdl_user SET\n";
+        $sql .= "    $surnameColumn = CASE username\n";
+        foreach ($rows as $r) {
+            $sql .= "        WHEN '" . $this->esc($r['login']) . "' THEN '" . $this->esc($r['surnameNew']) . "'\n";
+        }
+        $sql .= "    END,\n";
+        $sql .= "    $nameColumn = CASE username\n";
+        foreach ($rows as $r) {
+            $sql .= "        WHEN '" . $this->esc($r['login']) . "' THEN '" . $this->esc($r['nameNew']) . "'\n";
+        }
+        $sql .= "    END\n";
+        $sql .= "WHERE username IN (" . $this->inList($rows->pluck('login')) . ");\n\n";
 
         return $sql;
     }

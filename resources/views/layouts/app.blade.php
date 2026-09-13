@@ -145,6 +145,28 @@
             Livewire.on('show-toast', (event) => {
                 toastr[event.type](event.message)
             });
+
+            // Сессия истекла (120 мин без активности): Livewire POST /livewire/update
+            // отлетает 401 — Middleware\Authenticate при expectsJson() возвращает JSON 401
+            // вместо редиректа. Вместо немого падения в консоль/FailureModal показываем
+            // понятный тост и переводим на /login. Перехват через Livewire hook `request`
+            // (согласно vendor/livewire/dist/livewire.js — `fail` с preventDefault).
+            // `commit` — фолбэк на случай разных имён хука между минорками Livewire.
+            const handleLivewireAuthFail = ({ fail }) => {
+                fail(({ status, preventDefault }) => {
+                    if (status === 401) {
+                        preventDefault();
+                        if (!window.__lwAuthExpired) {
+                            window.__lwAuthExpired = true;
+                            toastr.warning('Сессия истекла. Переводим на страницу входа…');
+                            setTimeout(() => window.location.href = '{{ route('login') }}', 1600);
+                        }
+                    }
+                });
+            };
+            // Livewire v3 — `request`; на некоторых сборках прокидывается как `commit`.
+            try { Livewire.hook('request', handleLivewireAuthFail); } catch (e) {}
+            try { Livewire.hook('commit', handleLivewireAuthFail); } catch (e) {}
         });
     </script>
 </body>

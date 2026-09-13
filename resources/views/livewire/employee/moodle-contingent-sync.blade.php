@@ -55,13 +55,17 @@
                 <input type="file" wire:model="csvFile" accept=".csv,.txt"
                     class="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
                 @error('csvFile') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                <p wire:loading wire:target="csvFile" class="text-xs text-blue-600 mt-1">
+                    <i class="fa-solid fa-spinner fa-spin mr-1"></i>Файл загружается на сервер…
+                </p>
             </div>
             <div class="sm:col-span-2 flex justify-end">
-                <button type="button" wire:click="process" wire:loading.attr="disabled"
+                <button type="button" wire:click="process" @disabled(! $csvFile) wire:loading.attr="disabled" wire:target="csvFile, process"
                     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 shadow-sm transition">
                     <i class="fa-solid fa-arrows-rotate"></i>
-                    <span wire:loading.remove>Обработать</span>
-                    <span wire:loading>Обработка…</span>
+                    <span wire:loading.remove wire:target="csvFile, process">Обработать</span>
+                    <span wire:loading wire:target="process">Обработка…</span>
+                    <span wire:loading wire:target="csvFile">Загрузка файла…</span>
                 </button>
             </div>
         </div>
@@ -140,7 +144,15 @@
             </div>
 
             {{-- ─── Таблица: ФИО ─── --}}
-            <div id="tab-fio" role="tabpanel" aria-labelledby="tab-btn-fio" tabindex="0" class="overflow-x-auto">
+            <div id="tab-fio" role="tabpanel" aria-labelledby="tab-btn-fio" tabindex="0">
+                <div class="flex flex-wrap items-center gap-2 mb-2 text-xs">
+                    <button type="button" wire:click="toggleType('fio', true)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Выбрать все</button>
+                    <button type="button" wire:click="toggleType('fio', false)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Снять все</button>
+                    <span class="ml-auto text-slate-500">Стр. {{ $this->fioChanges['page'] }} из {{ $this->fioChanges['pages'] }} (всего {{ $this->fioChanges['total'] }})</span>
+                    <button type="button" wire:click="gotoPage('fio', {{ $this->fioChanges['page'] - 1 }})" @disabled($this->fioChanges['page'] <= 1) class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40">←</button>
+                    <button type="button" wire:click="gotoPage('fio', {{ $this->fioChanges['page'] + 1 }})" @disabled($this->fioChanges['page'] >= $this->fioChanges['pages']) class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40">→</button>
+                </div>
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm border-collapse">
                     <thead class="bg-slate-50">
                         <tr>
@@ -153,26 +165,33 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($changes as $change)
-                            @if ($change['type'] === 'fio')
-                                <tr class="border-b border-slate-200 hover:bg-slate-50">
-                                    <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
-                                    <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
-                                    <td class="p-2.5 border border-slate-200 bg-white">{{ $change['groupNew'] }}</td>
-                                    <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['surnameOld'] }} {{ $change['nameOld'] }}</td>
-                                    <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
-                                    <td class="p-2.5 text-center border border-slate-200 bg-white">
-                                        <input type="checkbox" wire:model.live="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
-                                    </td>
-                                </tr>
-                            @endif
+                        @foreach ($this->fioChanges['items'] as $change)
+                            <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
+                                <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
+                                <td class="p-2.5 border border-slate-200 bg-white">{{ $change['groupNew'] }}</td>
+                                <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['surnameOld'] }} {{ $change['nameOld'] }}</td>
+                                <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
+                                <td class="p-2.5 text-center border border-slate-200 bg-white">
+                                    <input type="checkbox" wire:model="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
+                                </td>
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {{-- ─── Таблица: Зачисления ─── --}}
-            <div id="tab-enroll" role="tabpanel" aria-labelledby="tab-btn-enroll" tabindex="0" class="overflow-x-auto" style="display:none">
+            <div id="tab-enroll" role="tabpanel" aria-labelledby="tab-btn-enroll" tabindex="0" style="display:none">
+                <div class="flex flex-wrap items-center gap-2 mb-2 text-xs">
+                    <button type="button" wire:click="toggleType('enroll', true)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Выбрать все</button>
+                    <button type="button" wire:click="toggleType('enroll', false)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Снять все</button>
+                    <span class="ml-auto text-slate-500">Стр. {{ $this->enrollChanges['page'] }} из {{ $this->enrollChanges['pages'] }} (всего {{ $this->enrollChanges['total'] }})</span>
+                    <button type="button" wire:click="gotoPage('enroll', {{ $this->enrollChanges['page'] - 1 }})" @disabled($this->enrollChanges['page'] <= 1) class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40">←</button>
+                    <button type="button" wire:click="gotoPage('enroll', {{ $this->enrollChanges['page'] + 1 }})" @disabled($this->enrollChanges['page'] >= $this->enrollChanges['pages']) class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40">→</button>
+                </div>
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm border-collapse">
                     <thead class="bg-slate-50">
                         <tr>
@@ -184,25 +203,32 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($changes as $change)
-                            @if ($change['type'] === 'enroll')
-                                <tr class="border-b border-slate-200 hover:bg-slate-50">
-                                    <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
-                                    <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
-                                    <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['groupNew'] }}</td>
-                                    <td class="p-2.5 text-slate-400 border border-slate-200 bg-white">— (нет в Мудл)</td>
-                                    <td class="p-2.5 text-center border border-slate-200 bg-white">
-                                        <input type="checkbox" wire:model.live="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
-                                    </td>
-                                </tr>
-                            @endif
+                        @foreach ($this->enrollChanges['items'] as $change)
+                            <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
+                                <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
+                                <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['groupNew'] }}</td>
+                                <td class="p-2.5 text-slate-400 border border-slate-200 bg-white">— (нет в Мудл)</td>
+                                <td class="p-2.5 text-center border border-slate-200 bg-white">
+                                    <input type="checkbox" wire:model="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
+                                </td>
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {{-- ─── Таблица: Перевод ─── --}}
-            <div id="tab-transfer" role="tabpanel" aria-labelledby="tab-btn-transfer" tabindex="0" class="overflow-x-auto" style="display:none">
+            <div id="tab-transfer" role="tabpanel" aria-labelledby="tab-btn-transfer" tabindex="0" style="display:none">
+                <div class="flex flex-wrap items-center gap-2 mb-2 text-xs">
+                    <button type="button" wire:click="toggleType('transfer', true)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Выбрать все</button>
+                    <button type="button" wire:click="toggleType('transfer', false)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Снять все</button>
+                    <span class="ml-auto text-slate-500">Стр. {{ $this->transferChanges['page'] }} из {{ $this->transferChanges['pages'] }} (всего {{ $this->transferChanges['total'] }})</span>
+                    <button type="button" wire:click="gotoPage('transfer', {{ $this->transferChanges['page'] - 1 }})" @disabled($this->transferChanges['page'] <= 1) class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40">←</button>
+                    <button type="button" wire:click="gotoPage('transfer', {{ $this->transferChanges['page'] + 1 }})" @disabled($this->transferChanges['page'] >= $this->transferChanges['pages']) class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40">→</button>
+                </div>
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm border-collapse">
                     <thead class="bg-slate-50">
                         <tr>
@@ -214,25 +240,32 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($changes as $change)
-                            @if ($change['type'] === 'transfer')
-                                <tr class="border-b border-slate-200 hover:bg-slate-50">
-                                    <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
-                                    <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
-                                    <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['groupOld'] }}</td>
-                                    <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['groupNew'] }}</td>
-                                    <td class="p-2.5 text-center border border-slate-200 bg-white">
-                                        <input type="checkbox" wire:model.live="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
-                                    </td>
-                                </tr>
-                            @endif
+                        @foreach ($this->transferChanges['items'] as $change)
+                            <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
+                                <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
+                                <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['groupOld'] }}</td>
+                                <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['groupNew'] }}</td>
+                                <td class="p-2.5 text-center border border-slate-200 bg-white">
+                                    <input type="checkbox" wire:model="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
+                                </td>
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {{-- ─── Таблица: Отчисления ─── --}}
-            <div id="tab-expel" role="tabpanel" aria-labelledby="tab-btn-expel" tabindex="0" class="overflow-x-auto" style="display:none">
+            <div id="tab-expel" role="tabpanel" aria-labelledby="tab-btn-expel" tabindex="0" style="display:none">
+                <div class="flex flex-wrap items-center gap-2 mb-2 text-xs">
+                    <button type="button" wire:click="toggleType('expel', true)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Выбрать все</button>
+                    <button type="button" wire:click="toggleType('expel', false)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Снять все</button>
+                    <span class="ml-auto text-slate-500">Стр. {{ $this->expelChanges['page'] }} из {{ $this->expelChanges['pages'] }} (всего {{ $this->expelChanges['total'] }})</span>
+                    <button type="button" wire:click="gotoPage('expel', {{ $this->expelChanges['page'] - 1 }})" @disabled($this->expelChanges['page'] <= 1) class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40">←</button>
+                    <button type="button" wire:click="gotoPage('expel', {{ $this->expelChanges['page'] + 1 }})" @disabled($this->expelChanges['page'] >= $this->expelChanges['pages']) class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40">→</button>
+                </div>
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm border-collapse">
                     <thead class="bg-slate-50">
                         <tr>
@@ -244,30 +277,78 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($changes as $change)
-                            @if ($change['type'] === 'expel')
-                                <tr class="border-b border-slate-200 hover:bg-slate-50">
-                                    <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
-                                    <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameOld'] }} {{ $change['nameOld'] }}</td>
-                                    <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['groupOld'] }}</td>
-                                    <td class="p-2.5 font-semibold text-rose-500 border border-slate-200 bg-white">— (отчислить)</td>
-                                    <td class="p-2.5 text-center border border-slate-200 bg-white">
-                                        <input type="checkbox" wire:model.live="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
-                                    </td>
-                                </tr>
-                            @endif
+                        @foreach ($this->expelChanges['items'] as $change)
+                            <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
+                                <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameOld'] }} {{ $change['nameOld'] }}</td>
+                                <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['groupOld'] }}</td>
+                                <td class="p-2.5 font-semibold text-rose-500 border border-slate-200 bg-white">— (отчислить)</td>
+                                <td class="p-2.5 text-center border border-slate-200 bg-white">
+                                    <input type="checkbox" wire:model="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
+                                </td>
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
 
-            {{-- ─── Предпросмотр SQL ─── --}}
-            <div id="sql-clipboard-source" class="hidden" aria-hidden="true">{{ $sql }}</div>
-            <details class="text-sm">
-                <summary class="cursor-pointer text-slate-500 hover:text-slate-700 select-none">Предпросмотр SQL</summary>
-                <pre class="mt-2 whitespace-pre overflow-x-auto bg-slate-50 text-slate-800 rounded-lg p-4 ring-1 ring-slate-200">{{ $sql }}</pre>
-            </details>
+            {{-- ─── Предпросмотр SQL (строится только по кнопке) ─── --}}
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" wire:click="buildPreview" wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-slate-600 text-white hover:bg-slate-700 disabled:opacity-50 shadow-sm transition">
+                    <i class="fa-solid fa-eye"></i>
+                    <span wire:loading.remove wire:target="buildPreview">Показать SQL</span>
+                    <span wire:loading wire:target="buildPreview">Строим…</span>
+                </button>
+                @if ($sqlBuilt)
+                    <span class="text-xs text-slate-500">Построен по выбранным чекбоксам ({{ mb_strlen($sql) }} симв.). Скачивание и копирование — в шапке раздела.</span>
+                @else
+                    <span class="text-xs text-slate-400">Предпросмотр устарел или не построен — нажмите «Показать SQL».</span>
+                @endif
+            </div>
+            @if ($sqlBuilt)
+                <div id="sql-clipboard-source" class="hidden" aria-hidden="true">{{ $sql }}</div>
+                <details class="text-sm" open>
+                    <summary class="cursor-pointer text-slate-500 hover:text-slate-700 select-none">Предпросмотр SQL (первые 20 000 символов)</summary>
+                    <pre class="mt-2 whitespace-pre overflow-x-auto bg-slate-50 text-slate-800 rounded-lg p-4 ring-1 ring-slate-200 max-h-96 overflow-y-auto">{{ \Illuminate\Support\Str::limit($sql, 20000) }}</pre>
+                </details>
+            @else
+                <div id="sql-clipboard-source" class="hidden" aria-hidden="true"></div>
+            @endif
         </div>
     </section>
     @endif
+
+    <script>
+        window.showTab = function (tabType, button) {
+            // Скрываем все панели вкладок
+            const panels = ['fio', 'enroll', 'transfer', 'expel'];
+            panels.forEach(id => {
+                const el = document.getElementById('tab-' + id);
+                if (el) el.style.display = 'none';
+            });
+
+            // Показываем выбранную панель
+            const selected = document.getElementById('tab-' + tabType);
+            if (selected) selected.style.display = 'block';
+
+            // Обновляем состояние выделения кнопок
+            const buttons = ['tab-btn-fio', 'tab-btn-enroll', 'tab-btn-transfer', 'tab-btn-expel'];
+            buttons.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.setAttribute('aria-selected', id === 'tab-btn-' + tabType);
+                    btn.classList.toggle('border-blue-500', id === 'tab-btn-' + tabType);
+                    btn.classList.toggle('text-slate-500', id !== 'tab-btn-' + tabType);
+                    btn.classList.toggle('text-blue-600', id === 'tab-btn-' + tabType);
+                }
+            });
+        };
+
+        // Авто-показать первую вкладку при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            showTab('fio', document.getElementById('tab-btn-fio'));
+        });
+    </script>
 </div>

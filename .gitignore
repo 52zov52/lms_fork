@@ -33,6 +33,9 @@ Homestead.json
 .phpunit.result.cache
 /.phpunit.cache
 
+# Generated fixtures (env/dev); создаётся командой moodle:test-csv
+/moodle_3000.csv
+
 # Editor / IDE
 /.idea
 /.vscode
