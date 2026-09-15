@@ -95,17 +95,40 @@
         <header class="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
             <span class="flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold shadow-sm">3</span>
             <span class="font-semibold text-slate-700">Списки изменений</span>
-            <button type="button" wire:click="downloadSql"
-                class="ml-auto inline-flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition">
-                <i class="fa-solid fa-download"></i> Скачать запрос в txt
+            <button type="button" wire:click="downloadSql" wire:loading.attr="disabled" @disabled($lkUnavailable)
+                class="ml-auto inline-flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition disabled:opacity-50">
+                <i class="fa-solid fa-download"></i>
+                <span wire:loading.remove wire:target="downloadSql">Скачать запрос в txt</span>
+                <span wire:loading wire:target="downloadSql"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Готовим файл…</span>
             </button>
-            <button type="button" onclick="copySql(this)"
-                class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition">
-                <i class="fa-solid fa-copy"></i> Копировать запрос
+            <button type="button" wire:click="copySql" wire:loading.attr="disabled" @disabled($lkUnavailable)
+                class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition disabled:opacity-50">
+                <i class="fa-solid fa-copy"></i>
+                <span wire:loading.remove wire:target="copySql">Копировать запрос</span>
+                <span wire:loading wire:target="copySql"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Копируем…</span>
             </button>
         </header>
 
         <div class="p-5 space-y-4">
+
+            {{-- ─── Блокировка генерации SQL: данные ЛК недоступны ─── --}}
+            @if ($lkUnavailable)
+            <div class="rounded-lg bg-rose-50 ring-1 ring-rose-200 p-4 text-sm text-rose-700">
+                <p><i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                    <b>Данные ЛК из БД недоступны.</b> Генерация SQL и скачивание заблокированы, чтобы случайно не
+                    отчислить весь контингент Мудл. Здесь показана разница «по файлу Мудл» только для справки.
+                </p>
+            </div>
+            @endif
+
+            {{-- ─── Предупреждения по данным ЛК (многогрупповые студенты) ─── --}}
+            @if (! empty($lkWarnings))
+            <div class="rounded-lg bg-amber-50 ring-1 ring-amber-200 p-4 text-sm text-amber-800 space-y-1">
+                @foreach ($lkWarnings as $warning)
+                <p><i class="fa-solid fa-triangle-exclamation mr-1"></i>{{ $warning }}</p>
+                @endforeach
+            </div>
+            @endif
 
             {{-- ─── Статистика ─── --}}
             <div class="flex flex-wrap gap-2 text-sm">
@@ -127,23 +150,24 @@
                 <p class="text-sm text-slate-500">Расхождений не обнаружено. Контингент Мудл соответствует ЛК.</p>
             @endif
 
-            {{-- ─── Вкладки ─── --}}
+            {{-- ─── Вкладки (серверное состояние — не сбрасываются после обновлений) ─── --}}
             <div class="flex flex-wrap gap-1 border-b border-slate-200" role="tablist" aria-label="Типы изменений">
-                <button type="button" onclick="showTab('fio', this)"
-                    role="tab" aria-selected="true" aria-controls="tab-fio" id="tab-btn-fio"
-                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600">ФИО ({{ $stats['fio'] }})</button>
-                <button type="button" onclick="showTab('enroll', this)"
-                    role="tab" aria-selected="false" aria-controls="tab-enroll" id="tab-btn-enroll"
-                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">Зачисления ({{ $stats['enroll'] }})</button>
-                <button type="button" onclick="showTab('transfer', this)"
-                    role="tab" aria-selected="false" aria-controls="tab-transfer" id="tab-btn-transfer"
-                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">Перевод ({{ $stats['transfer'] }})</button>
-                <button type="button" onclick="showTab('expel', this)"
-                    role="tab" aria-selected="false" aria-controls="tab-expel" id="tab-btn-expel"
-                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500">Отчисления ({{ $stats['expel'] }})</button>
+                <button type="button" wire:click="setTab('fio')"
+                    role="tab" aria-selected="{{ $activeTab === 'fio' ? 'true' : 'false' }}" aria-controls="tab-fio" id="tab-btn-fio"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ $activeTab === 'fio' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500' }}">ФИО ({{ $stats['fio'] }})</button>
+                <button type="button" wire:click="setTab('enroll')"
+                    role="tab" aria-selected="{{ $activeTab === 'enroll' ? 'true' : 'false' }}" aria-controls="tab-enroll" id="tab-btn-enroll"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ $activeTab === 'enroll' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500' }}">Зачисления ({{ $stats['enroll'] }})</button>
+                <button type="button" wire:click="setTab('transfer')"
+                    role="tab" aria-selected="{{ $activeTab === 'transfer' ? 'true' : 'false' }}" aria-controls="tab-transfer" id="tab-btn-transfer"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ $activeTab === 'transfer' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500' }}">Перевод ({{ $stats['transfer'] }})</button>
+                <button type="button" wire:click="setTab('expel')"
+                    role="tab" aria-selected="{{ $activeTab === 'expel' ? 'true' : 'false' }}" aria-controls="tab-expel" id="tab-btn-expel"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ $activeTab === 'expel' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500' }}">Отчисления ({{ $stats['expel'] }})</button>
             </div>
 
-            {{-- ─── Таблица: ФИО ─── --}}
+            {{-- ─── Таблица: ФИО (рендерится только на своей вкладке) ─── --}}
+            @if ($activeTab === 'fio')
             <div id="tab-fio" role="tabpanel" aria-labelledby="tab-btn-fio" tabindex="0">
                 <div class="flex flex-wrap items-center gap-2 mb-2 text-xs">
                     <button type="button" wire:click="toggleType('fio', true)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Выбрать все</button>
@@ -181,9 +205,11 @@
                 </table>
                 </div>
             </div>
+            @endif
 
-            {{-- ─── Таблица: Зачисления ─── --}}
-            <div id="tab-enroll" role="tabpanel" aria-labelledby="tab-btn-enroll" tabindex="0" style="display:none">
+            {{-- ─── Таблица: Зачисления (рендерится только на своей вкладке) ─── --}}
+            @if ($activeTab === 'enroll')
+            <div id="tab-enroll" role="tabpanel" aria-labelledby="tab-btn-enroll" tabindex="0">
                 <div class="flex flex-wrap items-center gap-2 mb-2 text-xs">
                     <button type="button" wire:click="toggleType('enroll', true)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Выбрать все</button>
                     <button type="button" wire:click="toggleType('enroll', false)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Снять все</button>
@@ -218,9 +244,11 @@
                 </table>
                 </div>
             </div>
+            @endif
 
-            {{-- ─── Таблица: Перевод ─── --}}
-            <div id="tab-transfer" role="tabpanel" aria-labelledby="tab-btn-transfer" tabindex="0" style="display:none">
+            {{-- ─── Таблица: Перевод (рендерится только на своей вкладке) ─── --}}
+            @if ($activeTab === 'transfer')
+            <div id="tab-transfer" role="tabpanel" aria-labelledby="tab-btn-transfer" tabindex="0">
                 <div class="flex flex-wrap items-center gap-2 mb-2 text-xs">
                     <button type="button" wire:click="toggleType('transfer', true)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Выбрать все</button>
                     <button type="button" wire:click="toggleType('transfer', false)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Снять все</button>
@@ -255,9 +283,11 @@
                 </table>
                 </div>
             </div>
+            @endif
 
-            {{-- ─── Таблица: Отчисления ─── --}}
-            <div id="tab-expel" role="tabpanel" aria-labelledby="tab-btn-expel" tabindex="0" style="display:none">
+            {{-- ─── Таблица: Отчисления (рендерится только на своей вкладке) ─── --}}
+            @if ($activeTab === 'expel')
+            <div id="tab-expel" role="tabpanel" aria-labelledby="tab-btn-expel" tabindex="0">
                 <div class="flex flex-wrap items-center gap-2 mb-2 text-xs">
                     <button type="button" wire:click="toggleType('expel', true)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Выбрать все</button>
                     <button type="button" wire:click="toggleType('expel', false)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Снять все</button>
@@ -292,63 +322,79 @@
                 </table>
                 </div>
             </div>
+            @endif
 
             {{-- ─── Предпросмотр SQL (строится только по кнопке) ─── --}}
             <div class="flex flex-wrap items-center gap-2">
-                <button type="button" wire:click="buildPreview" wire:loading.attr="disabled"
+                <button type="button" wire:click="buildPreview" @disabled($lkUnavailable) wire:loading.attr="disabled"
                     class="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-slate-600 text-white hover:bg-slate-700 disabled:opacity-50 shadow-sm transition">
                     <i class="fa-solid fa-eye"></i>
                     <span wire:loading.remove wire:target="buildPreview">Показать SQL</span>
                     <span wire:loading wire:target="buildPreview">Строим…</span>
                 </button>
                 @if ($sqlBuilt)
-                    <span class="text-xs text-slate-500">Построен по выбранным чекбоксам ({{ mb_strlen($sql) }} симв.). Скачивание и копирование — в шапке раздела.</span>
+                    <span class="text-xs text-slate-500">Построен по выбранным чекбоксам ({{ mb_strlen($this->sql) }} симв.). Скачивание и копирование — в шапке раздела.</span>
                 @else
                     <span class="text-xs text-slate-400">Предпросмотр устарел или не построен — нажмите «Показать SQL».</span>
                 @endif
             </div>
             @if ($sqlBuilt)
-                <div id="sql-clipboard-source" class="hidden" aria-hidden="true">{{ $sql }}</div>
                 <details class="text-sm" open>
                     <summary class="cursor-pointer text-slate-500 hover:text-slate-700 select-none">Предпросмотр SQL (первые 20 000 символов)</summary>
-                    <pre class="mt-2 whitespace-pre overflow-x-auto bg-slate-50 text-slate-800 rounded-lg p-4 ring-1 ring-slate-200 max-h-96 overflow-y-auto">{{ \Illuminate\Support\Str::limit($sql, 20000) }}</pre>
+                    <pre class="mt-2 whitespace-pre overflow-x-auto bg-slate-50 text-slate-800 rounded-lg p-4 ring-1 ring-slate-200 max-h-96 overflow-y-auto">{{ \Illuminate\Support\Str::limit($this->sql, 20000) }}</pre>
                 </details>
-            @else
-                <div id="sql-clipboard-source" class="hidden" aria-hidden="true"></div>
             @endif
         </div>
     </section>
     @endif
 
     <script>
-        window.showTab = function (tabType, button) {
-            // Скрываем все панели вкладок
-            const panels = ['fio', 'enroll', 'transfer', 'expel'];
-            panels.forEach(id => {
-                const el = document.getElementById('tab-' + id);
-                if (el) el.style.display = 'none';
-            });
+        // ── Копирование в буфер обмена (Clipboard API + фолбэк) ──────────
+        window.copyToClipboard = function (text) {
+            const ok = () => { if (window.toastr) toastr.success('Скопировано в буфер обмена'); };
+            const fail = () => { if (window.toastr) toastr.error('Не удалось скопировать — выделите текст вручную'); };
 
-            // Показываем выбранную панель
-            const selected = document.getElementById('tab-' + tabType);
-            if (selected) selected.style.display = 'block';
-
-            // Обновляем состояние выделения кнопок
-            const buttons = ['tab-btn-fio', 'tab-btn-enroll', 'tab-btn-transfer', 'tab-btn-expel'];
-            buttons.forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) {
-                    btn.setAttribute('aria-selected', id === 'tab-btn-' + tabType);
-                    btn.classList.toggle('border-blue-500', id === 'tab-btn-' + tabType);
-                    btn.classList.toggle('text-slate-500', id !== 'tab-btn-' + tabType);
-                    btn.classList.toggle('text-blue-600', id === 'tab-btn-' + tabType);
-                }
-            });
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(ok, fail);
+                return;
+            }
+            // Фолбэк: скрытый textarea + execCommand (http / старые браузеры)
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            let result = false;
+            try { result = document.execCommand('copy'); } catch (_) { result = false; }
+            document.body.removeChild(ta);
+            result ? ok() : fail();
         };
 
-        // Авто-показать первую вкладку при загрузке
-        document.addEventListener('DOMContentLoaded', () => {
-            showTab('fio', document.getElementById('tab-btn-fio'));
-        });
+        window.copyMoodleQuery = function () {
+            const el = document.getElementById('moodle-query');
+            if (!el) return;
+            window.copyToClipboard(el.textContent.trim());
+        };
+
+// ── Копирование запроса: сервер сам строит SQL и отдаёт его событием ──
+        // Livewire подключается ниже тела страницы, поэтому регистрируем
+        // обработчик по livewire:init. Скрипт перевыполняется при каждом
+        // обновлении Livewire — гарантируем единичную регистрацию.
+        if (! window.__moodleCopySqlBound) {
+            const onCopySql = ({ sql }) => {
+                if (! sql || ! sql.length) {
+                    if (window.toastr) toastr.warning('Запрос пустой — сначала обработайте файл.');
+                    return;
+                }
+                window.copyToClipboard(sql);
+            };
+            if (window.Livewire) {
+                window.Livewire.on('copy-sql', onCopySql);
+            } else {
+                document.addEventListener('livewire:init', () => window.Livewire.on('copy-sql', onCopySql), { once: true });
+            }
+            window.__moodleCopySqlBound = true;
+        }
     </script>
 </div>

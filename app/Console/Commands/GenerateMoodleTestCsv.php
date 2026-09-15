@@ -139,7 +139,13 @@ class GenerateMoodleTestCsv extends Command
                 sub.first_name AS first_name,
                 sub.middle_name AS middle_name,
                 CONCAT(sub.latest_ticket, '_', YEAR(sub.year_admission), '@iubip.ru') AS email,
-                sub.group_name AS group_name_fixed
+                CONCAT(
+                    REPLACE(
+                        REPLACE(REPLACE(sub.group_name, ' ', ''), YEAR(CURDATE()), ''),
+                        CONCAT('(', YEAR(CURDATE()), ')'), ''
+                    ),
+                    ' (', YEAR(CURDATE()), ')'
+                ) AS group_name_fixed
             FROM (
                 SELECT
                     u.id AS user_id,

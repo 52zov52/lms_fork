@@ -109,7 +109,10 @@ class VerifyMoodleSync extends Command
             return [];
         }
         $delimiter = str_contains($lines[0], ';') ? ';' : ',';
-        $header = array_map(fn ($h) => mb_strtolower(trim($h)), str_getcsv($lines[0], $delimiter, '"', '"'));
+        $header = array_map(
+            fn ($h) => mb_strtolower(trim($h)),
+            str_getcsv(str_replace("\xEF\xBB\xBF", '', $lines[0]), $delimiter, '"', '"')
+        );
         $map = [];
         foreach ($header as $i => $h) {
             if (in_array($h, ['st_ticket', 'username', 'логин', 'login'])) {
@@ -135,7 +138,7 @@ class VerifyMoodleSync extends Command
             }
             $result[$login] = [
                 'fio' => trim($row[$map['last_name']]) . ' ' . trim($row[$map['first_name']]),
-                'group' => trim($row[$map['group']]),
+                'group' => $this->normalizeGroup(trim($row[$map['group']])),
             ];
         }
 
@@ -150,7 +153,13 @@ class VerifyMoodleSync extends Command
             SELECT
                 CONCAT('st', sub.latest_ticket) AS st_ticket,
                 CONCAT_WS(' ', sub.last_name, sub.first_name, sub.middle_name) AS fio,
-                sub.group_name AS group_name_fixed
+                CONCAT(
+                    REPLACE(
+                        REPLACE(REPLACE(sub.group_name, ' ', ''), YEAR(CURDATE()), ''),
+                        CONCAT('(', YEAR(CURDATE()), ')'), ''
+                    ),
+                    ' (', YEAR(CURDATE()), ')'
+                ) AS group_name_fixed
             FROM (
                 SELECT
                     u.id AS user_id,
@@ -209,5 +218,24 @@ class VerifyMoodleSync extends Command
     private function norm(string $value): string
     {
         return mb_strtolower(trim($value));
+    }
+
+    /**
+     * Приведение группы из CSV Moodle к формату шаблона
+     * «генерированный_группа» (аналог normalizeGroup в MoodleContingentSync).
+     */
+    private function normalizeGroup(string $group): string
+    {
+        $year = (string) date('Y');
+
+        if (preg_match('/\s\(\d{4}\)$/u', $group)) {
+            return $group;
+        }
+
+        $clean = str_replace(' ', '', $group);
+        $clean = str_replace($year, '', $clean);
+        $clean = str_replace('(' . $year . ')', '', $clean);
+
+        return trim($clean) . ' (' . $year . ')';
     }
 }

@@ -6,6 +6,8 @@ use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -50,8 +52,32 @@ class MoodleContingentSync extends Component
     /** Флаг: CSV обработан, данные сравнены, SQL сгенерирован. */
     public bool $parsed = false;
 
-    /** Список найденных расхождений (массив ассоциативных массивов). */
-    public array $changes = [];
+    /**
+     * Флаг: данные ЛК из БД недоступны (запрос упал).
+     *
+     * При недоступном ЛК нельзя строить SQL: сравнение с пустым списком ЛК
+     * пометило бы всех студентов Мудл как «отчисление», а генерация такого
+     * скрипта массово удалила бы контингент. Пока флаг true, buildPreview/
+     * downloadSql заблокированы.
+     */
+    public bool $lkUnavailable = false;
+
+    /**
+     * Список найденных расхождений (массив ассоциативных массивов).
+     *
+     * Защищённое свойство: НЕ сериализуется в снапшоте Livewire.
+     * Большой массив (тысячи строк) гонялся бы в браузере при каждом
+     * обновлении (чекбокс, пагинация, вкладка) и каждый переход по
+     * страницам таблицы стоил бы мегабайты трафика. Хранится на сервере
+     * в кеше, а в Livewire уходит только ключ ($changesKey).
+     */
+    protected array $changes = [];
+
+    /** Ключ кеша с массивом $changes (загружается в boot() на каждый запрос). */
+    public string $changesKey = '';
+
+    /** Активная вкладка таблиц результатов ('fio'|'enroll'|'transfer'|'expel'). */
+    public string $activeTab = 'fio';
 
     /**
      * Состояние чекбоксов: selected[id] = true/false.
@@ -67,8 +93,15 @@ class MoodleContingentSync extends Component
         'transfer' => 0,
     ];
 
-    /** Сгенерированный SQL-запрос для Moodle (строится ТОЛЬКО по требованию, см. buildPreview()). */
-    public string $sql = '';
+    /**
+     * Построенный SQL-запрос для Moodle (см. computed sql()).
+     *
+     * Сам текст НЕ сериализуется в снапшоте Livewire — на тысячах изменений
+     * это мегабайты, которые гонялись бы в браузере при каждом чихе.
+     * Хранится в кеше по ключу ($sqlKey), а клиент получает его точечно
+     * через событие copy-sql (кнопка «Копировать запрос»).
+     */
+    public string $sqlKey = '';
 
     /** Флаг: предпросмотр SQL актуален (сбрасывается при смене чекбоксов). */
     public bool $sqlBuilt = false;
@@ -79,6 +112,13 @@ class MoodleContingentSync extends Component
     /** Предупреждения при парсинге CSV (дубли, пропущенные строки). */
     public array $csvWarnings = [];
 
+    /**
+     * Предупреждения по данным ЛК. Сейчас: студенты в нескольких активных
+     * группах — для них берётся одна (последняя по сортировке) группа, что
+     * может не совпасть с реальным переводом в Moodle.
+     */
+    public array $lkWarnings = [];
+
     /** Текущие страницы таблиц результатов (пагинация — против зависания на тысячах строк). */
     public array $page = ['fio' => 1, 'enroll' => 1, 'transfer' => 1, 'expel' => 1];
 
@@ -86,6 +126,20 @@ class MoodleContingentSync extends Component
     public int $perPage = 50;
 
     // ─── Жизненный цикл Livewire ────────────────────────────────
+
+    /**
+     * На каждый запрос Livewire достаёт массив изменений из кеша.
+     *
+     * Сам массив не сериализуется в снапшот (см. свойство $changes),
+     * поэтому он не гоняется в браузер, а после гидрации компонент
+     * восстанавливает его на сервере по ключу $changesKey.
+     */
+    public function boot(): void
+    {
+        if ($this->changesKey !== '') {
+            $this->changes = Cache::get($this->changesKey, []);
+        }
+    }
 
     /**
      * Инициализация компонента: загрузка SQL-запроса Moodle в кеш.
@@ -111,6 +165,46 @@ class MoodleContingentSync extends Component
         return view('livewire.employee.moodle-contingent-sync');
     }
 
+    /**
+     * Построенный SQL-запрос для Moodle.
+     *
+     * Computed-свойство: НЕ сериализуется в снапшоте Livewire (в шаблоне
+     * доступно как $this->sql). Читает текст из кеша по ключу $sqlKey.
+     *
+     * @return string  SQL (пустая строка, если не построен или устарел)
+     */
+    #[Computed]
+    public function sql(): string
+    {
+        if ($this->sqlKey === '') {
+            return '';
+        }
+
+        return Cache::get($this->sqlKey, '');
+    }
+
+    /**
+     * Инвалидация построенного SQL: стирает кеш и сбрасывает флаг актуальности.
+     */
+    private function invalidateSql(): void
+    {
+        if ($this->sqlKey !== '') {
+            Cache::forget($this->sqlKey);
+            $this->sqlKey = '';
+        }
+        $this->sqlBuilt = false;
+    }
+
+    /**
+     * Сохранение построенного SQL в кеш (текст не уходит в снапшот Livewire).
+     */
+    private function storeSql(string $sql): void
+    {
+        $this->sqlKey = 'moodle:sql:' . Str::random(20);
+        Cache::put($this->sqlKey, $sql, now()->addHours(6));
+        $this->sqlBuilt = true;
+    }
+
     // ─── Публичные действия (Livewire wire:click) ───────────────
 
     /**
@@ -121,11 +215,10 @@ class MoodleContingentSync extends Component
     public function process(): void
     {
         $this->resetValidation();
-        $this->reset('changes', 'selected', 'stats', 'sql', 'parsed');
-        $this->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0];
-        $this->page = ['fio' => 1, 'enroll' => 1, 'transfer' => 1, 'expel' => 1];
-        $this->sqlBuilt = false;
 
+        // Сначала убеждаемся, что файл есть и корректно парсится.
+        // Только после успешного парсинга стираем предыдущий результат —
+        // иначе ошибка «загрузите файл» уничтожила бы готовую таблицу.
         if (! $this->csvFile) {
             $this->addError('csvFile', 'Загрузите CSV-файл с данными Мудл.');
             return;
@@ -142,14 +235,28 @@ class MoodleContingentSync extends Component
             return;
         }
 
+        $this->reset('selected', 'stats', 'parsed', 'lkUnavailable', 'lkWarnings');
+        $this->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0];
+        $this->page = ['fio' => 1, 'enroll' => 1, 'transfer' => 1, 'expel' => 1];
+        $this->invalidateSql();
+        $this->activeTab = 'fio';
+
+        // Старые данные из кеша больше не нужны — очищаем, чтобы не копить ключи.
+        if ($this->changesKey !== '') {
+            Cache::forget($this->changesKey);
+            $this->changesKey = '';
+        }
+        $this->changes = [];
+
         try {
             $lk = $this->getLkStudents();
         } catch (Exception $e) {
             Cache::forget('lk:students');
             $lk = [];
+            $this->lkUnavailable = true;
             $this->dispatch(
                 'show-toast',
-                message: 'Данные ЛК из БД недоступны — сравнение выполнено только по файлу Мудл (все студенты помечены как «отчисление»).',
+                message: 'Данные ЛК из БД недоступны — генерация SQL заблокирована (иначе весь контингент Мудл был бы помечен как «отчисление»).',
                 type: 'warning'
             );
         }
@@ -157,7 +264,55 @@ class MoodleContingentSync extends Component
         $this->compare($lk, $moodle);
 
         $this->parsed = true;
+        // Складываем массив изменений в кеш на сервере — в снапшот Livewire
+        // уходит только ключ, и пагинация/чекбоксы не тянут мегабайты данных.
+        $this->changesKey = 'moodle:sync:' . Str::random(20);
+        Cache::put($this->changesKey, $this->changes, now()->addHours(6));
         $this->dispatch('show-toast', message: 'Сравнение выполнено. Найдено изменений: ' . count($this->changes), type: 'success');
+    }
+
+    /**
+     * Копирование SQL в буфер обмена (кнопка «Копировать запрос»).
+     *
+     * SQL-текст передаётся один раз — событием copy-sql в JS после нажатия,
+     * а не висит в DOM (bag: раньше весь SQL лежал в скрытом div
+     * #sql-clipboard-source и утяжелял страницу при больших синхронизациях).
+     *
+     * SQL строится прямо здесь, если ещё не построен, — кнопка работает
+     * сразу, без предварительного «Показать SQL».
+     */
+    public function copySql(): void
+    {
+        if ($this->lkUnavailable) {
+            $this->dispatch('show-toast', message: 'Данные ЛК недоступны — генерация SQL заблокирована.', type: 'error');
+            return;
+        }
+
+        if (empty($this->changes)) {
+            $this->dispatch('show-toast', message: 'Сначала загрузите файл — данных для запроса нет.', type: 'error');
+            return;
+        }
+
+        // Переиспользуем построенный SQL (sqlBuilt сбрасывается при смене выбора),
+        // иначе строим по текущим чекбоксам.
+        $sql = $this->sqlBuilt ? $this->sql : $this->buildSql();
+        $this->storeSql($sql);
+
+        $this->dispatch('copy-sql', sql: $sql);
+    }
+
+    /**
+     * Переключение активной вкладки таблиц результатов.
+     *
+     * Вкладки — серверное состояние (не JS): иначе после каждого обновления
+     * Livewire, например перехода по странице, DOM возвращался бы к первой
+     * вкладке, где в шаблоне нарисована активность по умолчанию.
+     */
+    public function setTab(string $tab): void
+    {
+        if (in_array($tab, ['fio', 'enroll', 'transfer', 'expel'], true)) {
+            $this->activeTab = $tab;
+        }
     }
 
     /**
@@ -180,7 +335,7 @@ class MoodleContingentSync extends Component
                 $this->selected[$c['id']] = $value;
             }
         }
-        $this->sqlBuilt = false;
+        $this->invalidateSql();
     }
 
     /**
@@ -188,7 +343,7 @@ class MoodleContingentSync extends Component
      */
     public function updatedSelected(): void
     {
-        $this->sqlBuilt = false;
+        $this->invalidateSql();
     }
 
     /**
@@ -196,13 +351,17 @@ class MoodleContingentSync extends Component
      */
     public function buildPreview(): void
     {
+        if ($this->lkUnavailable) {
+            $this->dispatch('show-toast', message: 'Данные ЛК недоступны — генерация SQL заблокирована.', type: 'error');
+            return;
+        }
+
         if (empty($this->changes)) {
             $this->dispatch('show-toast', message: 'Нет данных для предпросмотра. Сначала загрузите файл.', type: 'error');
             return;
         }
 
-        $this->sql = $this->buildSql();
-        $this->sqlBuilt = true;
+        $this->storeSql($this->buildSql());
     }
 
     /**
@@ -255,12 +414,20 @@ class MoodleContingentSync extends Component
      */
     public function downloadSql()
     {
+        if ($this->lkUnavailable) {
+            $this->dispatch('show-toast', message: 'Данные ЛК недоступны — генерация SQL заблокирована.', type: 'error');
+            return;
+        }
+
         if (empty($this->changes)) {
             $this->dispatch('show-toast', message: 'Нет данных для выгрузки. Сначала загрузите файл.', type: 'error');
             return;
         }
 
-        $sql = $this->buildSql();
+        // Переиспользуем уже построенный SQL, если выбор чекбоксов не менялся
+        // (sqlBuilt сбрасывается при любом изменении выбора), иначе строим заново.
+        $sql = $this->sqlBuilt ? $this->sql : $this->buildSql();
+        $this->storeSql($sql);
 
         return Response::streamDownload(function () use ($sql) {
             echo $sql;
@@ -369,6 +536,9 @@ class MoodleContingentSync extends Component
 
             // ── Определение разделителя и заголовков ──
             $firstLine = $convert($sampleLines[0]);
+            // Многие экспорты (Moodle/Excel «CSV UTF-8») начинаются с BOM —
+            // иначе первая колонка «st_ticket» не распознаётся заголовком.
+            $firstLine = str_replace("\xEF\xBB\xBF", '', $firstLine);
             $delimiter = str_contains($firstLine, ';') ? ';' : ',';
             $header = array_map(fn ($h) => mb_strtolower(trim($h)), str_getcsv($firstLine, $delimiter, '"', '"'));
 
@@ -418,7 +588,7 @@ class MoodleContingentSync extends Component
                     'last_name'  => trim($row[$map['last_name']]),
                     'first_name' => trim($row[$map['first_name']]),
                     'email'      => isset($map['email']) ? trim($row[$map['email']]) : '',
-                    'group'      => trim($row[$map['group']]),
+                    'group'      => $this->normalizeGroup(trim($row[$map['group']])),
                 ];
             };
 
@@ -481,7 +651,13 @@ class MoodleContingentSync extends Component
                     sub.middle_name AS middle_name,
                     CONCAT_WS(' ', sub.first_name, sub.middle_name) AS full_name,
                     CONCAT(sub.latest_ticket, '_', YEAR(sub.year_admission), '@iubip.ru') AS email,
-                    sub.group_name AS group_name_fixed
+                    CONCAT(
+                        REPLACE(
+                            REPLACE(REPLACE(sub.group_name, ' ', ''), YEAR(CURDATE()), ''),
+                            CONCAT('(', YEAR(CURDATE()), ')'), ''
+                        ),
+                        ' (', YEAR(CURDATE()), ')'
+                    ) AS group_name_fixed
                 FROM (
                     SELECT
                         u.id AS user_id,
@@ -520,8 +696,10 @@ class MoodleContingentSync extends Component
             $rows = DB::select($sql);
 
             $result = [];
+            $groupCountByLogin = [];
             foreach ($rows as $row) {
                 $login = $row->st_ticket;
+                $groupCountByLogin[$login] = ($groupCountByLogin[$login] ?? 0) + 1;
                 $result[$login] = [
                     'login'       => $login,
                     'last_name'   => $row->last_name,
@@ -532,8 +710,40 @@ class MoodleContingentSync extends Component
                 ];
             }
 
+            // Студент в нескольких активных группах ЛК: $result[login] сохранила
+            // последнюю группу из порядка сортировки — «случайную» с точки зрения
+            // оператора. Показываем предупреждение, чтобы перевод не был сюрпризом.
+            $this->lkWarnings = $this->multiGroupWarnings($groupCountByLogin);
+
             return $result;
         });
+    }
+
+    /**
+     * Человекочитаемые предупреждения о студентах в нескольких группах ЛК.
+     *
+     * @param  array<string, int>  $groupCountByLogin  логин => кол-во групп
+     * @return array<string>  список строк-предупреждений (пусто, если всё ок)
+     */
+    private function multiGroupWarnings(array $groupCountByLogin): array
+    {
+        $multiGroup = array_filter($groupCountByLogin, fn ($count) => $count > 1);
+        if (! $multiGroup) {
+            return [];
+        }
+
+        $warnings = ['Студенты в нескольких активных группах ЛК — для них будет использована одна группа (последняя по порядку):'];
+        $shown = 0;
+        foreach ($multiGroup as $login => $count) {
+            if ($shown >= 20) {
+                $warnings[] = '…и ещё ' . (count($multiGroup) - $shown) . '.';
+                break;
+            }
+            $warnings[] = "  $login — $count группы";
+            $shown++;
+        }
+
+        return $warnings;
     }
 
     // ─── Сравнение данных ──────────────────────────────────────
@@ -761,6 +971,36 @@ class MoodleContingentSync extends Component
     }
 
     /**
+     * Нормализация названия группы по шаблону «генерированный_группа»
+     * (см. запрос getLkStudents): убираются пробелы и текущий год из
+     * названия, затем добавляется ` (текущий год)`.
+     *
+     * Повторяет в PHP выражение из SQL-шаблона, чтобы группы из CSV Moodle
+     * приводились к тому же формату, что и группы из ЛК:
+     *   "МГ-24 Н1"        -> "МГ-24Н1 (2026)"
+     *   "МГ-24Н1 (2026)"  -> "МГ-24Н1 (2026)"
+     *
+     * @param  string  $group  Название группы из CSV/БД
+     * @return string  Нормализованное название группы
+     */
+    private function normalizeGroup(string $group): string
+    {
+        $year = (string) date('Y');
+
+        // Уже нормализованное название («БАЗА (год)») не трогаем — иначе
+        // повторное применение выражения из шаблона даст «БАЗА() (год)».
+        if (preg_match('/\s\(\d{4}\)$/u', $group)) {
+            return $group;
+        }
+
+        $clean = str_replace(' ', '', $group);
+        $clean = str_replace($year, '', $clean);
+        $clean = str_replace('(' . $year . ')', '', $clean);
+
+        return trim($clean) . ' (' . $year . ')';
+    }
+
+    /**
      * Определение целевой группы студента.
      *
      * Заглушка: возвращает группу как есть.
@@ -855,9 +1095,12 @@ class MoodleContingentSync extends Component
             // Moodle firstname = Фамилия (для сортировки списков),
             // Moodle lastname = «Имя Отчество».
             $sql .= "INSERT INTO mdl_user (username, password, firstname, lastname, email, auth, confirmed, timecreated) VALUES\n";
+            // Один хеш на всех: пароль одинаковый (Iubip_1234567), а crypt() —
+            // SHA-512, 10 000 раундов — считает ~0.1 с на пользователя.
+            // На тысячах зачислений это десятки секунд, поэтому хеш считаем раз.
+            $hash = $this->hashPassword('Iubip_1234567');
             $vals = [];
             foreach ($enroll as $r) {
-                $hash = $this->hashPassword('Iubip_1234567');
                 $vals[] = sprintf(
                     "('%s', '%s', '%s', '%s', '%s', 'manual', 1, UNIX_TIMESTAMP())",
                     $this->esc($r['login']),

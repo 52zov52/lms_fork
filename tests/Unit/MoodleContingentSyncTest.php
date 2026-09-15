@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Livewire\Employee\MoodleContingentSync;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -69,11 +70,11 @@ class MoodleContingentSyncTest extends TestCase
      */
     private function compareDirect(array $lk, array $moodle): array
     {
-        $this->component->changes = [];
+        $this->setChanges([]);
         $this->component->selected = [];
         $this->component->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0];
         $this->callPrivate('compare', [$lk, $moodle]);
-        return $this->component->changes;
+        return $this->getChanges();
     }
 
     /**
@@ -81,19 +82,42 @@ class MoodleContingentSyncTest extends TestCase
      */
     private function buildSqlWithChanges(array $changes): string
     {
-        $this->component->changes = [];
+        $this->setChanges([]);
         $this->component->selected = [];
         $this->component->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0];
 
         foreach ($changes as $c) {
-            $id = count($this->component->changes);
+            $id = count($this->getChanges());
             $c['id'] = $id;
-            $this->component->changes[] = $c;
+            $all = $this->getChanges();
+            $all[] = $c;
+            $this->setChanges($all);
             $this->component->selected[$id] = true;
             $this->component->stats[$c['type']]++;
         }
 
         return $this->callPrivate('buildSql');
+    }
+
+    /**
+     * Доступ к защищённому свойству $changes (не сериализуется Livewire).
+     */
+    private function getChanges(): array
+    {
+        $prop = new \ReflectionProperty($this->component, 'changes');
+        $prop->setAccessible(true);
+
+        return $prop->getValue($this->component);
+    }
+
+    /**
+     * Запись в защищённое свойство $changes.
+     */
+    private function setChanges(array $changes): void
+    {
+        $prop = new \ReflectionProperty($this->component, 'changes');
+        $prop->setAccessible(true);
+        $prop->setValue($this->component, $changes);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -215,7 +239,7 @@ class MoodleContingentSyncTest extends TestCase
         $this->assertArrayHasKey('100001', $result);
         $this->assertSame('Ivanov', $result['100001']['last_name']);
         $this->assertSame('Ivan', $result['100001']['first_name']);
-        $this->assertSame('ИТ-24 К1', $result['100001']['group']);
+        $this->assertSame('ИТ-24К1 (2026)', $result['100001']['group']);
     }
 
     #[Test]
@@ -326,6 +350,20 @@ class MoodleContingentSyncTest extends TestCase
     }
 
     #[Test]
+    public function parseMoodleCsv_with_utf8_bom(): void
+    {
+        $csv = "\xEF\xBB\xBFst_ticket,last_name,first_name,email,group_name_fixed\n"
+             . "100001,Ivanov,Ivan,iv@test.ru,МГ-24 Н1\n";
+        $path = $this->writeTempCsv($csv);
+
+        $result = $this->callPrivate('parseMoodleCsv', [$path]);
+        unlink($path);
+
+        $this->assertArrayHasKey('100001', $result);
+        $this->assertSame('МГ-24Н1 (2026)', $result['100001']['group']);
+    }
+
+    #[Test]
     public function parseMoodleCsv_windows1251_encoding(): void
     {
         $utf8 = "st_ticket,last_name,first_name,email,group_name_fixed\n"
@@ -338,6 +376,54 @@ class MoodleContingentSyncTest extends TestCase
 
         $this->assertArrayHasKey('100001', $result);
         $this->assertSame('Иванов', $result['100001']['last_name']);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // normalizeGroup()
+    // ═══════════════════════════════════════════════════════════
+
+    #[Test]
+    public function normalizeGroup_adds_year_and_removes_spaces(): void
+    {
+        $this->assertSame('МГ-24Н1 (2026)', $this->callPrivate('normalizeGroup', ['МГ-24 Н1']));
+    }
+
+    #[Test]
+    public function normalizeGroup_strips_bare_year(): void
+    {
+        $this->assertSame('ИТ-24К1 (2026)', $this->callPrivate('normalizeGroup', ['ИТ-24К1 2026']));
+    }
+
+    #[Test]
+    public function normalizeGroup_strips_parenthesized_year(): void
+    {
+        $this->assertSame('ИТ-24 К1 (2026)', $this->callPrivate('normalizeGroup', ['ИТ-24 К1 (2026)']));
+    }
+
+    #[Test]
+    public function normalizeGroup_leaves_already_normalized_untouched(): void
+    {
+        $input = 'МГ-24Н1 (2026)';
+        $this->assertSame($input, $this->callPrivate('normalizeGroup', [$input]));
+    }
+
+    #[Test]
+    public function normalizeGroup_handles_group_without_year(): void
+    {
+        $this->assertSame('ЭК-23К1 (2026)', $this->callPrivate('normalizeGroup', ['ЭК-23 К1']));
+    }
+
+    #[Test]
+    public function parseMoodleCsv_normalizes_group_column(): void
+    {
+        $csv = "st_ticket,last_name,first_name,email,group_name_fixed\n"
+             . "100001,Ivanov,Ivan,iv@test.ru,МГ-24 Н1\n";
+        $path = $this->writeTempCsv($csv);
+
+        $result = $this->callPrivate('parseMoodleCsv', [$path]);
+        unlink($path);
+
+        $this->assertSame('МГ-24Н1 (2026)', $result['100001']['group']);
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -783,22 +869,26 @@ class MoodleContingentSyncTest extends TestCase
     #[Test]
     public function component_renders_paginated_results(): void
     {
+        // Массив изменений не сериализуется в снапшот Livewire — компонент
+        // достаёт его из кеша по ключу (см. свойство $changesKey и boot()).
+        Cache::put('test:moodle:sync:paginated', [
+            [
+                'id' => 0, 'type' => 'fio', 'reason' => 'test',
+                'login' => 'st200001', 'surnameOld' => 'Иванов', 'surnameNew' => 'Иванов',
+                'nameOld' => 'Иван', 'nameNew' => 'Иван Петрович',
+                'groupOld' => 'Г1', 'groupNew' => 'Г1', 'email' => '',
+                'surnameInFirstname' => true,
+            ],
+            [
+                'id' => 1, 'type' => 'enroll', 'reason' => 'test',
+                'login' => 'st200002', 'surnameOld' => '', 'surnameNew' => 'Петров',
+                'nameOld' => '', 'nameNew' => 'Пётр Петрович',
+                'groupOld' => '', 'groupNew' => 'Г1', 'email' => 'st200002@test.ru',
+            ],
+        ], 60);
+
         Livewire::test(MoodleContingentSync::class)
-            ->set('changes', [
-                [
-                    'id' => 0, 'type' => 'fio', 'reason' => 'test',
-                    'login' => 'st200001', 'surnameOld' => 'Иванов', 'surnameNew' => 'Иванов',
-                    'nameOld' => 'Иван', 'nameNew' => 'Иван Петрович',
-                    'groupOld' => 'Г1', 'groupNew' => 'Г1', 'email' => '',
-                    'surnameInFirstname' => true,
-                ],
-                [
-                    'id' => 1, 'type' => 'enroll', 'reason' => 'test',
-                    'login' => 'st200002', 'surnameOld' => '', 'surnameNew' => 'Петров',
-                    'nameOld' => '', 'nameNew' => 'Пётр Петрович',
-                    'groupOld' => '', 'groupNew' => 'Г1', 'email' => 'st200002@test.ru',
-                ],
-            ])
+            ->set('changesKey', 'test:moodle:sync:paginated')
             ->set('selected', [0 => true, 1 => true])
             ->set('stats', ['enroll' => 1, 'expel' => 0, 'fio' => 1, 'transfer' => 0])
             ->set('parsed', true)
@@ -806,8 +896,50 @@ class MoodleContingentSyncTest extends TestCase
             ->assertSee('st200001')
             ->assertSee('Иван Петрович')
             ->assertSee('Показать SQL')
+            // Серверные вкладки: переход на «Зачисления» показывает её таблицу
+            // и держит выбранную вкладку после обновления (пагинация).
+            ->call('setTab', 'enroll')
+            ->assertSee('st200002')
+            ->assertSee('Пётр Петрович')
+            ->assertDontSee('st200001')
+            ->call('gotoPage', 'enroll', 1)
+            ->assertSee('st200002')
             ->call('buildPreview')
             ->assertSee('UPDATE mdl_user SET');
+    }
+
+    #[Test]
+    public function component_tab_is_server_state_and_survives_goto_page(): void
+    {
+        Cache::put('test:moodle:sync:tab', [
+            [
+                'id' => 0, 'type' => 'fio', 'reason' => 'test',
+                'login' => 'st300001', 'surnameOld' => 'А', 'surnameNew' => 'Б',
+                'nameOld' => 'В', 'nameNew' => 'Г Д',
+                'groupOld' => 'Г1', 'groupNew' => 'Г1', 'email' => '',
+            ],
+            [
+                'id' => 1, 'type' => 'transfer', 'reason' => 'test',
+                'login' => 'st300002', 'surnameOld' => 'Е', 'surnameNew' => 'Е',
+                'nameOld' => 'Ж', 'nameNew' => 'Ж',
+                'groupOld' => 'Г1', 'groupNew' => 'Г2', 'email' => '',
+            ],
+        ], 60);
+
+        Livewire::test(MoodleContingentSync::class)
+            ->set('changesKey', 'test:moodle:sync:tab')
+            ->set('selected', [0 => true, 1 => true])
+            ->set('stats', ['enroll' => 0, 'expel' => 0, 'fio' => 1, 'transfer' => 1])
+            ->set('parsed', true)
+            ->assertSee('st300001')
+            ->assertDontSee('st300002')
+            ->call('setTab', 'transfer')
+            ->assertSee('st300002')
+            ->assertDontSee('st300001')
+            ->call('gotoPage', 'transfer', 1)
+            ->assertSee('st300002')
+            // После пагинации активная вкладка не сбрасывается на «ФИО».
+            ->assertSet('activeTab', 'transfer');
     }
 
     #[Test]
@@ -829,5 +961,184 @@ class MoodleContingentSyncTest extends TestCase
         ]);
 
         $this->assertSame(2, substr_count($sql, 'UPDATE mdl_user SET'));
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // P4*: process() не уничтожает результат при ошибке валидации
+    // ═══════════════════════════════════════════════════════════
+
+    #[Test]
+    public function process_without_file_keeps_previous_results(): void
+    {
+        Cache::put('test:keep', [[
+            'id' => 0, 'type' => 'expel', 'login' => '100001', 'last_name' => 'Ivanov',
+            'first_name' => 'Ivan', 'middle_name' => '', 'email' => 'iv@test.ru',
+            'group' => 'ИТ-24 К1', 'target_group' => '', 'comment' => '',
+        ]], now()->addHours(6));
+
+        Livewire::test(MoodleContingentSync::class)
+            ->set('changesKey', 'test:keep')
+            ->set('selected', [0 => true])
+            ->set('stats', ['enroll' => 0, 'expel' => 1, 'fio' => 0, 'transfer' => 0])
+            ->set('parsed', true)
+            ->call('process')
+            // Файл не загружен → ошибка, но старый результат сохраняется.
+            ->assertHasErrors('csvFile')
+            ->assertSet('parsed', true)
+            ->assertSet('changesKey', 'test:keep')
+            ->assertSet('stats.expel', 1);
+
+        $this->assertTrue(Cache::has('test:keep'));
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // P2*: блокировка генерации SQL при недоступных данных ЛК
+    // ═══════════════════════════════════════════════════════════
+
+    #[Test]
+    public function buildPreview_blocked_when_lk_unavailable(): void
+    {
+        Livewire::test(MoodleContingentSync::class)
+            ->set('lkUnavailable', true)
+            ->call('buildPreview')
+            ->assertSet('sqlBuilt', false)
+            ->assertSet('sqlKey', '')
+            ->assertDispatched('show-toast');
+    }
+
+    #[Test]
+    public function downloadSql_blocked_when_lk_unavailable(): void
+    {
+        Cache::put('test:block', [[
+            'id' => 0, 'type' => 'expel', 'login' => '100001', 'last_name' => 'Ivanov',
+            'first_name' => 'Ivan', 'middle_name' => '', 'email' => 'iv@test.ru',
+            'group' => 'ИТ-24 К1', 'target_group' => '', 'comment' => '',
+        ]], now()->addHours(6));
+
+        Livewire::test(MoodleContingentSync::class)
+            ->set('lkUnavailable', true)
+            ->set('changesKey', 'test:block')
+            ->set('selected', [0 => true])
+            ->set('stats', ['enroll' => 0, 'expel' => 1, 'fio' => 0, 'transfer' => 0])
+            ->set('parsed', true)
+            ->call('downloadSql')
+            ->assertDispatched('show-toast')
+            // Ответ-стрим не создан — ничего не скачалось.
+            ->assertNoRedirect();
+    }
+
+    #[Test]
+    public function process_sets_lk_unavailable_when_db_fails(): void
+    {
+        Cache::forget('lk:students');
+        \Illuminate\Support\Facades\DB::shouldReceive('select')
+            ->andThrow(new \Exception('Connection refused'));
+
+        // Файл нужно подложить напрямую в инстанс: set() на свойство
+        // TemporaryUploadedFile уничтожается Livewire-синфайлов в тестах.
+        $storage = \Livewire\Features\SupportFileUploads\FileUploadConfiguration::storage();
+        $storage->put(
+            \Livewire\Features\SupportFileUploads\FileUploadConfiguration::path('lk-fail.csv'),
+            "st_ticket,last_name,first_name,email,group_name_fixed\n"
+              . "100001,Ivanov,Ivan,iv@test.ru,МГ-24 Н1\n"
+        );
+        $tmp = new \Livewire\Features\SupportFileUploads\TemporaryUploadedFile(
+            'lk-fail.csv',
+            \Livewire\Features\SupportFileUploads\FileUploadConfiguration::disk()
+        );
+
+        $component = Livewire::test(MoodleContingentSync::class);
+        $component->instance()->csvFile = $tmp;
+        $component->instance()->process();
+
+        $this->assertTrue($component->instance()->parsed);
+        $this->assertTrue($component->instance()->lkUnavailable);
+    }
+
+    #[Test]
+    public function copySql_without_changes_shows_error(): void
+    {
+        Livewire::test(MoodleContingentSync::class)
+            ->call('copySql')
+            ->assertSet('sqlBuilt', false)
+            ->assertNotDispatched('copy-sql')
+            ->assertDispatched('show-toast');
+    }
+
+    #[Test]
+    public function copySql_blocked_when_lk_unavailable(): void
+    {
+        Livewire::test(MoodleContingentSync::class)
+            ->set('lkUnavailable', true)
+            ->call('copySql')
+            ->assertSet('sqlBuilt', false)
+            ->assertNotDispatched('copy-sql')
+            ->assertDispatched('show-toast');
+    }
+
+    #[Test]
+    public function copySql_builds_sql_and_dispatches_it(): void
+    {
+        // changes — защищённое свойство, поэтому ложим в кеш: boot() восстановит
+        // его по changesKey при каждой гидрации (как на реальной странице).
+        Cache::put('test:copy', [[
+            'type' => 'enroll', 'reason' => 'test', 'login' => '100001',
+            'surnameOld' => '', 'surnameNew' => 'Ivanov',
+            'nameOld' => '', 'nameNew' => 'Ivan',
+            'groupOld' => '', 'groupNew' => 'МГ-24Н1 (2026)',
+            'email' => 'iv@test.ru',
+        ]], now()->addHours(6));
+
+        $livewire = Livewire::test(MoodleContingentSync::class)
+            ->set('changesKey', 'test:copy')
+            ->set('selected', [0 => true])
+            ->set('stats', ['enroll' => 1, 'expel' => 0, 'fio' => 0, 'transfer' => 0])
+            ->call('copySql')
+            // SQL построен автоматически, без «Показать SQL».
+            ->assertSet('sqlBuilt', true)
+            ->assertDispatched('copy-sql');
+
+        $this->assertNotSame('', $livewire->instance()->sql);
+        $this->assertTrue(Cache::has($livewire->instance()->sqlKey));
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // P5*: предупреждения о многогрупповых студентах ЛК
+    // ═══════════════════════════════════════════════════════════
+
+    #[Test]
+    public function multiGroupWarnings_empty_when_single_group(): void
+    {
+        $this->assertSame([], $this->callPrivate('multiGroupWarnings', [[
+            '100001' => 1, '100002' => 1,
+        ]]));
+    }
+
+    #[Test]
+    public function multiGroupWarnings_lists_students_in_several_groups(): void
+    {
+        $warnings = $this->callPrivate('multiGroupWarnings', [[
+            '100001' => 1,
+            '100002' => 2,
+            '100003' => 3,
+        ]]);
+
+        $this->assertCount(3, $warnings);
+        $this->assertStringContainsString('100002', $warnings[1]);
+        $this->assertStringContainsString('100003', $warnings[2]);
+    }
+
+    #[Test]
+    public function multiGroupWarnings_caps_list_at_20(): void
+    {
+        $logs = [];
+        for ($i = 1; $i <= 25; $i++) {
+            $logs["100{$i}"] = 2;
+        }
+
+        $warnings = $this->callPrivate('multiGroupWarnings', [$logs]);
+
+        $this->assertCount(22, $warnings);
+        $this->assertStringContainsString('…и ещё', end($warnings));
     }
 }
