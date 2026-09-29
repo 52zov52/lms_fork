@@ -96,7 +96,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         //Синхронизация контингента с Moodle
         Route::get('/moodle-contingent-sync', function () {
             return view('pages.employee.moodle-contingent-sync');
-        })->middleware('role:Employee|Admin')->name('employee.moodle.contingent.sync');
+        })->middleware('permission:access-to-moodle-contingent-sync')->name('employee.moodle.contingent.sync');
 
         //Контингент
         Route::get('/contingent', function () {
