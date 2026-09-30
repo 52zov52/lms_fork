@@ -65,6 +65,7 @@ class StudentDocumentOrderReportController extends Controller
             $template->setValue('edu_level', $this->buildEduLevel($issuance->level_education_name, $type));
             $template->setValue('sex', $issuance->sex ? 'она' : 'он');
             $template->setValue('student_word', $this->studentWord($issuance->sex));
+            $template->setValue('vo_level', $this->voLevelWord($issuance->level_education_name));
             $template->setValue('sp', $issuance->specialty_code . ' - ' . $issuance->speciality_name);
             $template->setValue('orders', $issuance->orders);
             $template->setValue('training_period', $issuance->training_period);
@@ -163,6 +164,16 @@ class StudentDocumentOrderReportController extends Controller
     private function studentWord($sex): string
     {
         return $sex ? 'обучающейся' : 'обучающимся';
+    }
+
+    // "Бакалавриат" -> "бакалавриат", "Магистратура" -> "магистратура", для СПО пусто
+    private function voLevelWord(?string $levelName): string
+    {
+        return match ($levelName) {
+            self::LEVEL_BACHELOR => 'бакалавриат',
+            self::LEVEL_MASTER => 'магистратура',
+            default => '',
+        };
     }
 
     // "2026-03-05" -> "5 марта 2026"
