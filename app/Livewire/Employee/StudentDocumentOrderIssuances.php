@@ -103,7 +103,7 @@ class StudentDocumentOrderIssuances extends Component
                 'student_document_order_requests.academic_year',
                 'student_document_order_requests.half_year',
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
-                DB::raw("(SELECT group_name FROM group_student INNER JOIN groups ON group_student.group_id = groups.id WHERE group_student.user_id = student_document_order_requests.requester_id ORDER BY group_student.id DESC LIMIT 1) as group_name"),
+                DB::raw("(SELECT group_name FROM group_student INNER JOIN `groups` ON group_student.group_id = groups.id WHERE group_student.user_id = student_document_order_requests.requester_id ORDER BY group_student.id DESC LIMIT 1) as group_name"),
                 'student_document_order_issuances.confirmiter_id',
                 'student_document_order_requests.created_at'
             );
