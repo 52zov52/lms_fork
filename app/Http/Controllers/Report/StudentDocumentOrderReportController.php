@@ -38,13 +38,17 @@ class StudentDocumentOrderReportController extends Controller
         $confirmiter = UserData::select('last_name', 'first_name', 'middle_name')
             ->where('user_id', '=', $studentDocumentOrderIssuance->confirmiter_id)->first();
 
-        if ($studentDocumentOrderRequest->document_type == 1 || $studentDocumentOrderRequest->document_type == 2) {
+        if ($studentDocumentOrderRequest->document_type == 1) {
             if ($studentDocumentOrderIssuance->level_education_name == 'Среднее профессиональное') {
                 $path = Storage::disk('public')->path('template/certificates/tmp_about_study_spo.docx');
             } else {
                 $path = Storage::disk('public')->path('template/certificates/tmp_about_study_vo.docx');
-            }
-        } else if ($studentDocumentOrderRequest->document_type == 3) {
+            }}
+        else if  ($studentDocumentOrderRequest->document_type == 2) {
+            if ($studentDocumentOrderIssuance->level_education_name == 'Среднее профессиональное') {
+                $path = Storage::disk('public')->path('template/certificates/tmp_about_study_transp_spo.docx');
+            }}
+        else if ($studentDocumentOrderRequest->document_type == 3) {
             $path = Storage::disk('public')->path('template/spravka.docx');
         } else {
             $path = Storage::disk('public')->path('template/certificates/tmp_characteristic.docx');
@@ -109,6 +113,8 @@ class StudentDocumentOrderReportController extends Controller
             $templateProcessor->setValue('check_out_date', Carbon::parse($studentDocumentOrderIssuance->check_out_date)->format('d.m.Y'));
             $templateProcessor->setValue('check_in_duration', $studentDocumentOrderIssuance->check_in_duration);
             $templateProcessor->setValue('employment_place', $studentDocumentOrderIssuance->employment_place);
+            $templateProcessor->setValue('signer_position', $studentDocumentOrderIssuance->signer_position);
+            $templateProcessor->setValue('signer_fio', $studentDocumentOrderIssuance->signer_fio);
         }
 
         $tempFile = tempnam(sys_get_temp_dir(), $filename);

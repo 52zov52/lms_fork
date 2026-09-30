@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Report;
 
 use App\Http\Controllers\Controller;
 use App\Models\Group;
+use App\Models\GroupStudent;
 use App\Models\StudentGrades;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\Element\Table;
+use PhpOffice\PhpWord\Settings;
 use PhpOffice\PhpWord\SimpleType\TblWidth;
 use PhpOffice\PhpWord\Style\Cell;
 use PhpOffice\PhpWord\TemplateProcessor;
@@ -16,37 +18,20 @@ class GroupStudentGradeController extends Controller
 {
     public function print($groupId)
     {
-        $group = Group::where('id', '=', $groupId)->select('id', 'group_name')->first();
+        $group = Group::select('id', 'group_name', 'work_study_plan_id')->findOrFail($groupId);
 
-        $studentGrades = StudentGrades::join('users_data', 'student_grades.user_id', '=', 'users_data.user_id')
-            ->join('bulletins', 'student_grades.bulletin_id', '=', 'bulletins.id')
-            ->join('work_study_plan_course_control_types_in_semesters', 'bulletins.work_study_plan_course_control_types_in_semesters_id', '=', 'work_study_plan_course_control_types_in_semesters.id')
+        /*
+         * 1. КОЛОНКИ: все дисциплины учебного плана группы
+         *    (а не только те, по которым уже есть ведомости).
+         */
+        $listOfDisciplines = DB::table('work_study_plan_courses')
+            ->join('work_study_plan_courses_in_semesters', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
+            ->join('work_study_plan_course_control_types_in_semesters', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
             ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
-            ->join('work_study_plan_courses_in_semesters', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
-            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
-            ->join('work_study_plans', 'work_study_plan_courses.work_study_plan_id', '=', 'work_study_plans.id')
             ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
-            ->where('bulletins.group_id', '=', $groupId)
-            ->select(
-                'student_grades.id',
-                DB::raw("CONCAT(users_data.last_name, ' ', SUBSTRING(users_data.first_name, 1, 1), '.', SUBSTRING(users_data.middle_name, 1, 1), '.') as fio"),
-                'disciplines.name as discipline_name',
-                'work_study_plan_courses_in_semesters.semester_number',
-                'control_types.name as control_name',
-                DB::raw("CASE WHEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1) IS NOT NULL THEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1) ELSE student_grades.grade END as grade")
-            )
-            ->orderBy('work_study_plan_courses_in_semesters.semester_number')
-            ->get()->toArray();
-
-        $listOfDisciplines = StudentGrades::join('users_data', 'student_grades.user_id', '=', 'users_data.user_id')
-            ->join('bulletins', 'student_grades.bulletin_id', '=', 'bulletins.id')
-            ->join('work_study_plan_course_control_types_in_semesters', 'bulletins.work_study_plan_course_control_types_in_semesters_id', '=', 'work_study_plan_course_control_types_in_semesters.id')
-            ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
-            ->join('work_study_plan_courses_in_semesters', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
-            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
-            ->join('work_study_plans', 'work_study_plan_courses.work_study_plan_id', '=', 'work_study_plans.id')
-            ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
-            ->where('bulletins.group_id', '=', $groupId)
+            ->where('work_study_plan_courses.work_study_plan_id', '=', $group->work_study_plan_id)
+            // Если нужны только пройденные семестры, раскомментируйте и задайте номер:
+            // ->where('work_study_plan_courses_in_semesters.semester_number', '<=', $currentSemester)
             ->distinct()
             ->select(
                 'disciplines.name as discipline_name',
@@ -54,91 +39,138 @@ class GroupStudentGradeController extends Controller
                 'control_types.name as control_name'
             )
             ->orderBy('work_study_plan_courses_in_semesters.semester_number')
-            ->orderBy('discipline_name')
-            ->get()->toArray();
+            ->orderBy('disciplines.name')
+            ->get()
+            ->map(fn($item) => (array)$item)
+            ->toArray();
 
-        $listOfStudents = array_unique(array_column($studentGrades, 'fio'));
-        sort($listOfStudents);
+        /*
+         * 2. СТРОКИ: все студенты группы (даже без единой оценки).
+         */
+        $students = GroupStudent::join('users_data', 'group_student.user_id', '=', 'users_data.user_id')
+            ->where('group_student.group_id', '=', $groupId)
+            ->select(
+                'group_student.user_id',
+                'users_data.last_name',
+                'users_data.first_name',
+                'users_data.middle_name'
+            )
+            ->orderBy('users_data.last_name')
+            ->orderBy('users_data.first_name')
+            ->get()
+            ->unique('user_id')
+            ->map(function ($s) {
+                $fio = $s->last_name;
+                if (!empty($s->first_name)) {
+                    $fio .= ' ' . mb_substr($s->first_name, 0, 1) . '.';
+                }
+                if (!empty($s->middle_name)) {
+                    $fio .= mb_substr($s->middle_name, 0, 1) . '.';
+                }
+                return ['user_id' => $s->user_id, 'fio' => $fio];
+            })
+            ->values()
+            ->toArray();
 
-        $groupbulletins = [];
-        foreach ($listOfStudents as $key => $fio) {
-            $groupbulletins[$fio] = array_filter($studentGrades, function ($item) use ($fio) {
-                return $item['fio'] == $fio;
-            });
+        /*
+         * 3. ОЦЕНКИ: индекс [user_id][дисциплина|семестр|контроль] => оценка.
+         *    Учитывается последняя пересдача.
+         */
+        $rawGrades = StudentGrades::join('bulletins', 'student_grades.bulletin_id', '=', 'bulletins.id')
+            ->join('work_study_plan_course_control_types_in_semesters', 'bulletins.work_study_plan_course_control_types_in_semesters_id', '=', 'work_study_plan_course_control_types_in_semesters.id')
+            ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
+            ->join('work_study_plan_courses_in_semesters', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
+            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
+            ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
+            ->where('bulletins.group_id', '=', $groupId)
+            ->select(
+                'student_grades.user_id',
+                'disciplines.name as discipline_name',
+                'work_study_plan_courses_in_semesters.semester_number',
+                'control_types.name as control_name',
+                DB::raw("COALESCE((SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1), student_grades.grade) as grade")
+            )
+            ->get();
+
+        $gradesIndex = [];
+        foreach ($rawGrades as $row) {
+            $key = $row->discipline_name . '|' . $row->semester_number . '|' . $row->control_name;
+            $gradesIndex[$row->user_id][$key] = $row->grade;
         }
 
-        $path  = Storage::disk('public')->path('template/svodka.docx');
-
+        /*
+         * 4. ШАБЛОН И ТАБЛИЦА
+         */
+        $path = Storage::disk('public')->path('template/svodka.docx');
         $filename = time() . '.docx';
 
         $templateProcessor = new TemplateProcessor($path);
         $templateProcessor->setValue('group_name', $group->group_name);
 
-        $tableFontHeaderStyle = array('name' => 'Times New Roman');
-        $tableFontStyle = array('name' => 'Times New Roman');
+        $tableFontHeaderStyle = ['name' => 'Times New Roman'];
+        $tableFontStyle = ['name' => 'Times New Roman'];
         $tableCellBtrlStyle = ['valign' => 'center', 'textDirection' => Cell::TEXT_DIR_TBRL];
 
-        $table = new Table(array('borderSize' => 7, 'borderColor' => 'black', 'unit' => TblWidth::TWIP));
-        $table->addRow(5500);
-        $table->addCell(500, array('valign' => 'center'))->addText("ФИО", $tableFontHeaderStyle, array('align' => 'center'));
-        foreach ($listOfDisciplines as $key => $discipline) {
-            $table->addCell(500, $tableCellBtrlStyle)->addText($discipline['discipline_name'], $tableFontHeaderStyle, array('align' => 'center'));
+        $controlShort = [
+            'Зачет' => 'ЗЧ',
+            'Экзамен' => 'ЭК',
+            'Дифференцированный зачет' => 'ДЗ',
+            'Курсовая работа' => 'КР',
+        ];
+
+        // Экранирование &, <, > и т.п. в названиях (иначе docx "повреждён")
+        Settings::setOutputEscapingEnabled(true);
+
+        $table = new Table(['borderSize' => 7, 'borderColor' => 'black', 'unit' => TblWidth::TWIP]);
+
+        // В Word в таблице не может быть больше 63 колонок, поэтому режем
+        // дисциплины на блоки и выводим блоки друг под другом в одной таблице.
+        $chunkSize = 25;
+        $blocks = array_chunk($listOfDisciplines, $chunkSize);
+        if (empty($blocks)) {
+            $blocks = [[]];
         }
 
-        $table->addRow();
-        $table->addCell(500)->addText("", $tableFontStyle, array('align' => 'center'));
-        foreach ($listOfDisciplines as $key => $discipline) {
-            if($discipline['control_name'] == 'Зачет') {
-                $control = 'ЗЧ';
-            }else if ($discipline['control_name'] == 'Экзамен') {
-                $control = 'ЭК';
-            }elseif ($discipline['control_name'] == 'Дифференцированный зачет'){
-                $control = 'ДЗ';
-            }elseif ($discipline['control_name'] == 'Курсовая работа'){
-                $control = 'КР';
-            }else {
-                $control = '-';
+        foreach ($blocks as $blockIndex => $block) {
+            // Пустая строка-разделитель между блоками
+            if ($blockIndex > 0) {
+                $table->addRow(300);
+                $table->addCell(500)->addText('', $tableFontStyle);
             }
 
-            $table->addCell(500)->addText($control, $tableFontStyle, array('align' => 'center'));
-        }
+            // Строка 1: заголовки (ФИО + повёрнутые названия дисциплин)
+            $table->addRow(5500);
+            $table->addCell(500, ['valign' => 'center'])->addText('ФИО', $tableFontHeaderStyle, ['align' => 'center']);
+            foreach ($block as $discipline) {
+                $table->addCell(500, $tableCellBtrlStyle)->addText((string)$discipline['discipline_name'], $tableFontHeaderStyle, ['align' => 'center']);
+            }
 
-        foreach ($groupbulletins as $fio => $data) {
+            // Строка 2: виды контроля
             $table->addRow();
-            $table->addCell(500)->addText($fio, $tableFontStyle);
-            foreach ($listOfDisciplines as $key => $discipline) {
-                $existsDiscipline = array_filter($data, function ($item) use ($discipline) {
-                    return $item['discipline_name'] == $discipline['discipline_name'];
-                });
+            $table->addCell(500)->addText('', $tableFontStyle, ['align' => 'center']);
+            foreach ($block as $discipline) {
+                $control = $controlShort[$discipline['control_name']] ?? '-';
+                $table->addCell(500)->addText($control, $tableFontStyle, ['align' => 'center']);
+            }
 
-                if (!empty($existsDiscipline)) {
-                    $grade = array_filter($existsDiscipline, function ($item) use ($discipline) {
-                        return $item['discipline_name'] == $discipline['discipline_name'] &&
-                            $item['semester_number'] == $discipline['semester_number'] &&
-                            $item['control_name'] == $discipline['control_name'];
-                    });
+            // Строки студентов: ровно одна ячейка на каждую колонку
+            foreach ($students as $student) {
+                $table->addRow();
+                $table->addCell(500)->addText((string)$student['fio'], $tableFontStyle);
 
-                    if (!empty($grade)) {
-                        foreach ($grade as $key => $value) {
-                            if (is_null($value['grade'])) {
-                                $table->addCell(500)->addText('-', $tableFontStyle);
-                            } else {
-                                if ($value['control_name'] == 'Зачет') {
-                                    if ($value['grade'] == 1) {
-                                        $table->addCell(500)->addText(1, $tableFontStyle);
-                                    } else {
-                                        $table->addCell(500)->addText(0, $tableFontStyle);
-                                    }
-                                } else {
-                                    $table->addCell(500)->addText($value['grade'], $tableFontStyle);
-                                }
-                            }
-                        }
+                foreach ($block as $discipline) {
+                    $key = $discipline['discipline_name'] . '|' . $discipline['semester_number'] . '|' . $discipline['control_name'];
+                    $grade = $gradesIndex[$student['user_id']][$key] ?? null;
+
+                    if (is_null($grade)) {
+                        $text = '-';
+                    } elseif ($discipline['control_name'] == 'Зачет') {
+                        $text = ($grade == 1) ? '1' : '0';
                     } else {
-                        $table->addCell(500)->addText('-', $tableFontStyle);
+                        $text = (string)$grade;
                     }
-                } else {
-                    $table->addCell(500)->addText('-', $tableFontStyle);
+
+                    $table->addCell(500)->addText($text, $tableFontStyle);
                 }
             }
         }
