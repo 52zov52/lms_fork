@@ -332,8 +332,12 @@ class StudentDocumentOrderIssuances extends Component
 
     public function downloadStudentDocument($studentDocumentOrderRequestId)
     {
-        $studentDocumentOrderReportController = new StudentDocumentOrderReportController();
-        $data = $studentDocumentOrderReportController->downloadStudentDocument($studentDocumentOrderRequestId);
+        try {
+            $data = (new StudentDocumentOrderReportController())->downloadStudentDocument($studentDocumentOrderRequestId);
+        } catch (\DomainException $e) {
+            $this->dispatch('show-toast', message: $e->getMessage(), type: 'error');
+            return;
+        }
 
         return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }

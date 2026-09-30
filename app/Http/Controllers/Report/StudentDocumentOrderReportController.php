@@ -7,147 +7,187 @@ use App\Models\StudentDocumentOrderIssuance;
 use App\Models\StudentDocumentOrderRequest;
 use App\Models\UserData;
 use Carbon\Carbon;
+use DomainException;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\TemplateProcessor;
 
 class StudentDocumentOrderReportController extends Controller
 {
+    private const TYPE_STUDY = 1;              // Справка о статусе студента
+    private const TYPE_TRANSPORT_CARD = 2;     // Справка для транспортных карт (только колледж)
+    private const TYPE_INVITATION = 3;         // Справка-вызов
+    private const TYPE_CHARACTERISTIC = 4;     // Характеристика
+
+    private const LEVEL_SPO = 'Среднее профессиональное';
+    private const LEVEL_BACHELOR = 'Бакалавриат';
+    private const LEVEL_MASTER = 'Магистратура';
+
+    private const MONTHS_GENITIVE = [
+        1 => 'января',   2 => 'февраля',  3 => 'марта',
+        4 => 'апреля',   5 => 'мая',      6 => 'июня',
+        7 => 'июля',     8 => 'августа',  9 => 'сентября',
+        10 => 'октября', 11 => 'ноября',  12 => 'декабря',
+    ];
+
     public function downloadStudentDocument($studentDocumentOrderRequestId)
     {
-        $edu_level = '';
+        $request = StudentDocumentOrderRequest::findOrFail($studentDocumentOrderRequestId);
+        $issuance = StudentDocumentOrderIssuance::where('student_document_order_request_id', '=', $studentDocumentOrderRequestId)
+            ->firstOrFail();
 
-        $studentDocumentOrderRequest = StudentDocumentOrderRequest::where('id', '=', $studentDocumentOrderRequestId)->first();
-        $studentDocumentOrderIssuance = StudentDocumentOrderIssuance::where('student_document_order_request_id', '=', $studentDocumentOrderRequestId)->first();
+        $type = (int) $request->document_type;
 
-        switch ($studentDocumentOrderIssuance->level_education_name) {
-            case 'Среднее профессиональное':
-                $forTransportCard = ($studentDocumentOrderRequest->document_type == 2) ? 'интегрированной с общеобразовательной программой среднего общего образования' : '';
-                $edu_level = "среднего профессионального образования $forTransportCard - программе подготовки специалистов среднего звена специальности";
-                break;
-            case 'Бакалавриат':
-                $edu_level = 'бакалавриата направления подготовки';
-                break;
-            case 'Магистратура':
-                $edu_level = 'магистратуры направления подготовки';
-                break;
-            default:
-                $edu_level = '';
-                break;
+        $path = $this->resolveTemplatePath($type, $issuance->level_education_name);
+        $template = new TemplateProcessor($path);
+
+        // Общие поля для всех типов документов
+        $template->setValue('date', $this->formatDateWithMonthName($request->created_at));
+        $template->setValue('number', $issuance->document_number . '-эл.');
+        $template->setValue('course', $issuance->course);
+        $template->setValue('teaching_form', $this->transformTeachingForm($issuance->teaching_form_name));
+        $template->setValue('signer_position', $issuance->signer_position);
+        $template->setValue('signer_fio', $issuance->signer_fio);
+
+        // Дательный падеж ФИО (справки 1, 2, 3)
+        if (in_array($type, [self::TYPE_STUDY, self::TYPE_TRANSPORT_CARD, self::TYPE_INVITATION], true)) {
+            $template->setValue('last_name_dative', $issuance->last_name_dative);
+            $template->setValue('first_name_dative', $issuance->first_name_dative);
+            $template->setValue('middle_name_dative', $issuance->middle_name_dative);
         }
 
-        $confirmiter = UserData::select('last_name', 'first_name', 'middle_name')
-            ->where('user_id', '=', $studentDocumentOrderIssuance->confirmiter_id)->first();
+        // Поля, общие для справок об обучении и характеристики (1, 2, 4)
+        if ($type !== self::TYPE_INVITATION) {
+            $confirmiter = UserData::select('last_name', 'first_name', 'middle_name')
+                ->where('user_id', '=', $issuance->confirmiter_id)
+                ->first();
 
-        if ($studentDocumentOrderRequest->document_type == 1) {
-            if ($studentDocumentOrderIssuance->level_education_name == 'Среднее профессиональное') {
-                $path = Storage::disk('public')->path('template/certificates/tmp_about_study_spo.docx');
-            } else {
-                $path = Storage::disk('public')->path('template/certificates/tmp_about_study_vo.docx');
-            }}
-        else if  ($studentDocumentOrderRequest->document_type == 2) {
-            if ($studentDocumentOrderIssuance->level_education_name == 'Среднее профессиональное') {
-                $path = Storage::disk('public')->path('template/certificates/tmp_about_study_transp_spo.docx');
-            }}
-        else if ($studentDocumentOrderRequest->document_type == 3) {
-            $path = Storage::disk('public')->path('template/spravka.docx');
-        } else {
-            $path = Storage::disk('public')->path('template/certificates/tmp_characteristic.docx');
+            $template->setValue('birthday', $this->formatDateWithMonthName($issuance->birthday));
+            $template->setValue('edu_level', $this->buildEduLevel($issuance->level_education_name, $type));
+            $template->setValue('sex', $issuance->sex ? 'она' : 'он');
+            $template->setValue('student_word', $this->studentWord($issuance->sex));
+            $template->setValue('sp', $issuance->specialty_code . ' - ' . $issuance->speciality_name);
+            $template->setValue('orders', $issuance->orders);
+            $template->setValue('training_period', $issuance->training_period);
+            $template->setValue('confirmiter', $this->formatConfirmiter($confirmiter));
+        }
+
+        // Только справки об обучении (1, 2)
+        if (in_array($type, [self::TYPE_STUDY, self::TYPE_TRANSPORT_CARD], true)) {
+            $template->setValue('is_budget', $issuance->is_budget ? '' :
+                "За время обучения академический отпуск {$issuance->last_name_dative} {$issuance->first_name_dative} {$issuance->middle_name_dative} не предоставлялся, стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются.");
+        }
+
+        // ФИО в именительном падеже: справка-вызов (3) и характеристика (4)
+        if ($type === self::TYPE_INVITATION || $type === self::TYPE_CHARACTERISTIC) {
+            $template->setValue('last_name', $issuance->last_name);
+            $template->setValue('first_name', $issuance->first_name);
+            $template->setValue('middle_name', $issuance->middle_name);
+        }
+
+        // Только характеристика (4)
+        if ($type === self::TYPE_CHARACTERISTIC) {
+            $template->setValue('last_name_genitive', $issuance->last_name_genitive);
+            $template->setValue('first_name_genitive', $issuance->first_name_genitive);
+            $template->setValue('middle_name_genitive', $issuance->middle_name_genitive);
+        }
+
+        // Только справка-вызов (3)
+        if ($type === self::TYPE_INVITATION) {
+            $template->setValue('specialty_code', $issuance->specialty_code);
+            $template->setValue('speciality_name', $issuance->speciality_name);
+            $template->setValue('check_in_date', Carbon::parse($issuance->check_in_date)->format('d.m.Y'));
+            $template->setValue('check_out_date', Carbon::parse($issuance->check_out_date)->format('d.m.Y'));
+            $template->setValue('check_in_duration', $issuance->check_in_duration);
+            $template->setValue('employment_place', $issuance->employment_place);
         }
 
         $filename = time() . '.docx';
-
-        $templateProcessor = new TemplateProcessor($path);
-        $templateProcessor->setValue('date', Carbon::parse($studentDocumentOrderRequest->created_at)->format('d.m.Y'));
-        $templateProcessor->setValue('number', $studentDocumentOrderIssuance->document_number . '-эл.');
-
-        if ($studentDocumentOrderRequest->document_type == 1 || $studentDocumentOrderRequest->document_type == 2 || $studentDocumentOrderRequest->document_type == 3) {
-            $templateProcessor->setValue('last_name_dative', $studentDocumentOrderIssuance->last_name_dative);
-            $templateProcessor->setValue('first_name_dative', $studentDocumentOrderIssuance->first_name_dative);
-            $templateProcessor->setValue('middle_name_dative', $studentDocumentOrderIssuance->middle_name_dative);
-        }
-
-        if ($studentDocumentOrderRequest->document_type == 4) {
-            $templateProcessor->setValue('last_name', $studentDocumentOrderIssuance->last_name);
-            $templateProcessor->setValue('first_name', $studentDocumentOrderIssuance->first_name);
-            $templateProcessor->setValue('middle_name', $studentDocumentOrderIssuance->middle_name);
-            $templateProcessor->setValue('last_name_genitive', $studentDocumentOrderIssuance->last_name_genitive);
-            $templateProcessor->setValue('first_name_genitive', $studentDocumentOrderIssuance->first_name_genitive);
-            $templateProcessor->setValue('middle_name_genitive', $studentDocumentOrderIssuance->middle_name_genitive);
-            $templateProcessor->setValue('birthday', Carbon::parse($studentDocumentOrderIssuance->birthday)->format('d.m.Y'));
-            $templateProcessor->setValue('edu_level', $edu_level);
-            $templateProcessor->setValue('sp', $studentDocumentOrderIssuance->specialty_code . ' - ' . $studentDocumentOrderIssuance->speciality_name);
-            $templateProcessor->setValue('orders', $studentDocumentOrderIssuance->orders);
-            $templateProcessor->setValue('training_period',  $studentDocumentOrderIssuance->training_period);
-            $templateProcessor->setValue('signer_position', $studentDocumentOrderIssuance->signer_position);
-            $templateProcessor->setValue('signer_fio', $studentDocumentOrderIssuance->signer_fio);
-            $templateProcessor->setValue('confirmiter',  $confirmiter->last_name . ' ' . mb_substr($confirmiter->first_name, 0, 1) . '.' . mb_substr($confirmiter->middle_name, 0, 1) . '.');
-        }
-
-        $templateProcessor->setValue('course', $studentDocumentOrderIssuance->course);
-        $templateProcessor->setValue('teaching_form', $this->transformTeachingForm($studentDocumentOrderIssuance->teaching_form_name));
-
-        //Справка об обучении
-        if ($studentDocumentOrderRequest->document_type == 1 || $studentDocumentOrderRequest->document_type == 2) {
-            $templateProcessor->setValue('birthday', Carbon::parse($studentDocumentOrderIssuance->birthday)->format('d.m.Y'));
-            $templateProcessor->setValue('edu_level', $edu_level);
-            $templateProcessor->setValue('sex', ($studentDocumentOrderIssuance->sex) ? 'она' : 'он');
-            $templateProcessor->setValue('sp', $studentDocumentOrderIssuance->specialty_code . ' - ' . $studentDocumentOrderIssuance->speciality_name);
-            $templateProcessor->setValue('orders', $studentDocumentOrderIssuance->orders);
-            $templateProcessor->setValue('training_period',  $studentDocumentOrderIssuance->training_period);
-            $templateProcessor->setValue('is_budget', (!$studentDocumentOrderIssuance->is_budget) ?
-                "За время обучения академический отпуск $studentDocumentOrderIssuance->last_name_dative $studentDocumentOrderIssuance->first_name_dative $studentDocumentOrderIssuance->middle_name_dative не предоставлялся, стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются."
-                : "");
-            $templateProcessor->setValue('confirmiter',  $confirmiter->last_name . ' ' . mb_substr($confirmiter->first_name, 0, 1) . '.' . mb_substr($confirmiter->middle_name, 0, 1) . '.');
-            $templateProcessor->setValue('signer_position', $studentDocumentOrderIssuance->signer_position);
-            $templateProcessor->setValue('signer_fio', $studentDocumentOrderIssuance->signer_fio);
-        }
-
-        //Справка-вызов
-        if ($studentDocumentOrderRequest->document_type == 3) {
-            $templateProcessor->setValue('last_name', $studentDocumentOrderIssuance->last_name);
-            $templateProcessor->setValue('first_name', $studentDocumentOrderIssuance->first_name);
-            $templateProcessor->setValue('middle_name', $studentDocumentOrderIssuance->middle_name);
-            $templateProcessor->setValue('specialty_code', $studentDocumentOrderIssuance->specialty_code);
-            $templateProcessor->setValue('speciality_name', $studentDocumentOrderIssuance->speciality_name);
-            $templateProcessor->setValue('check_in_date', Carbon::parse($studentDocumentOrderIssuance->check_in_date)->format('d.m.Y'));
-            $templateProcessor->setValue('check_out_date', Carbon::parse($studentDocumentOrderIssuance->check_out_date)->format('d.m.Y'));
-            $templateProcessor->setValue('check_in_duration', $studentDocumentOrderIssuance->check_in_duration);
-            $templateProcessor->setValue('employment_place', $studentDocumentOrderIssuance->employment_place);
-            $templateProcessor->setValue('signer_position', $studentDocumentOrderIssuance->signer_position);
-            $templateProcessor->setValue('signer_fio', $studentDocumentOrderIssuance->signer_fio);
-        }
-
         $tempFile = tempnam(sys_get_temp_dir(), $filename);
-        $templateProcessor->saveAs($tempFile);
+        $template->saveAs($tempFile);
 
         return ['tempFile' => $tempFile, 'filename' => $filename];
     }
 
-    private function transformTeachingForm($teachingForm): string
+    /**
+     * Выбор шаблона .docx по типу документа и уровню образования.
+     *
+     * @throws DomainException если для сочетания типа и уровня шаблона нет
+     */
+    private function resolveTemplatePath(int $type, ?string $levelName): string
     {
-        $result = '';
+        $isSpo = $levelName === self::LEVEL_SPO;
 
-        switch ($teachingForm) {
-            case 'Очная':
-                $result = 'очной';
-                break;
-            case 'Заочная':
-                $result = 'заочной';
-                break;
-            case 'Заочная форма (ускоренное обучение)':
-                $result = 'заочной (ускоренное)';
-                break;
-            case 'Очно-заочная':
-                $result = 'очно-заочной';
-                break;
-            case 'Очная (ускоренное обучение)':
-                $result = 'очной (ускоренное)';
-                break;
+        $relativePath = match (true) {
+            $type === self::TYPE_STUDY && $isSpo => 'template/certificates/tmp_about_study_spo.docx',
+            $type === self::TYPE_STUDY => 'template/certificates/tmp_about_study_vo.docx',
+            $type === self::TYPE_TRANSPORT_CARD && $isSpo => 'template/certificates/tmp_about_study_transp_spo.docx',
+            $type === self::TYPE_TRANSPORT_CARD => throw new DomainException('Справка для транспортных карт выдаётся только студентам колледжа.'),
+            $type === self::TYPE_INVITATION => 'template/spravka.docx',
+            default => 'template/certificates/tmp_characteristic.docx',
+        };
+
+        return Storage::disk('public')->path($relativePath);
+    }
+
+    private function buildEduLevel(?string $levelName, int $type): string
+    {
+        switch ($levelName) {
+            case self::LEVEL_SPO:
+                $forTransportCard = ($type === self::TYPE_TRANSPORT_CARD)
+                    ? 'интегрированной с общеобразовательной программой среднего общего образования'
+                    : '';
+
+                return trim("среднего профессионального образования $forTransportCard")
+                    . ' - программе подготовки специалистов среднего звена специальности';
+            case self::LEVEL_BACHELOR:
+                return 'бакалавриата направления подготовки';
+            case self::LEVEL_MASTER:
+                return 'магистратуры направления подготовки';
             default:
-                $result = '';
-                break;
+                return '';
+        }
+    }
+
+    private function formatConfirmiter(?UserData $confirmiter): string
+    {
+        if (is_null($confirmiter)) {
+            return '';
         }
 
-        return $result;
+        return $confirmiter->last_name . ' '
+            . mb_substr($confirmiter->first_name, 0, 1) . '.'
+            . mb_substr($confirmiter->middle_name, 0, 1) . '.';
+    }
+
+    // 1 -> "обучающейся", 0 -> "обучающимся"
+    private function studentWord($sex): string
+    {
+        return $sex ? 'обучающейся' : 'обучающимся';
+    }
+
+    // "2026-03-05" -> "5 марта 2026"
+    private function formatDateWithMonthName($date): string
+    {
+        $d = Carbon::parse($date);
+
+        return $d->day . ' ' . self::MONTHS_GENITIVE[$d->month] . ' ' . $d->year;
+    }
+
+    private function transformTeachingForm($teachingForm): string
+    {
+        switch ($teachingForm) {
+            case 'Очная':
+                return 'очной';
+            case 'Заочная':
+                return 'заочной';
+            case 'Заочная форма (ускоренное обучение)':
+                return 'заочной (ускоренное)';
+            case 'Очно-заочная':
+                return 'очно-заочной';
+            case 'Очная (ускоренное обучение)':
+                return 'очной (ускоренное)';
+            default:
+                return '';
+        }
     }
 }
