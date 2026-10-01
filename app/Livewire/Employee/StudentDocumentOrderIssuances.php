@@ -25,9 +25,11 @@ class StudentDocumentOrderIssuances extends Component
     public int $selectedStatus = 0;
     public string $signer = '';
 
+    # Пока один вариант
+    # Если будут другие и выборка действительно будет - ${signer_position} и ${signer_fio} в шаблон
     public $listOfSigners = [
-        'Проректор по УиНР' => 'Е.В. Шпилевская',
-        'Академический директор' => 'Н.А Вартанян',
+        #'Проректор по УиНР' => 'Е.В. Шпилевская',
+        'Академический директор' => 'Вартанян Н.А.',
     ];
 
     public $listOfDocumentTypes = [
@@ -227,7 +229,8 @@ class StudentDocumentOrderIssuances extends Component
             $this->checkInDuration = $studentDocumentOrderIssuance->check_in_duration;
             $this->employmentPlace = $studentDocumentOrderIssuance->employment_place;
             $this->isBudget = $studentDocumentOrderIssuance->is_budget;
-
+            // Подписант по умолчанию: первый из списка
+            $this->signer = array_key_first($this->listOfSigners) . '|' . reset($this->listOfSigners);
             $this->isShowModalDialog = true;
         } catch (Exception $e) {
             $this->dispatch('show-toast', message: 'Ошибка получения данных из БД!', type: 'error');

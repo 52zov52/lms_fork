@@ -74,8 +74,9 @@ class StudentDocumentOrderReportController extends Controller
 
         // Только справки об обучении (1, 2)
         if (in_array($type, [self::TYPE_STUDY, self::TYPE_TRANSPORT_CARD], true)) {
-            $template->setValue('is_budget', $issuance->is_budget ? '' :
-                "За время обучения академический отпуск {$issuance->last_name_dative} {$issuance->first_name_dative} {$issuance->middle_name_dative} не предоставлялся, стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются.");
+            $template->setValue('is_budget', $issuance->is_budget
+                ? "За время обучения академический отпуск {$issuance->last_name_dative} {$issuance->first_name_dative} {$issuance->middle_name_dative} не предоставлялся, стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются."
+                : '');
         }
 
         // ФИО в именительном падеже: справка-вызов (3) и характеристика (4)
