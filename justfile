@@ -48,15 +48,19 @@ build-assets:
   npm install
   npm run build
 
-# Update production
+# Rebuild assets, clear cache and optimize
+rebuild:
+    php artisan down || true
+    composer install --no-dev --optimize-autoloader --no-interaction
+    npm install
+    npm run build
+    php artisan optimize:clear
+    php artisan permission:cache-reset
+    php artisan optimize
+    php artisan view:cache
+    php artisan up
+
+# Pull changes from main and rebuild production
 update-prod:
-  php artisan down || true
-  git pull origin main
-  composer install --no-dev --optimize-autoloader --no-interaction
-  npm install
-  npm run build
-  php artisan optimize:clear
-  php artisan permission:cache-reset
-  php artisan optimize
-  php artisan view:cache
-  php artisan up
+    git pull origin main
+    @just rebuild
