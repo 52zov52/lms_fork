@@ -30,6 +30,7 @@
         <li><a wire:click="generateContingentByAgeAndGenderWithoutTeachingFromReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней обучения</a></li>
         <li><a wire:click="downloadListOfForeignStudents" href="#" class="text-blue-500 hover:underline">Отчет по иностранным обучающимся</a></li>
         <li><a wire:click="showSocialPassportModal" href="#" class="text-blue-500 hover:underline">Социальный паспорт обучающегося</a></li>
+        <li><a wire:click="downloadStudentsEducationReport" href="#" class="text-blue-500 hover:underline">Отчет по студентам</a></li>
     </ul>
     @endcan
     @can('access-to-social-passport-report')

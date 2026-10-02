@@ -249,4 +249,12 @@ class Report extends Component
     {
         return redirect()->route('generate.spt.report');
     }
+
+    public function downloadStudentsEducationReport()
+    {
+        $contingentReportController = new ContingentReportController();
+        $data = $contingentReportController->downloadStudentsEducationReport();
+ 
+        return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
+    }
 }

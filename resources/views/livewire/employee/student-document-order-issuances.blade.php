@@ -190,9 +190,8 @@
             <x-slot name="content">
                 <div class="flex flex-col space-y-2">
                     <div class="flex flex-col">
-                        <label for="document-number" class="font-semibold">Номер справки<span class="text-red-400">*</span></label>
-                        <input wire:model="documentNumber" type="text" name="documentNumber" id="document-number" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        @error('documentNumber') <span class="text-red-500">{{ $message }}</span> @enderror
+                        <label for="document-number" class="font-semibold">Номер справки (присваивается автоматически)</label>
+                        <input wire:model="documentNumber" type="text" name="documentNumber" id="document-number" readonly class="w-full border border-gray-300 bg-gray-100 rounded px-2 text-sm md:text-base">
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                         <div class="flex flex-col">

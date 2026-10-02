@@ -66,7 +66,7 @@ class ContingentController extends Controller
                 'addresses.building',
                 'addresses.flat',
                 'addresses.phone',
-                DB::raw("(SELECT group_name FROM groups WHERE id = group_student.group_id ORDER BY id DESC LIMIT 1) as group_name"),
+                DB::raw("(SELECT group_name FROM `groups` WHERE id = group_student.group_id ORDER BY id DESC LIMIT 1) as group_name"),
                 DB::raw("(SELECT ticket_number FROM student_ticket_numbers WHERE user_id = group_student.user_id ORDER BY id DESC LIMIT 1) as ticket_number"),
                 DB::raw("(SELECT states.name FROM student_state INNER JOIN states ON states.id = student_state.state_id WHERE student_state.user_id = group_student.user_id ORDER BY student_state.id DESC LIMIT 1) as state_name"),
                 'type_educations.type_name',
@@ -103,7 +103,7 @@ class ContingentController extends Controller
                 'users_data.last_name',
                 'users_data.first_name',
                 'users_data.middle_name',
-                DB::raw("(SELECT group_name FROM groups WHERE id = group_student.group_id ORDER BY id DESC LIMIT 1) as group_name"),
+                DB::raw("(SELECT group_name FROM `groups` WHERE id = group_student.group_id ORDER BY id DESC LIMIT 1) as group_name"),
                 DB::raw("(SELECT ticket_number FROM student_ticket_numbers WHERE user_id = group_student.user_id ORDER BY id DESC LIMIT 1) as ticket_number"),
                 DB::raw("(SELECT states.name FROM student_state INNER JOIN states ON states.id = student_state.state_id WHERE student_state.user_id = group_student.user_id ORDER BY student_state.id DESC LIMIT 1) as state_name")
             )
@@ -122,7 +122,7 @@ class ContingentController extends Controller
                 'users_data.last_name',
                 'users_data.first_name',
                 'users_data.middle_name',
-                DB::raw("(SELECT group_name FROM groups WHERE id = group_student.group_id ORDER BY id DESC LIMIT 1) as group_name"),
+                DB::raw("(SELECT group_name FROM `groups` WHERE id = group_student.group_id ORDER BY id DESC LIMIT 1) as group_name"),
                 DB::raw("(SELECT ticket_number FROM student_ticket_numbers WHERE user_id = group_student.user_id ORDER BY id DESC LIMIT 1) as ticket_number"),
                 DB::raw("(SELECT states.name FROM student_state INNER JOIN states ON states.id = student_state.state_id WHERE student_state.user_id = group_student.user_id ORDER BY student_state.id DESC LIMIT 1) as state_name"),
                 DB::raw("(SELECT user_id FROM military_registration_students WHERE user_id = group_student.user_id LIMIT 1) as military_status")
@@ -143,7 +143,7 @@ class ContingentController extends Controller
                 'users_data.first_name',
                 'users_data.middle_name',
                 'student_ticket_numbers.ticket_number',
-                DB::raw("(SELECT group_name FROM groups WHERE id = group_student.group_id ORDER BY id DESC LIMIT 1) as group_name"),
+                DB::raw("(SELECT group_name FROM `groups` WHERE id = group_student.group_id ORDER BY id DESC LIMIT 1) as group_name"),
                 DB::raw("(SELECT states.name FROM student_state INNER JOIN states ON states.id = student_state.state_id WHERE student_state.user_id = group_student.user_id ORDER BY student_state.id DESC LIMIT 1) as state_name"),
                 DB::raw("(SELECT user_id FROM military_registration_students WHERE user_id = group_student.user_id LIMIT 1) as military_status")
             )
@@ -198,5 +198,49 @@ class ContingentController extends Controller
             ->select('groups.id')
             ->distinct()
             ->get()->toArray());
+    }
+
+     public function getStudentsEducationData(): object
+    {
+        return GroupStudent::join('users_data', 'group_student.user_id', '=', 'users_data.user_id')
+            ->join('groups', 'group_student.group_id', '=', 'groups.id')
+            ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
+            ->join('teaching_forms', 'work_study_plans.teaching_form_id', '=', 'teaching_forms.id')
+            ->join('specialities', 'work_study_plans.speciality_id', '=', 'specialities.id')
+            ->leftJoin('countries', 'users_data.citizenship', '=', 'countries.id')
+            // у студента может быть несколько записей об образовании: берём последнюю
+            ->leftJoin('user_education_backgrounds', function ($join) {
+                $join->on('user_education_backgrounds.user_id', '=', 'users_data.user_id')
+                    ->whereRaw('user_education_backgrounds.id = (SELECT MAX(ueb.id) FROM user_education_backgrounds ueb WHERE ueb.user_id = users_data.user_id)');
+            })
+            ->leftJoin('documents', 'user_education_backgrounds.document_id', '=', 'documents.id')
+            ->leftJoin('education_organizations', 'user_education_backgrounds.education_organization_id', '=', 'education_organizations.id')
+            ->leftJoin('cities', 'education_organizations.city_id', '=', 'cities.id')
+            ->whereIn('group_student.group_id', $this->getGroupIds())
+            ->select(
+                'groups.group_name',
+                'groups.course',
+                DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
+                'users_data.sex',
+                'users_data.birthday',
+                'countries.country_name',
+                'documents.document_type',
+                'user_education_backgrounds.end_year',
+                'user_education_backgrounds.document_issue_date',
+                'cities.city_name',
+                'education_organizations.name as organization_name',
+                'teaching_forms.teaching_form_name',
+                DB::raw("CONCAT(specialities.specialty_code, ' ', specialities.speciality_name) as sp"),
+                DB::raw("(SELECT aas.average_score FROM applicant_average_scores aas
+                        WHERE aas.last_name = users_data.last_name
+                            AND aas.first_name = users_data.first_name
+                            AND (aas.middle_name <=> users_data.middle_name
+                                OR aas.middle_name LIKE CONCAT(users_data.middle_name, ' (%'))
+                        ORDER BY aas.id DESC LIMIT 1) as average_score")
+            )
+            ->orderBy('groups.group_name')
+            ->orderBy('users_data.last_name')
+            ->orderBy('users_data.first_name')
+            ->get();
     }
 }

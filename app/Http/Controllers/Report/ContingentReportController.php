@@ -498,4 +498,106 @@ class ContingentReportController extends Controller
 
         return ['tempFile' => $tempFile, 'filename' => $filename];
     }
+
+    public function downloadStudentsEducationReport()
+    {
+        $students = (new ContingentController())->getStudentsEducationData();
+ 
+        $filename = time() . '.xlsx';
+ 
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Данные студентов');
+ 
+        $lastColumn = 'N';
+ 
+        $sheet->setCellValue('A1', 'Данные студентов');
+        $sheet->mergeCells('A1:' . $lastColumn . '1');
+ 
+        $sheet->setCellValue('F2', 'Документ об образовании');
+        $sheet->mergeCells('F2:J2');
+ 
+        $sheet->fromArray([[
+            '№ п/п', 'ФИО', 'Пол', 'Дата рождения', 'Гражданство',
+            'Наименование', 'Год выдачи', 'Средний балл', 'Место выдачи', 'Кем выдан',
+            'Группа', 'Курс', 'Форма обучения', 'Направление подготовки',
+        ]], null, 'A3');
+ 
+        $row = 4;
+        $number = 1;
+ 
+        foreach ($students as $student) {
+            $year = $student->end_year
+                ?: ($student->document_issue_date ? Carbon::parse($student->document_issue_date)->year : '');
+ 
+            $sheet->fromArray([[
+                $number++,
+                trim(preg_replace('/\s+/u', ' ', $student->fio)),
+                $student->sex ? 'Ж' : 'М',
+                Carbon::parse($student->birthday)->format('d.m.Y'),
+                $student->country_name,
+                $student->document_type,
+                $year,
+                $student->average_score,
+                $student->city_name,
+                $student->organization_name,
+                $student->group_name,
+                $student->course,
+                $student->teaching_form_name,
+                $student->sp,
+            ]], null, 'A' . $row);
+ 
+            $row++;
+        }
+ 
+        $lastRow = max($row - 1, 3);
+ 
+        // Заголовок и шапка
+        $sheet->getStyle('A1:' . $lastColumn . '3')->getFont()->setBold(true);
+        $sheet->getStyle('A1:' . $lastColumn . '3')->applyFromArray(['alignment' => [
+            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+        ]]);
+        $sheet->getStyle('A3:' . $lastColumn . '3')->getAlignment()->setWrapText(true);
+ 
+        // Данные: перенос текста, по центру короткие столбцы
+        $sheet->getStyle('A4:' . $lastColumn . $lastRow)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('A4:' . $lastColumn . $lastRow)->getAlignment()
+            ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+ 
+        foreach (['A', 'C', 'D', 'G', 'H', 'K', 'L', 'M'] as $column) {
+            $sheet->getStyle($column . '4:' . $column . $lastRow)
+                ->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        }
+ 
+        // Рамка
+        $sheet->getStyle('A2:' . $lastColumn . $lastRow)
+            ->getBorders()
+            ->getAllBorders()
+            ->applyFromArray([
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => ['rgb' => '808080'],
+            ]);
+ 
+        // Ширина столбцов
+        $widths = [
+            'A' => 8, 'B' => 35, 'C' => 6, 'D' => 14, 'E' => 22,
+            'F' => 30, 'G' => 12, 'H' => 12, 'I' => 20, 'J' => 40,
+            'K' => 15, 'L' => 8, 'M' => 16, 'N' => 35,
+        ];
+ 
+        foreach ($widths as $column => $width) {
+            $sheet->getColumnDimension($column)->setWidth($width);
+        }
+ 
+        // Закрепить шапку
+        $sheet->freezePane('A4');
+ 
+        $writer = new Xlsx($spreadsheet);
+ 
+        $tempFile = tempnam(sys_get_temp_dir(), $filename);
+        $writer->save($tempFile);
+ 
+        return ['tempFile' => $tempFile, 'filename' => $filename];
+    }
 }

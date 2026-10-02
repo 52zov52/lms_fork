@@ -121,6 +121,17 @@ class StudentDocumentOrderIssuances extends Component
         return $query->paginate(50);
     }
 
+    private function nextDocumentNumber(): int
+    {
+        $max = StudentDocumentOrderIssuance::whereNotNull('confirmiter_id')
+            // ->whereYear('updated_at', now()->year) // Обновление номера справок каждый год
+            ->lockForUpdate()
+            ->selectRaw('MAX(CAST(document_number AS UNSIGNED)) as max_number')
+            ->value('max_number');
+
+        return ((int) $max) + 1;
+    }
+
     public function edit($studentDocumentOrderRequestId, $requesterId, $documentType)
     {
         $this->resetErrorBag();
@@ -210,19 +221,24 @@ class StudentDocumentOrderIssuances extends Component
             $this->order = Carbon::parse($orderUser->order_date)->format('d.m.Y') . ' № ' . $orderUser->order_number;
             $this->trainingPeriod = 'с ' . Carbon::parse($groupStudent->year_admission)->format('d.m.Y') . 'г. по ' . Carbon::parse($groupStudent->year_completion)->format('d.m.Y') . 'г.';
 
-            $lastConfirmetedDocumentNumber = StudentDocumentOrderIssuance::join('student_document_order_requests', 'student_document_order_issuances.student_document_order_request_id', '=', 'student_document_order_requests.id')
-                ->where('student_document_order_requests.document_type', '=', $this->documentType)->where('student_document_order_requests.status', '=', 2)
-                ->select('student_document_order_issuances.document_number')
-                ->orderBy('student_document_order_issuances.id', 'desc')
-                ->first();
+            // $lastConfirmetedDocumentNumber = StudentDocumentOrderIssuance::join('student_document_order_requests', 'student_document_order_issuances.student_document_order_request_id', '=', 'student_document_order_requests.id')
+            //     ->where('student_document_order_requests.document_type', '=', $this->documentType)->where('student_document_order_requests.status', '=', 2)
+            //     ->select('student_document_order_issuances.document_number')
+            //     ->orderBy('student_document_order_issuances.id', 'desc')
+            //     ->first();
 
-            if (is_null($studentDocumentOrderIssuance->confirmiter_id)) {
-                $this->documentNumber = (is_null($lastConfirmetedDocumentNumber)) ?
-                    StudentDocumentOrderRequest::where('document_type', '=', $this->documentType)->where('status', '=', 2)->count() + 1 :
-                    ++$lastConfirmetedDocumentNumber->document_number;
-            } else {
-                $this->documentNumber = $lastConfirmetedDocumentNumber->document_number;
-            }
+            // if (is_null($studentDocumentOrderIssuance->confirmiter_id)) {
+            //     $this->documentNumber = (is_null($lastConfirmetedDocumentNumber)) ?
+            //         StudentDocumentOrderRequest::where('document_type', '=', $this->documentType)->where('status', '=', 2)->count() + 1 :
+            //         ++$lastConfirmetedDocumentNumber->document_number;
+            // } else {
+            //     $this->documentNumber = $lastConfirmetedDocumentNumber->document_number;
+            // }
+
+            // Номер только для показа: реально он присваивается в update()
+            $this->documentNumber = is_null($studentDocumentOrderIssuance->confirmiter_id)
+                ? $this->nextDocumentNumber()
+                : (int) $studentDocumentOrderIssuance->document_number;
 
             $this->checkInDate = (is_null($studentDocumentOrderIssuance->check_in_date)) ? '' : $studentDocumentOrderIssuance->check_in_date;
             $this->checkOutDate = (is_null($studentDocumentOrderIssuance->check_out_date)) ? '' : $studentDocumentOrderIssuance->check_out_date;
@@ -239,98 +255,95 @@ class StudentDocumentOrderIssuances extends Component
 
     public function update()
     {
-        if ($this->documentType != 3) {
-            $this->validate([
-                'documentNumber' => 'required|numeric|min:1',
-                'lastName' => 'required|string|max:50',
-                'firstName' => 'required|string|max:50',
-                'middleName' => 'required|string|max:50',
-                'lastNameGenitive' => 'required|string|max:50',
-                'firstNameGenitive' => 'required|string|max:50',
-                'middleNameGenitive' => 'required|string|max:50',
-                'lastNameDative' => 'required|string|max:50',
-                'firstNameDative' => 'required|string|max:50',
-                'middleNameDative' => 'required|string|max:50',
-                'birthday' => 'required',
-                'course' => 'required|numeric|min:1',
-                'teachingFormName' => 'required|string|max:255',
-                'specialityName' => 'required|string|max:255',
-                'specialtyCode' => 'required|string|max:255',
-                'order' => 'required|string|max:255',
-                'trainingPeriod' => 'required|string|max:255',
-                'signer' => 'required'
-            ]);
-        } else {
-            $this->validate([
-                'documentNumber' => 'required|numeric|min:1',
-                'lastName' => 'required|string|max:50',
-                'firstName' => 'required|string|max:50',
-                'middleName' => 'required|string|max:50',
-                'lastNameGenitive' => 'required|string|max:50',
-                'firstNameGenitive' => 'required|string|max:50',
-                'middleNameGenitive' => 'required|string|max:50',
-                'lastNameDative' => 'required|string|max:50',
-                'firstNameDative' => 'required|string|max:50',
-                'middleNameDative' => 'required|string|max:50',
-                'birthday' => 'required',
-                'course' => 'required|numeric|min:1',
-                'teachingFormName' => 'required|string|max:255',
-                'specialityName' => 'required|string|max:255',
-                'specialtyCode' => 'required|string|max:255',
-                'order' => 'required|string|max:255',
-                'trainingPeriod' => 'required|string|max:255',
+        $rules = [
+            'lastName' => 'required|string|max:50',
+            'firstName' => 'required|string|max:50',
+            'middleName' => 'required|string|max:50',
+            'lastNameGenitive' => 'required|string|max:50',
+            'firstNameGenitive' => 'required|string|max:50',
+            'middleNameGenitive' => 'required|string|max:50',
+            'lastNameDative' => 'required|string|max:50',
+            'firstNameDative' => 'required|string|max:50',
+            'middleNameDative' => 'required|string|max:50',
+            'birthday' => 'required',
+            'course' => 'required|numeric|min:1',
+            'teachingFormName' => 'required|string|max:255',
+            'specialityName' => 'required|string|max:255',
+            'specialtyCode' => 'required|string|max:255',
+            'order' => 'required|string|max:255',
+            'trainingPeriod' => 'required|string|max:255',
+            'signer' => 'required',
+        ];
+ 
+        if ($this->documentType == 3) {
+            $rules += [
                 'checkInDate' => 'required',
                 'checkOutDate' => 'required',
                 'checkInDuration' => 'required|numeric|min:1',
                 'employmentPlace' => 'required|string|max:1000',
-                'signer' => 'required'
-            ]);
+            ];
         }
-
-        $studentDocumentOrderIssuance = StudentDocumentOrderIssuance::findOrFail($this->id);
-        $studentDocumentOrderIssuance->document_number = $this->documentNumber;
-        $studentDocumentOrderIssuance->last_name = $this->lastName;
-        $studentDocumentOrderIssuance->first_name = $this->firstName;
-        $studentDocumentOrderIssuance->middle_name = $this->middleName;
-        $studentDocumentOrderIssuance->last_name_genitive = $this->lastNameGenitive;
-        $studentDocumentOrderIssuance->first_name_genitive = $this->firstNameGenitive;
-        $studentDocumentOrderIssuance->middle_name_genitive = $this->middleNameGenitive;
-        $studentDocumentOrderIssuance->last_name_dative = $this->lastNameDative;
-        $studentDocumentOrderIssuance->first_name_dative = $this->firstNameDative;
-        $studentDocumentOrderIssuance->middle_name_dative = $this->middleNameDative;
-        $studentDocumentOrderIssuance->birthday = Carbon::parse($this->birthday)->format('Y-m-d');
-        $studentDocumentOrderIssuance->sex = ($this->sex == 'муж.') ? 0 : 1;
-        $studentDocumentOrderIssuance->course = $this->course;
-        $studentDocumentOrderIssuance->level_education_name = $this->levelEducationName;
-        $studentDocumentOrderIssuance->teaching_form_name = $this->teachingFormName;
-        $studentDocumentOrderIssuance->speciality_name = $this->specialityName;
-        $studentDocumentOrderIssuance->specialty_code = $this->specialtyCode;
-        $studentDocumentOrderIssuance->orders = $this->order;
-        $studentDocumentOrderIssuance->training_period = $this->trainingPeriod;
-
-        if ($this->documentType == 3) {
-            $studentDocumentOrderIssuance->check_in_date = Carbon::parse($this->checkInDate)->format('Y-m-d');
-            $studentDocumentOrderIssuance->check_out_date = Carbon::parse($this->checkOutDate)->format('Y-m-d');
-            $studentDocumentOrderIssuance->check_in_duration = $this->checkInDuration;
-            $studentDocumentOrderIssuance->employment_place = $this->employmentPlace;
-        }
-
-        $studentDocumentOrderIssuance->is_budget = $this->isBudget;
-        $studentDocumentOrderIssuance->confirmiter_id = Auth::user()->id;
-
-        $signerData = explode('|', $this->signer);
-        $studentDocumentOrderIssuance->signer_position = $signerData[0];
-        $studentDocumentOrderIssuance->signer_fio = $signerData[1];
-
-        $studentDocumentOrderIssuance->update();
-
-        $studentDocumentOrderRequest = StudentDocumentOrderRequest::findOrFail($this->studentDocumentOrderRequestId);
-        $studentDocumentOrderRequest->status = 2;
-        $studentDocumentOrderRequest->update();
-
+ 
+        $this->validate($rules);
+ 
+        $isConfirmed = DB::transaction(function () {
+            $issuance = StudentDocumentOrderIssuance::lockForUpdate()->findOrFail($this->id);
+ 
+            // Уже подтверждена (например, двойной клик): ничего не меняем
+            if (!is_null($issuance->confirmiter_id)) {
+                return false;
+            }
+ 
+            $issuance->document_number = $this->nextDocumentNumber();
+            $issuance->last_name = $this->lastName;
+            $issuance->first_name = $this->firstName;
+            $issuance->middle_name = $this->middleName;
+            $issuance->last_name_genitive = $this->lastNameGenitive;
+            $issuance->first_name_genitive = $this->firstNameGenitive;
+            $issuance->middle_name_genitive = $this->middleNameGenitive;
+            $issuance->last_name_dative = $this->lastNameDative;
+            $issuance->first_name_dative = $this->firstNameDative;
+            $issuance->middle_name_dative = $this->middleNameDative;
+            $issuance->birthday = Carbon::parse($this->birthday)->format('Y-m-d');
+            $issuance->sex = ($this->sex == 'муж.') ? 0 : 1;
+            $issuance->course = $this->course;
+            $issuance->level_education_name = $this->levelEducationName;
+            $issuance->teaching_form_name = $this->teachingFormName;
+            $issuance->speciality_name = $this->specialityName;
+            $issuance->specialty_code = $this->specialtyCode;
+            $issuance->orders = $this->order;
+            $issuance->training_period = $this->trainingPeriod;
+ 
+            if ($this->documentType == 3) {
+                $issuance->check_in_date = Carbon::parse($this->checkInDate)->format('Y-m-d');
+                $issuance->check_out_date = Carbon::parse($this->checkOutDate)->format('Y-m-d');
+                $issuance->check_in_duration = $this->checkInDuration;
+                $issuance->employment_place = $this->employmentPlace;
+            }
+ 
+            $issuance->is_budget = $this->isBudget;
+            $issuance->confirmiter_id = Auth::user()->id;
+ 
+            $signerData = explode('|', $this->signer);
+            $issuance->signer_position = $signerData[0];
+            $issuance->signer_fio = $signerData[1] ?? '';
+ 
+            $issuance->update();
+ 
+            $request = StudentDocumentOrderRequest::findOrFail($this->studentDocumentOrderRequestId);
+            $request->status = 2;
+            $request->update();
+ 
+            return true;
+        });
+ 
         $this->isShowModalDialog = false;
-
-        $this->dispatch('show-toast', message: 'Заявка успешно подтверждена!', type: 'success');
+ 
+        if ($isConfirmed) {
+            $this->dispatch('show-toast', message: 'Заявка успешно подтверждена!', type: 'success');
+        } else {
+            $this->dispatch('show-toast', message: 'Заявка уже была подтверждена ранее', type: 'info');
+        }
     }
 
     public function downloadStudentDocument($studentDocumentOrderRequestId)
