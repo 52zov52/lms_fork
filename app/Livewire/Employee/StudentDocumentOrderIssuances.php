@@ -72,7 +72,80 @@ class StudentDocumentOrderIssuances extends Component
         $checkInDuration = 0,
         $employmentPlace = '',
         $isBudget = false;
+        public bool $hadAcademicLeave = false;
+        public string $leaveOrders = '';
 
+    private const NOTE_LEAVE = 'Академотпуск';
+    private const NOTE_EXPELLED = 'Отчисленные';
+    private const NOTE_NOT_ENROLLED = 'Незачисленные';
+ 
+    private function detectLeaveInfo(int $userId): array
+    {
+        $rows = DB::table('order_user')
+            ->join('orders', 'order_user.order_id', '=', 'orders.id')
+            ->where('order_user.user_id', '=', $userId)
+            ->whereNull('order_user.deleted_at')
+            ->whereNull('orders.deleted_at')
+            ->orderBy('orders.order_date')
+            ->orderBy('order_user.id')
+            ->select('order_user.notes', 'orders.order_number', 'orders.order_date')
+            ->get();
+ 
+        $format = fn($row) => 'от ' . Carbon::parse($row->order_date)->format('d.m.Y') . ' № ' . $row->order_number . ';';
+ 
+        $lines = [];
+        $hadLeave = false;
+        $onLeave = false;
+        $expelIndex = null;
+ 
+        foreach ($rows as $row) {
+            $note = trim((string) $row->notes);
+ 
+            if ($note === self::NOTE_LEAVE) {
+                $lines[] = 'Приказ о предоставлении академического отпуска ' . $format($row);
+                $hadLeave = true;
+                $onLeave = true;
+            } elseif ($note === self::NOTE_EXPELLED) {
+                $expelIndex = count($lines);
+                $lines[] = 'Приказ об отчислении ' . $format($row);
+                $onLeave = false;
+            } elseif ($note !== '' && $note !== self::NOTE_NOT_ENROLLED) {
+                // обычный приказ с группой
+                if ($onLeave) {
+                    $lines[] = 'Приказ о выходе из академического отпуска ' . $format($row);
+                    $onLeave = false;
+                }
+ 
+                // после отчисления зачислили снова: строку об отчислении убираем
+                if ($expelIndex !== null) {
+                    unset($lines[$expelIndex]);
+                    $lines = array_values($lines);
+                    $expelIndex = null;
+                }
+            }
+        }
+ 
+        if (!$hadLeave) {
+            $leaveOrder = DB::table('students_academic_leaves as sal')
+                ->leftJoin('orders', 'sal.order_id', '=', 'orders.id')
+                ->where('sal.user_id', '=', $userId)
+                ->whereNull('sal.deleted_at')
+                ->orderBy('sal.id')
+                ->select('orders.order_number', 'orders.order_date')
+                ->first();
+ 
+            if ($leaveOrder !== null) {
+                $hadLeave = true;
+ 
+                if ($leaveOrder->order_number) {
+                    array_unshift($lines, 'Приказ о предоставлении академического отпуска ' . $format($leaveOrder));
+                }
+            }
+        }
+ 
+        return ['hadLeave' => $hadLeave, 'lines' => $lines];
+    }
+    
     public function render()
     {
         $studentDocumentOrderIssuances = $this->getStudentDocumentOrderIssuance();
@@ -196,7 +269,9 @@ class StudentDocumentOrderIssuances extends Component
                     'check_in_duration',
                     'employment_place',
                     'is_budget',
-                    'confirmiter_id'
+                    'confirmiter_id',
+                    'had_academic_leave',
+                    'leave_orders'
                 )
                 ->first();
 
@@ -247,6 +322,15 @@ class StudentDocumentOrderIssuances extends Component
             $this->isBudget = $studentDocumentOrderIssuance->is_budget;
             // Подписант по умолчанию: первый из списка
             $this->signer = array_key_first($this->listOfSigners) . '|' . reset($this->listOfSigners);
+            if (is_null($studentDocumentOrderIssuance->confirmiter_id)) {
+                // Ещё не подтверждена: подставляем подсказку по данным БД
+                $leaveInfo = $this->detectLeaveInfo((int) $requesterId);
+                $this->hadAcademicLeave = $leaveInfo['hadLeave'];
+                $this->leaveOrders = implode("\n", $leaveInfo['lines']);
+            } else {
+                $this->hadAcademicLeave = (bool) $studentDocumentOrderIssuance->had_academic_leave;
+                $this->leaveOrders = (string) $studentDocumentOrderIssuance->leave_orders;
+            }
             $this->isShowModalDialog = true;
         } catch (Exception $e) {
             $this->dispatch('show-toast', message: 'Ошибка получения данных из БД!', type: 'error');
@@ -321,6 +405,8 @@ class StudentDocumentOrderIssuances extends Component
                 $issuance->employment_place = $this->employmentPlace;
             }
  
+            $issuance->had_academic_leave = $this->hadAcademicLeave;
+            $issuance->leave_orders = trim($this->leaveOrders) !== '' ? trim($this->leaveOrders) : null;
             $issuance->is_budget = $this->isBudget;
             $issuance->confirmiter_id = Auth::user()->id;
  

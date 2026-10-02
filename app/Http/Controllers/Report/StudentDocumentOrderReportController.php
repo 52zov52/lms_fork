@@ -29,6 +29,16 @@ class StudentDocumentOrderReportController extends Controller
         10 => 'октября', 11 => 'ноября',  12 => 'декабря',
     ];
 
+    private function formatLeaveOrders(?string $leaveOrders): string
+    {
+        $lines = array_filter(array_map('trim', preg_split('/\R/u', (string) $leaveOrders)));
+ 
+        return implode(
+            '</w:t><w:br/><w:t xml:space="preserve">',
+            array_map(fn($line) => htmlspecialchars($line, ENT_XML1 | ENT_QUOTES, 'UTF-8'), $lines)
+        );
+    }
+
     public function downloadStudentDocument($studentDocumentOrderRequestId)
     {
         $request = StudentDocumentOrderRequest::findOrFail($studentDocumentOrderRequestId);
@@ -74,12 +84,17 @@ class StudentDocumentOrderReportController extends Controller
 
         // Только справки об обучении (1, 2)
         if (in_array($type, [self::TYPE_STUDY, self::TYPE_TRANSPORT_CARD], true)) {
-            $fullNameDative = trim(preg_replace('/\s+/u', ' ',
-                "{$issuance->last_name_dative} {$issuance->first_name_dative} {$issuance->middle_name_dative}"));
- 
             $template->setValue('is_budget', $issuance->is_budget
-                ? "за счет средств бюджетных ассигнований федерального бюджета"
+                ? ' за счет средств бюджетных ассигнований федерального бюджета '
                 : '');
+ 
+            $template->setValue('academic_leave', $issuance->had_academic_leave ? 'предоставлялся' : 'не предоставлялся');
+ 
+            $template->setValue('scholarship_end', $issuance->is_budget
+                ? '.'
+                : ', стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются.');
+ 
+            $template->setValue('leave_orders', $this->formatLeaveOrders($issuance->leave_orders));
         }
 
         // ФИО в именительном падеже: справка-вызов (3) и характеристика (4)

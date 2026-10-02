@@ -188,6 +188,7 @@
             </x-slot>
 
             <x-slot name="content">
+                @if($isShowModalDialog)
                 <div class="flex flex-col space-y-2">
                     <div class="flex flex-col">
                         <label for="document-number" class="font-semibold">Номер справки (присваивается автоматически)</label>
@@ -313,9 +314,17 @@
                             </div>
                         </div>
                     </div>
+                    <div class="flex flex-col space-y-1">
+                        <label for="had-academic-leave" class="flex items-center font-semibold">
+                            <input wire:model="hadAcademicLeave" type="checkbox" name="hadAcademicLeave" id="had-academic-leave" class="mr-1">
+                            Предоставлялся академический отпуск
+                        </label>
+                        <label for="leave-orders" class="font-semibold">Приказы об академическом отпуске, выходе из него и об отчислении (по одному в строке)</label>
+                        <textarea wire:model="leaveOrders" name="leaveOrders" id="leave-orders" rows="3" placeholder="Приказ о предоставлении академического отпуска от 17.02.2026 № 109/с;" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+                    </div>
                     <div class="py-2">
                         <label for="is-budget" class="flex items-center">
-                            <input wire:model="isBudget" type="checkbox" name="isBudget" id="is-budget" class="mr-1">
+                            <input wire:model="isBudget" wire:key="is-budget-{{ $studentDocumentOrderRequestId }}" type="checkbox" name="isBudget" id="is-budget" class="mr-1">
                             Обучается на бюджете
                         </label>
                     </div>
@@ -331,6 +340,7 @@
                     </div>
                     <span class="text-red-500">*Поля обязательные для заполнения</span>
                 </div>
+                @endif
             </x-slot>
 
             <x-slot name="footer">
