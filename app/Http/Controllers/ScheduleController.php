@@ -82,7 +82,7 @@ class ScheduleController extends Controller
         $contents = file_get_contents('https://iubip.ru/upload/iblock/ab7/vr7vuzn1u41ly0mmcs6tah16c2ytu59k.DBF');
         Storage::disk('public')->put('schedule/RASP.DBF', $contents);
 
-        $path  = Storage::disk('public')->path('schedule/RASP.DBF');;
+        $path  = Storage::disk('public')->path('schedule/RASP.DBF');
 
         $table = new TableReader($path, [
             'encoding' => 'cp1251'
@@ -91,7 +91,7 @@ class ScheduleController extends Controller
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Schedule::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        
+
         while ($record = $table->nextRecord()) {
             $classTime = array_search($record->get('LES'), array_column($schedule, 'number'));
             $groups = explode(',', $record->get('GROUP'));
@@ -148,22 +148,29 @@ class ScheduleController extends Controller
         $weekEndDate = $now->endOfWeek()->format('Y-m-d');
 
         if (Auth::user()->hasRole('Student')) {
-            $groupName = explode('-', GroupStudent::join('groups', 'group_student.group_id', '=', 'groups.id')
+            $groupStudent = GroupStudent::join('groups', 'group_student.group_id', '=', 'groups.id')
                 ->where('group_student.user_id', '=', Auth::user()->id)
-                ->select('groups.group_name')->first()->group_name);
+                ->select('groups.group_name')
+                ->orderBy('group_student.id', 'desc')
+                ->first();
 
-            if (count($groupName) == 2) {
-                $group = $groupName[0] . $groupName[1];
-            } else {
-                $group = $groupName[0];
+            // У студента может не быть группы (например, на локальной БД) - тогда расписание пустое
+            if ($groupStudent) {
+                $groupName = explode('-', $groupStudent->group_name);
+
+                if (count($groupName) == 2) {
+                    $group = $groupName[0] . $groupName[1];
+                } else {
+                    $group = $groupName[0];
+                }
+
+                $schedule = Schedule::where('date', '>=', $weekStartDate)
+                    ->where('date', '<=', $weekEndDate)
+                    ->where('group', 'like', '%' . $group . '%')
+                    ->orderBy('date', 'ASC')
+                    ->orderBy('lesson_number', 'ASC')
+                    ->get()->toArray();
             }
-
-            $schedule = Schedule::where('date', '>=', $weekStartDate)
-                ->where('date', '<=', $weekEndDate)
-                ->where('group', 'like', '%' . $group . '%')
-                ->orderBy('date', 'ASC')
-                ->orderBy('lesson_number', 'ASC')
-                ->get()->toArray();
         } else if (Auth::user()->hasRole('Teacher')) {
 
             if (is_null($teacher)) {

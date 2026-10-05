@@ -35,28 +35,32 @@ class DashboardController extends Controller
                 ->orderBy('group_student.id', 'desc')
                 ->first();
 
-            $this->additionalInfoAboutUser = $groupStudent->group_name;
+            // У студента может не быть группы (например, на локальной БД) - не падаем
+            $groupName = $groupStudent?->group_name;
+            $this->additionalInfoAboutUser = $groupName ?? '';
 
-            $this->scheduleEventCount = Schedule::where('group', 'like', '%' . $groupStudent->group_name . '%')
-                ->where('date', '>=', $currentDate)
-                ->select(DB::raw('COUNT(DISTINCT date, time) as count'))
-                ->first()->count;
+            if ($groupName) {
+                $this->scheduleEventCount = Schedule::where('group', 'like', '%' . $groupName . '%')
+                    ->where('date', '>=', $currentDate)
+                    ->select(DB::raw('COUNT(DISTINCT date, time) as count'))
+                    ->first()->count;
 
-            $querySchedulesEvents = Schedule::where('group', 'like', '%' . $groupStudent->group_name . '%')
-                ->where('date', '>=', $currentDate);
+                $querySchedulesEvents = Schedule::where('group', 'like', '%' . $groupName . '%')
+                    ->where('date', '>=', $currentDate);
 
-            $firstSchedulesEvent = $querySchedulesEvents->orderBy('date', 'asc')->first();
+                $firstSchedulesEvent = $querySchedulesEvents->orderBy('date', 'asc')->first();
 
-            if ($firstSchedulesEvent) {
-                $querySchedulesEvents->when($currentDate === $querySchedulesEvents->first()->date, function ($querySchedulesEvents) use ($currentTime) {
-                    $querySchedulesEvents->where(function ($querySchedulesEvents) use ($currentTime) {
-                        $querySchedulesEvents->whereRaw('SUBSTRING_INDEX(time, "-", 1) >= ?', [$currentTime]);
+                if ($firstSchedulesEvent) {
+                    $querySchedulesEvents->when($currentDate === $firstSchedulesEvent->date, function ($querySchedulesEvents) use ($currentTime) {
+                        $querySchedulesEvents->where(function ($querySchedulesEvents) use ($currentTime) {
+                            $querySchedulesEvents->whereRaw('SUBSTRING_INDEX(time, "-", 1) >= ?', [$currentTime]);
+                        });
                     });
-                });
 
-                $this->schedulesEvents = $querySchedulesEvents->first();
-            } else {
-                $this->schedulesEvents = null;
+                    $this->schedulesEvents = $querySchedulesEvents->first();
+                } else {
+                    $this->schedulesEvents = null;
+                }
             }
         } else {
             $fio = Auth::user()->userData->last_name . ' ' . mb_substr(Auth::user()->userData->first_name, 0, 1) . '.' . mb_substr(Auth::user()->userData->middle_name, 0, 1) . '.';

@@ -8,6 +8,13 @@
             <option value="{{ $key }}">{{ $value }}</option>
             @endforeach
         </select>
+        <div class="flex flex-col">
+            <label class="flex items-center space-x-1 text-xs">
+                <span>Кол-во экз.</span>
+                <input wire:model="quantity" type="number" min="1" max="10" name="quantity" id="quantity" class="w-16 bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            </label>
+            @error('quantity') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+        </div>
         <button type="button" onclick="showToast('sendRequest')" class="bg-white hover:bg-green-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-green-400 px-2 py-2 text-xs text-left text-green-400 hover:text-white font-bold">
             <i class="fa-solid fa-paper-plane"></i>
             Отправить заявку
@@ -28,6 +35,7 @@
                     <th scope="col" class="w-12 px-2 py-2 text-center font-semibold">№ пп</th>
                     <th scope="col" class="w-auto px-2 py-2 text-left font-semibold">Тип справки</th>
                     <th scope="col" class="w-16 px-2 py-2 text-center font-semibold">Статус заявки</th>
+                    <th scope="col" class="w-16 px-2 py-2 text-center font-semibold">Кол-во</th>
                     <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Учебный год</th>
                     <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Полугодие</th>
                     <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Дата создания заявки</th>
@@ -42,8 +50,10 @@
                         {{ __('Справка о статусе студента') }}
                         @elseif($value->document_type == 2)
                         {{ __('Справка о статусе студента (для транспортных карт)') }}
-                        @else
+                        @elseif($value->document_type == 3)
                         {{ __('Справка-вызов') }}
+                        @else
+                        {{ __('Характеристика') }}
                         @endif
                     </td>
                     <td class="w-16 px-2 py-2 text-center">
@@ -55,6 +65,7 @@
                         <span class="text-red-400 font-bold cursor-pointer" data-tippy-content="Отклонена">О</span>
                         @endif
                     </td>
+                    <td class="w-16 px-2 py-2 text-center">{{ $value->quantity }}</td>
                     <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }}</td>
                     <td class="w-24 px-2 py-2 text-center">{{ $value->half_year }}</td>
                     <td class="w-40 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->created_at)->format('d.m.Y') }}</td>

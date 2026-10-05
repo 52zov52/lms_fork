@@ -51,7 +51,8 @@ class StudentDocumentOrderReportController extends Controller
         $template = new TemplateProcessor($path);
 
         // Общие поля для всех типов документов
-        $template->setValue('date', $this->formatDateWithMonthName($request->created_at));
+        // Дата выдачи справки = дата подтверждения
+        $template->setValue('date', $this->formatDateWithMonthName($issuance->confirmed_at ?? $issuance->updated_at));
         $template->setValue('number', $issuance->document_number . '-эл.');
         $template->setValue('course', $issuance->course);
         $template->setValue('teaching_form', $this->transformTeachingForm($issuance->teaching_form_name));

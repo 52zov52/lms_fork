@@ -36,6 +36,7 @@
                             <th scope="col" class="W-32 px-2 py-2 text-left font-semibold">Группа</th>
                             <th scope="col" class="w-52 px-2 py-2 text-left font-semibold">Тип справки</th>
                             <th scope="col" class="w-16 px-2 py-2 text-center font-semibold">Статус заявки</th>
+                            <th scope="col" class="w-16 px-2 py-2 text-center font-semibold">Кол-во</th>
                             <th scope="col" class="w-32 px-2 py-2 text-center font-semibold">Учебный год</th>
                             <th scope="col" class="w-24 px-2 py-2 text-center font-semibold">Полугодие</th>
                             <th scope="col" class="w-40 px-2 py-2 text-center font-semibold">Дата создания заявки</th>
@@ -68,6 +69,7 @@
                                 <span class="text-red-400 font-bold cursor-pointer" data-tippy-content="Отклонена">О</span>
                                 @endif
                             </td>
+                            <td class="w-16 px-2 py-2 text-center">{{ $value->quantity }}</td>
                             <td class="w-32 px-2 py-2 text-center">{{ $value->academic_year }}</td>
                             <td class="w-24 px-2 py-2 text-center">{{ $value->half_year }}</td>
                             <td class="w-40 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->created_at)->format('d.m.Y') }}</td>
@@ -117,6 +119,10 @@
                         @else
                         <span>{{ __('Характеристика') }}</span>
                         @endif
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-semibold">Количество экземпляров:</span>
+                        <span>{{ $value->quantity }}</span>
                     </div>
                     <div class="flex flex-col">
                         <span class="font-semibold">Статус заявки:</span>
@@ -189,6 +195,7 @@
 
             <x-slot name="content">
                 @if($isShowModalDialog)
+                <div class="text-sm">Количество экземпляров: <span class="font-semibold">{{ $quantity }}</span></div>
                 <div class="flex flex-col space-y-2">
                     <div class="flex flex-col">
                         <label for="document-number" class="font-semibold">Номер справки (присваивается автоматически)</label>

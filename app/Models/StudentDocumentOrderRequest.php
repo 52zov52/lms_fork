@@ -14,6 +14,7 @@ class StudentDocumentOrderRequest extends Model
         'status',
         'requester_id',
         'academic_year',
-        'half_year'
+        'half_year',
+        'quantity'
     ];
 }

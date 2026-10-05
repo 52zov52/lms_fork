@@ -20,7 +20,7 @@ class StudentDocumentOrderIssuances extends Component
     use WithPagination;
 
     public bool $isShowModalDialog = false;
-
+    public $quantity = 1;
     public int $selectedDocumentType = 0;
     public int $selectedStatus = 0;
     public string $signer = '';
@@ -145,7 +145,6 @@ class StudentDocumentOrderIssuances extends Component
  
         return ['hadLeave' => $hadLeave, 'lines' => $lines];
     }
-    
     public function render()
     {
         $studentDocumentOrderIssuances = $this->getStudentDocumentOrderIssuance();
@@ -177,6 +176,7 @@ class StudentDocumentOrderIssuances extends Component
                 'student_document_order_requests.requester_id',
                 'student_document_order_requests.academic_year',
                 'student_document_order_requests.half_year',
+                'student_document_order_requests.quantity',
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
                 DB::raw("(SELECT group_name FROM group_student INNER JOIN `groups` ON group_student.group_id = groups.id WHERE group_student.user_id = student_document_order_requests.requester_id ORDER BY group_student.id DESC LIMIT 1) as group_name"),
                 'student_document_order_issuances.confirmiter_id',
@@ -191,6 +191,9 @@ class StudentDocumentOrderIssuances extends Component
             $query->where('student_document_order_requests.status', '=', $this->selectedStatus);
         }
 
+        $query->orderBy('student_document_order_requests.created_at', 'desc')
+            ->orderBy('student_document_order_issuances.id', 'desc');
+ 
         return $query->paginate(50);
     }
 
@@ -301,7 +304,6 @@ class StudentDocumentOrderIssuances extends Component
             //     ->select('student_document_order_issuances.document_number')
             //     ->orderBy('student_document_order_issuances.id', 'desc')
             //     ->first();
-
             // if (is_null($studentDocumentOrderIssuance->confirmiter_id)) {
             //     $this->documentNumber = (is_null($lastConfirmetedDocumentNumber)) ?
             //         StudentDocumentOrderRequest::where('document_type', '=', $this->documentType)->where('status', '=', 2)->count() + 1 :
@@ -314,7 +316,6 @@ class StudentDocumentOrderIssuances extends Component
             $this->documentNumber = is_null($studentDocumentOrderIssuance->confirmiter_id)
                 ? $this->nextDocumentNumber()
                 : (int) $studentDocumentOrderIssuance->document_number;
-
             $this->checkInDate = (is_null($studentDocumentOrderIssuance->check_in_date)) ? '' : $studentDocumentOrderIssuance->check_in_date;
             $this->checkOutDate = (is_null($studentDocumentOrderIssuance->check_out_date)) ? '' : $studentDocumentOrderIssuance->check_out_date;
             $this->checkInDuration = $studentDocumentOrderIssuance->check_in_duration;
@@ -331,6 +332,7 @@ class StudentDocumentOrderIssuances extends Component
                 $this->hadAcademicLeave = (bool) $studentDocumentOrderIssuance->had_academic_leave;
                 $this->leaveOrders = (string) $studentDocumentOrderIssuance->leave_orders;
             }
+            $this->quantity = (int) StudentDocumentOrderRequest::whereKey($studentDocumentOrderRequestId)->value('quantity');
             $this->isShowModalDialog = true;
         } catch (Exception $e) {
             $this->dispatch('show-toast', message: 'Ошибка получения данных из БД!', type: 'error');
@@ -408,6 +410,7 @@ class StudentDocumentOrderIssuances extends Component
             $issuance->had_academic_leave = $this->hadAcademicLeave;
             $issuance->leave_orders = trim($this->leaveOrders) !== '' ? trim($this->leaveOrders) : null;
             $issuance->is_budget = $this->isBudget;
+            $issuance->confirmed_at = now();
             $issuance->confirmiter_id = Auth::user()->id;
  
             $signerData = explode('|', $this->signer);

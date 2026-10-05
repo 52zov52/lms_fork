@@ -13,6 +13,7 @@ class StudentDocumentRequests extends Component
 {
     use WithPagination;
 
+    public $quantity = 1;
     public $selectedDocumentType = 0, $employmentPlace = '';
     public $showModal = false;
 
@@ -25,7 +26,10 @@ class StudentDocumentRequests extends Component
 
     public function render()
     {
-        $studentDocumentOrderRequests = StudentDocumentOrderRequest::where('requester_id', Auth::user()->id)->paginate(50);
+        $studentDocumentOrderRequests = StudentDocumentOrderRequest::where('requester_id', Auth::user()->id)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(50);
 
         return view('livewire.student-document-requests', [
             'listDocumentTypes' => $this->listDocumentTypes,
@@ -46,6 +50,8 @@ class StudentDocumentRequests extends Component
     public function sendRequest()
     {
         if ($this->selectedDocumentType != 0) {
+            $this->validate(['quantity' => 'required|integer|min:1|max:10']);
+
             if ($this->selectedDocumentType == 3) {
                 $this->showModal = true;
             } else {
@@ -59,18 +65,21 @@ class StudentDocumentRequests extends Component
 
     public function store()
     {
+        $rules = ['quantity' => 'required|integer|min:1|max:10'];
+
         if ($this->selectedDocumentType == 3) {
-            $this->validate([
-                'employmentPlace' => 'required|string|max:1000'
-            ]);
+            $rules['employmentPlace'] = 'required|string|max:1000';
         }
+
+        $this->validate($rules);
 
         $studentDocumentOrderRequest = StudentDocumentOrderRequest::create([
             'document_type' => $this->selectedDocumentType,
             'status' => 1,
             'requester_id' => Auth::user()->id,
             'academic_year' => AcademicYearController::getAcademicYear(),
-            'half_year' => AcademicYearController::getHalfYear()
+            'half_year' => AcademicYearController::getHalfYear(),
+            'quantity' => (int) $this->quantity,
         ]);
 
         if ($this->selectedDocumentType == 3) {
