@@ -3,7 +3,7 @@
 namespace App\Livewire\Employee;
 
 use App\Http\Controllers\Employee\ContingentController;
-use App\Http\Controllers\Report\ContingentReportController;
+use App\Http\Controllers\Report\StudentListReportController;
 use App\Http\Controllers\Report\GroupStudentGradeController;
 use App\Http\Controllers\Report\IndividualStudentGradeController;
 use App\Models\Group;
@@ -16,6 +16,11 @@ class Contingent extends Component
     public $ticketNumber = '';
     public $groups = [];
     public $contingent = [];
+
+    // Окно выбора формата скачивания списка студентов
+    public bool $isShowDownloadModal = false;
+    public string $downloadFormat = 'xlsx';   // xlsx | docx | pdf
+    public bool $minimalData = false;         // true - только № пп, ФИО, № ст. билета
 
     public function render()
     {
@@ -53,16 +58,40 @@ class Contingent extends Component
         $this->contingent = $contingentController->searchContingentByTicketNumber($this->ticketNumber);
     }
 
+    public function openDownloadModal(): void
+    {
+        if ($this->selectedGroupId == 0) {
+            $this->dispatch('show-toast', message: 'Невозможно сформировать отчет, т.к. не выбрана группа из списка!', type: 'error');
+            return;
+        }
+
+        $this->isShowDownloadModal = true;
+    }
+
     public function downloadListOfStudents()
     {
-        if ($this->selectedGroupId != 0) {
-            $contingentReportController = new ContingentReportController();
-            $data = $contingentReportController->downloadFullListOfStudents($this->selectedGroupId);
-
-            return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
-        } else {
+        if ($this->selectedGroupId == 0) {
+            $this->isShowDownloadModal = false;
             $this->dispatch('show-toast', message: 'Невозможно сформировать отчет, т.к. не выбрана группа из списка!', type: 'error');
+            return;
         }
+
+        $format = in_array($this->downloadFormat, StudentListReportController::FORMATS, true)
+            ? $this->downloadFormat
+            : 'xlsx';
+
+        try {
+            $data = (new StudentListReportController())->download($this->selectedGroupId, $format, $this->minimalData);
+        } catch (\Throwable $e) {
+            report($e);
+            $this->isShowDownloadModal = false;
+            $this->dispatch('show-toast', message: 'Не удалось сформировать список. Попробуйте другой формат или обратитесь к администратору.', type: 'error');
+            return;
+        }
+
+        $this->isShowDownloadModal = false;
+
+        return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }
 
     public function downloadIndividualStudentGrade($userId)

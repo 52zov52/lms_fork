@@ -9,15 +9,24 @@ use Illuminate\Support\Facades\DB;
 
 class ContingentController extends Controller
 {
-    public function getGroupIds() : array
+    public function getGroupIds(): array
     {
-        return $this->extractGroupIds(StudyThread::join('study_thread_subgroups', 'study_threads.id', '=', 'study_thread_subgroups.study_thread_id')
-            ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
-            ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
-            ->where('study_threads.year', '=', AcademicYearController::getYear())
-            ->select('groups.id')
+        // Раньше: группы из потоков текущего учебного года
+        // return $this->extractGroupIds(StudyThread::join('study_thread_subgroups', 'study_threads.id', '=', 'study_thread_subgroups.study_thread_id')
+        //     ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
+        //     ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
+        //     ->where('study_threads.year', '=', AcademicYearController::getYear())
+        //     ->select('groups.id')
+        //     ->distinct()
+        //     ->get()->toArray());
+
+        // Сейчас: только группы, в которых есть студенты (пустые не выводим)
+        return GroupStudent::query()
+            ->join('groups', 'group_student.group_id', '=', 'groups.id')
+            ->where('groups.year_completion', '>=', now()->toDateString())
             ->distinct()
-            ->get()->toArray());
+            ->pluck('group_student.group_id')
+            ->all();
     }
 
     public function getGroupIdsByTeachingForm($teachingForm) : array

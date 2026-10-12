@@ -6,12 +6,20 @@ use App\Http\Controllers\Student\SptConsentStatusController;
 use App\Models\StudentSptConsentStatus;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use App\Http\Controllers\AcademicYearController;
 
 class SptConsentStatus extends Component
 {
     public function render()
     {
-        $studentSptConsentStatus = StudentSptConsentStatus::where('user_id', '=', Auth::user()->id)->get();
+        $userId = Auth::id();
+
+        StudentSptConsentStatus::firstOrCreate(
+            ['user_id' => $userId, 'academic_year' => AcademicYearController::getAcademicYear()],
+            ['half_year' => AcademicYearController::getHalfYear()]
+        );
+
+        $studentSptConsentStatus = StudentSptConsentStatus::where('user_id', $userId)->get();
 
         return view('livewire.student.spt-consent-status', ['studentSptConsentStatus' => $studentSptConsentStatus]);
     }

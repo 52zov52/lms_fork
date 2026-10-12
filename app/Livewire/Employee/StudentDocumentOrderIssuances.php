@@ -7,6 +7,7 @@ use App\Models\GroupStudent;
 use App\Models\StudentDocumentOrderIssuance;
 use App\Models\StudentDocumentOrderRequest;
 use App\Models\UserData;
+use App\Support\StudentOrderHistory;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
@@ -75,76 +76,92 @@ class StudentDocumentOrderIssuances extends Component
         public bool $hadAcademicLeave = false;
         public string $leaveOrders = '';
 
-    private const NOTE_LEAVE = 'Академотпуск';
-    private const NOTE_EXPELLED = 'Отчисленные';
-    private const NOTE_NOT_ENROLLED = 'Незачисленные';
- 
-    private function detectLeaveInfo(int $userId): array
+    /**
+     * Приказы студента для справки: академический отпуск, выход, отчисление, восстановление.
+     * Логика разбора — в App\Support\StudentOrderHistory.
+     */
+    private function detectLeaveInfo(int $userId, ?string $completionDate = null): array
     {
-        $rows = DB::table('order_user')
+        $orderRows = DB::table('order_user')
             ->join('orders', 'order_user.order_id', '=', 'orders.id')
             ->where('order_user.user_id', '=', $userId)
             ->whereNull('order_user.deleted_at')
             ->whereNull('orders.deleted_at')
             ->orderBy('orders.order_date')
             ->orderBy('order_user.id')
-            ->select('order_user.notes', 'orders.order_number', 'orders.order_date')
-            ->get();
- 
-        $format = fn($row) => 'от ' . Carbon::parse($row->order_date)->format('d.m.Y') . ' № ' . $row->order_number . ';';
- 
-        $lines = [];
-        $hadLeave = false;
-        $onLeave = false;
-        $expelIndex = null;
- 
-        foreach ($rows as $row) {
-            $note = trim((string) $row->notes);
- 
-            if ($note === self::NOTE_LEAVE) {
-                $lines[] = 'Приказ о предоставлении академического отпуска ' . $format($row);
-                $hadLeave = true;
-                $onLeave = true;
-            } elseif ($note === self::NOTE_EXPELLED) {
-                $expelIndex = count($lines);
-                $lines[] = 'Приказ об отчислении ' . $format($row);
-                $onLeave = false;
-            } elseif ($note !== '' && $note !== self::NOTE_NOT_ENROLLED) {
-                // обычный приказ с группой
-                if ($onLeave) {
-                    $lines[] = 'Приказ о выходе из академического отпуска ' . $format($row);
-                    $onLeave = false;
-                }
- 
-                // после отчисления зачислили снова: строку об отчислении убираем
-                if ($expelIndex !== null) {
-                    unset($lines[$expelIndex]);
-                    $lines = array_values($lines);
-                    $expelIndex = null;
-                }
-            }
-        }
- 
-        if (!$hadLeave) {
-            $leaveOrder = DB::table('students_academic_leaves as sal')
-                ->leftJoin('orders', 'sal.order_id', '=', 'orders.id')
-                ->where('sal.user_id', '=', $userId)
-                ->whereNull('sal.deleted_at')
-                ->orderBy('sal.id')
-                ->select('orders.order_number', 'orders.order_date')
-                ->first();
- 
-            if ($leaveOrder !== null) {
-                $hadLeave = true;
- 
-                if ($leaveOrder->order_number) {
-                    array_unshift($lines, 'Приказ о предоставлении академического отпуска ' . $format($leaveOrder));
-                }
-            }
-        }
- 
-        return ['hadLeave' => $hadLeave, 'lines' => $lines];
+            ->select('order_user.id', 'orders.id as order_id', 'orders.order_number', 'orders.order_date', 'order_user.notes')
+            ->get()
+            ->map(fn($row) => (array) $row)
+            ->all();
+
+        $leaveRows = DB::table('students_academic_leaves as sal')
+            ->join('orders', 'sal.order_id', '=', 'orders.id')
+            ->where('sal.user_id', '=', $userId)
+            ->whereNull('sal.deleted_at')
+            ->whereNull('orders.deleted_at')
+            ->select('orders.id as order_id', 'orders.order_number', 'orders.order_date')
+            ->get()
+            ->map(fn($row) => (array) $row)
+            ->all();
+
+        $lastStateId = DB::table('student_state')
+            ->where('user_id', '=', $userId)
+            ->whereNull('deleted_at')
+            ->orderByDesc('id')
+            ->value('state_id');
+
+        return StudentOrderHistory::build(
+            $orderRows,
+            $leaveRows,
+            is_null($lastStateId) ? null : (int) $lastStateId,
+            GroupStudent::where('user_id', '=', $userId)->exists(),
+            $completionDate
+        );
     }
+
+    /**
+     * Группа студента, находящегося сейчас в академическом отпуске (state_id = 1),
+     * если он не числится ни в одной группе. Для остальных — null.
+     */
+    // private function academicLeaveGroupId(int $userId): ?int
+    // {
+    //     $lastState = DB::table('student_state')
+    //         ->where('user_id', '=', $userId)
+    //         ->whereNull('deleted_at')
+    //         ->orderByDesc('id')
+    //         ->first(['state_id', 'group_id']);
+
+    //     if (is_null($lastState) || (int) $lastState->state_id !== 1) {
+    //         return null;
+    //     }
+
+    //     return (int) $lastState->group_id ?: null;
+    // }
+
+    /**
+     * Группа студента, который сейчас выведен из групп: академотпуск (state_id = 1)
+     * или отчисление (state_id = 2). Для остальных — null.
+     * Если в последнем состоянии group_id пуст, берём последнюю известную группу из истории.
+     */
+    private function leftGroupId(int $userId): ?int
+    {
+        $states = DB::table('student_state')
+            ->where('user_id', '=', $userId)
+            ->whereNull('deleted_at')
+            ->orderByDesc('id')
+            ->get(['state_id', 'group_id']);
+
+        $last = $states->first();
+
+        if (is_null($last) || !in_array((int) $last->state_id, [1, 2, 3], true)) {
+            return null;
+        }
+
+        $groupId = $states->first(fn($s) => (int) $s->group_id > 0)?->group_id;
+
+        return $groupId ? (int) $groupId : null;
+    }
+
     public function render()
     {
         $studentDocumentOrderIssuances = $this->getStudentDocumentOrderIssuance();
@@ -178,7 +195,10 @@ class StudentDocumentOrderIssuances extends Component
                 'student_document_order_requests.half_year',
                 'student_document_order_requests.quantity',
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
-                DB::raw("(SELECT group_name FROM group_student INNER JOIN `groups` ON group_student.group_id = groups.id WHERE group_student.user_id = student_document_order_requests.requester_id ORDER BY group_student.id DESC LIMIT 1) as group_name"),
+                DB::raw("COALESCE(
+                    (SELECT group_name FROM group_student INNER JOIN `groups` ON group_student.group_id = groups.id WHERE group_student.user_id = student_document_order_requests.requester_id ORDER BY group_student.id DESC LIMIT 1),
+                    (SELECT CONCAT(g2.group_name, CASE ss.state_id WHEN 1 THEN ' (акад. отпуск)' WHEN 2 THEN ' (отчислен)' ELSE ' (выпускник)' END) FROM student_state ss INNER JOIN `groups` g2 ON ss.group_id = g2.id WHERE ss.user_id = student_document_order_requests.requester_id AND ss.deleted_at IS NULL AND ss.state_id IN (1, 2, 3) AND ss.id = (SELECT MAX(ss2.id) FROM student_state ss2 WHERE ss2.user_id = ss.user_id AND ss2.deleted_at IS NULL))
+                ) as group_name"),
                 'student_document_order_issuances.confirmiter_id',
                 'student_document_order_requests.created_at'
             );
@@ -252,15 +272,53 @@ class StudentDocumentOrderIssuances extends Component
                 ->orderBy('group_student.id', 'desc')
                 ->first();
 
+            // Студент в академическом отпуске выведен из группы (нет записи в group_student):
+            // берём группу, из которой он ушёл в отпуск (последнее состояние в student_state)
+            if (is_null($groupStudent)) {
+                $leaveGroupId = $this->leftGroupId((int) $requesterId);
+
+                if (!is_null($leaveGroupId)) {
+                    $groupStudent = DB::table('groups')
+                        ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
+                        ->join('teaching_forms', 'work_study_plans.teaching_form_id', '=', 'teaching_forms.id')
+                        ->join('specialities', 'work_study_plans.speciality_id', '=', 'specialities.id')
+                        ->join('level_educations', 'specialities.level_education_id', '=', 'level_educations.id')
+                        ->where('groups.id', '=', $leaveGroupId)
+                        ->select(
+                            'groups.group_name',
+                            'groups.course',
+                            'groups.year_admission',
+                            'groups.year_completion',
+                            'teaching_forms.teaching_form_name',
+                            'specialities.specialty_code',
+                            'specialities.speciality_name',
+                            'level_educations.level_name'
+                        )
+                        ->first();
+                }
+
+                if (is_null($groupStudent)) {
+                    $this->dispatch('show-toast', message: 'Не удалось определить группу студента. Проверьте историю состояний студента.', type: 'error');
+                    return;
+                }
+            }
+
+            // Приказ о зачислении: первый приказ, где студент значился «Незачисленные»; иначе самый ранний
             $orderUser = DB::table('order_user')
                 ->join('orders', 'order_user.order_id', '=', 'orders.id')
                 ->where('order_user.user_id', '=', $requesterId)
+                ->whereNull('order_user.deleted_at')
+                ->whereNull('orders.deleted_at')
+                ->where('orders.order_date', '>=', '1990-01-01')
                 ->select(
                     'order_user.id',
                     'orders.order_number',
                     'orders.order_date',
                     'orders.order_type_id'
                 )
+                ->orderByRaw("CASE WHEN order_user.notes = 'Незачисленные' THEN 0 ELSE 1 END")
+                ->orderBy('orders.order_date')
+                ->orderBy('order_user.id')
                 ->first();
 
             $studentDocumentOrderIssuance = StudentDocumentOrderIssuance::where('student_document_order_request_id', '=', $studentDocumentOrderRequestId)
@@ -296,7 +354,7 @@ class StudentDocumentOrderIssuances extends Component
             $this->specialtyCode = $groupStudent->specialty_code;
             $this->specialityName = $groupStudent->speciality_name;
 
-            $this->order = Carbon::parse($orderUser->order_date)->format('d.m.Y') . ' № ' . $orderUser->order_number;
+            $this->order = Carbon::parse($orderUser->order_date)->format('d.m.Y') . ' № ' . StudentOrderHistory::cleanNumber($orderUser->order_number);
             $this->trainingPeriod = 'с ' . Carbon::parse($groupStudent->year_admission)->format('d.m.Y') . 'г. по ' . Carbon::parse($groupStudent->year_completion)->format('d.m.Y') . 'г.';
 
             // $lastConfirmetedDocumentNumber = StudentDocumentOrderIssuance::join('student_document_order_requests', 'student_document_order_issuances.student_document_order_request_id', '=', 'student_document_order_requests.id')
@@ -325,7 +383,10 @@ class StudentDocumentOrderIssuances extends Component
             $this->signer = array_key_first($this->listOfSigners) . '|' . reset($this->listOfSigners);
             if (is_null($studentDocumentOrderIssuance->confirmiter_id)) {
                 // Ещё не подтверждена: подставляем подсказку по данным БД
-                $leaveInfo = $this->detectLeaveInfo((int) $requesterId);
+                $leaveInfo = $this->detectLeaveInfo(
+                    (int) $requesterId,
+                    Carbon::parse($groupStudent->year_completion)->format('Y-m-d')
+                );
                 $this->hadAcademicLeave = $leaveInfo['hadLeave'];
                 $this->leaveOrders = implode("\n", $leaveInfo['lines']);
             } else {

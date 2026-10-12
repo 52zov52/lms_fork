@@ -27,7 +27,9 @@ class GenerateSptGroupsJob implements ShouldQueue
     {
         //
     }
-
+    // id из teaching_forms: 1 Очная, 2 Заочная, 3 Заочная (ускоренное), 4 Воскресная,
+    // 5 Соискательство, 6 Очно-заочная, 7 Очная (ускоренное)
+    private const TEACHING_FORM_IDS = [1, 2, 3, 6, 7]; // при необходимости добавьте 4
     /**
      * Execute the job.
      */
@@ -38,37 +40,29 @@ class GenerateSptGroupsJob implements ShouldQueue
         JobStatus::create([
             'job_uuid' => $payload['uuid'],
             'service_name' => 'generate_spt_groups',
-            'status' => self::STATUS_IN_PROGRESS
+            'status' => self::STATUS_IN_PROGRESS,
         ]);
 
         $contingentController = new ContingentController();
-        $groupIds = $contingentController->getGroupIdsByTeachingForm(1);
-
         $academicYear = AcademicYearController::getAcademicYear();
+        $halfYear = AcademicYearController::getHalfYear();
 
-        foreach ($groupIds as $groupId) {
-            $contingent = $contingentController->getContingent($groupId);
-
-            foreach ($contingent as $key => $value) {
-                $data = StudentSptConsentStatus::where('user_id', '=', $value->user_id)
-                    ->where('academic_year', '=', $academicYear)
-                    ->select('id')
-                    ->first();
-
-                if (is_null($data)) {
-                    StudentSptConsentStatus::create([
-                        'user_id' => $value->user_id,
-                        'academic_year' => $academicYear,
-                        'half_year' => AcademicYearController::getHalfYear()
-                    ]);
+        // id форм обучения из таблицы teaching_forms:
+        // 1 Очная, 2 Заочная, 3 Заочная (ускоренное), 6 Очно-заочная, 7 Очная (ускоренное)
+        foreach ([1, 2, 3, 6, 7] as $teachingFormId) {
+            foreach ($contingentController->getGroupIdsByTeachingForm($teachingFormId) as $groupId) {
+                foreach ($contingentController->getContingent($groupId) as $value) {
+                    StudentSptConsentStatus::firstOrCreate(
+                        ['user_id' => $value->user_id, 'academic_year' => $academicYear],
+                        ['half_year' => $halfYear]
+                    );
                 }
             }
         }
 
-        JobStatus::where('job_uuid', '=', $payload['uuid'])
-            ->update([
-                'status' => self::STATUS_SUCCESS,
-                'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
-            ]);
+        JobStatus::where('job_uuid', $payload['uuid'])->update([
+            'status' => self::STATUS_SUCCESS,
+            'updated_at' => Carbon::now()->format('Y-m-d H:i:s'),
+        ]);
     }
 }

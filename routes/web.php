@@ -284,6 +284,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         Route::get('/military-registration', function () {
             return view('pages.student.military-registration');
         })->name('student.military.registration');
+
+        //Оплата
+        Route::get('/payment', function () {
+            return view('pages.student.payment');
+        })->middleware('role:Student')->name('student.payment');
     });
 
     Route::get('/admission-campaign', function () {

@@ -75,9 +75,14 @@
                             <td class="w-40 px-2 py-2 text-center">{{ \Carbon\Carbon::parse($value->created_at)->format('d.m.Y') }}</td>
                             <td class="w-28 px-2 py-2 text-center">
                                 <div class="flex flex-row items-center justify-center space-x-1">
-                                    @if(is_null($value->confirmiter_id))
+                                    @if($value->status == 3)
+                                    <span class="text-xs text-red-400 cursor-pointer" data-tippy-content="{{ $value->reject_reason }}">Причина</span>
+                                    @elseif(is_null($value->confirmiter_id))
                                     <button wire:click="edit({{ $value->student_document_order_request_id }}, {{ $value->requester_id }}, {{ $value->document_type }})" class="w-9 btn-check" data-tippy-content="Подтверждение заявки">
                                         <i class="fa-solid fa-check"></i>
+                                    </button>
+                                    <button wire:click="openReject({{ $value->student_document_order_request_id }})" class="w-9 btn-check !text-red-500 !border-red-400 hover:!bg-red-400 hover:!text-white" data-tippy-content="Отклонить заявку">
+                                        <i class="fa-solid fa-xmark"></i>
                                     </button>
                                     @else
                                     <button wire:click="downloadStudentDocument({{ $value->student_document_order_request_id }})" class="w-9 btn-download" data-tippy-content="Скачать заказанный документ" @if(is_null($value->confirmiter_id)) disabled @endif>
@@ -149,9 +154,14 @@
                     <div class="flex flex-col">
                         <span class="font-semibold">Действия:</span>
                         <div class="flex flex-row space-x-2">
-                            @if(is_null($value->confirmiter_id))
+                            @if($value->status == 3)
+                            <span class="text-red-400">Причина: {{ $value->reject_reason }}</span>
+                            @elseif(is_null($value->confirmiter_id))
                             <button wire:click="edit({{ $value->student_document_order_request_id }}, {{ $value->requester_id }}, {{ $value->document_type }})" class="w-auto grow btn-check" data-tippy-content="Подтверждение заявки">
                                 <i class="fa-solid fa-check"></i>
+                            </button>
+                            <button wire:click="openReject({{ $value->student_document_order_request_id }})" class="w-auto grow btn-check !text-red-500 !border-red-400 hover:!bg-red-400 hover:!text-white" data-tippy-content="Отклонить заявку">
+                                <i class="fa-solid fa-xmark"></i>
                             </button>
                             @else
                             <button wire:click="downloadStudentDocument({{ $value->student_document_order_request_id }})" class="w-auto grow btn-download" data-tippy-content="Скачать заказанный документ" @if(is_null($value->confirmiter_id)) disabled @endif>
@@ -364,5 +374,31 @@
                 </button>
             </x-slot>
         </form>
+    </x-dialog-modal>
+
+    <!-- Modal dialog to reject student document order -->
+    <x-dialog-modal wire:model="isShowRejectModal">
+        <x-slot name="title">
+            Отклонение заявки
+        </x-slot>
+
+        <x-slot name="content">
+            <div class="flex flex-col">
+                <label for="reject-reason" class="font-semibold">Причина отклонения<span class="text-red-500">*</span></label>
+                <textarea wire:model="rejectReason" name="rejectReason" id="reject-reason" rows="4" placeholder="Например: не указаны данные для справки / обратитесь в деканат" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+                @error('rejectReason') <span class="text-red-500">{{ $message }}</span> @enderror
+                <span class="text-xs text-slate-500 mt-1">Причина будет показана студенту в списке его заявок.</span>
+            </div>
+        </x-slot>
+
+        <x-slot name="footer">
+            <button wire:click="$set('isShowRejectModal', false)" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
+                {{ __('Закрыть') }}
+            </button>
+            <button wire:click="reject" type="button" class="ml-2 w-full sm:w-auto bg-red-500 hover:bg-red-600 rounded shadow-xl px-2 py-1 text-white">
+                <span wire:loading.remove wire:target="reject">{{ __('Отклонить') }}</span>
+                <span wire:loading wire:target="reject"><i class="fa-solid fa-spinner fa-spin-pulse"></i></span>
+            </button>
+        </x-slot>
     </x-dialog-modal>
 </div>

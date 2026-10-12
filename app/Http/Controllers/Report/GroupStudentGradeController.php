@@ -5,44 +5,125 @@ namespace App\Http\Controllers\Report;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
 use App\Models\GroupStudent;
+use App\Models\StudentExamRetakeProtocol;
 use App\Models\StudentGrades;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use PhpOffice\PhpWord\Element\Table;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\Settings;
+use PhpOffice\PhpWord\SimpleType\Jc;
 use PhpOffice\PhpWord\SimpleType\TblWidth;
 use PhpOffice\PhpWord\Style\Cell;
-use PhpOffice\PhpWord\TemplateProcessor;
+use PhpOffice\PhpWord\Style\Table as TableStyle;
 
+/**
+ * Групповая сводка успеваемости.
+ *
+ * Формат повторяет сводную ведомость из старой базы:
+ *  - заголовок "Сводная ведомость группы ... за N курс ГГГГ/ГГГГ уч. год";
+ *  - колонки: № | Фамилия И.О. | дисциплины (название с индексом "ОПД.Ф - ...",
+ *    под ним виды контроля) | Количество нулей и пробелов;
+ *  - за один курс (два семестра), дисциплины без контроля ("-") не выводятся;
+ *  - пустая оценка остаётся пустой ячейкой.
+ */
 class GroupStudentGradeController extends Controller
 {
-    public function print($groupId)
+    /** Сокращения видов контроля (как в старой ведомости) */
+    private const CONTROL_SHORT = [
+        'Экзамен' => 'ЭК',
+        'Зачет' => 'ЗЧ',
+        'Зачёт' => 'ЗЧ',
+        'Зачет с оценкой' => 'ЗО',
+        'Дифференцированный зачет' => 'ДЗ',
+        'Курсовая работа' => 'КР',
+        'Защита курс/р (курсов. проекта)' => 'ЗК',
+        'Контрольная работа' => 'Кр',
+        'Итоговая письменная к/р' => 'ИКр',
+        'Экзамен по модулю' => 'ЭМ',
+        'Рубежный контроль' => 'РК',
+        'Защита ВКР' => 'ЗВ',
+        'Госэкзамен' => 'ГЭ',
+        'Комплексный экзамен' => 'КЭ',
+        'Комплексный зачёт' => 'КЗ',
+        'Комплексный зачет' => 'КЗ',
+        'Комплексный дифзачет' => 'КДЗ',
+        'Отчет по практике' => 'ЗЧ',
+        'ТК по разделу' => 'ТК',
+    ];
+
+    /** Виды контроля, оценка по которым выводится как 1 / 0 (зачёт / незачёт) */
+    private const PASS_FAIL = ['Зачет', 'Зачёт', 'Комплексный зачёт', 'Комплексный зачет', 'Отчет по практике'];
+
+    /** Виды контроля курсовых работ: выводятся отдельной группой "Курсовая работа по ..." */
+    private const COURSE_WORK = ['Курсовая работа', 'Защита курс/р (курсов. проекта)'];
+
+    /** Максимум колонок с оценками в одной таблице (в Word лимит 63 колонки) */
+    private const MAX_COLUMNS_PER_TABLE = 34;
+
+    /**
+     * @param int      $groupId
+     * @param int|null $course  номер курса; если не задан - все курсы подряд (каждый со своим заголовком и таблицей)
+     */
+    public function print($groupId, $course = null)
     {
-        $group = Group::select('id', 'group_name', 'work_study_plan_id')->findOrFail($groupId);
+        $group = Group::select('id', 'group_name', 'course', 'year_admission', 'work_study_plan_id')->findOrFail($groupId);
+
+        $course = (int)$course > 0 ? (int)$course : null;
 
         /*
-         * 1. КОЛОНКИ: все дисциплины учебного плана группы
-         *    (а не только те, по которым уже есть ведомости).
+         * 1. КОЛОНКИ: контроли учебного плана группы (за все курсы или за выбранный).
          */
-        $listOfDisciplines = DB::table('work_study_plan_courses')
+        $planQuery = DB::table('work_study_plan_courses')
             ->join('work_study_plan_courses_in_semesters', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
             ->join('work_study_plan_course_control_types_in_semesters', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
             ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
             ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
+            ->leftJoin('indexes', 'work_study_plan_courses.index_id', '=', 'indexes.id')
+            ->leftJoin('sections', 'work_study_plan_courses.section_id', '=', 'sections.id')
             ->where('work_study_plan_courses.work_study_plan_id', '=', $group->work_study_plan_id)
-            // Если нужны только пройденные семестры, раскомментируйте и задайте номер:
-            // ->where('work_study_plan_courses_in_semesters.semester_number', '<=', $currentSemester)
-            ->distinct()
             ->select(
+                'work_study_plan_course_control_types_in_semesters.id as cts_id',
                 'disciplines.name as discipline_name',
                 'work_study_plan_courses_in_semesters.semester_number',
-                'control_types.name as control_name'
-            )
-            ->orderBy('work_study_plan_courses_in_semesters.semester_number')
-            ->orderBy('disciplines.name')
-            ->get()
-            ->map(fn($item) => (array)$item)
-            ->toArray();
+                'control_types.id as control_id',
+                'control_types.name as control_name',
+                'indexes.index_name as index_name',
+                'sections.index_name as section_name',
+                'work_study_plan_courses.number_index'
+            );
+
+        if (!is_null($course)) {
+            $planQuery->whereIn('work_study_plan_courses_in_semesters.semester_number', [$course * 2 - 1, $course * 2]);
+        }
+
+        $plan = $planQuery->get()->map(fn($item) => (array)$item)->toArray();
+
+        // Курс = (семестр + 1) / 2: семестры 1-2 -> 1 курс, 3-4 -> 2 курс и т.д.
+        $planByCourse = [];
+        foreach ($plan as $row) {
+            $planByCourse[(int)ceil($row['semester_number'] / 2)][] = $row;
+        }
+        ksort($planByCourse);
+
+        $groupsByCourse = [];
+        $ctsIds = [];
+        foreach ($planByCourse as $courseNumber => $rows) {
+            $groups = $this->buildColumnGroups($rows);
+
+            if (empty($groups)) {
+                continue;
+            }
+
+            $groupsByCourse[$courseNumber] = $groups;
+
+            foreach ($groups as $g) {
+                foreach ($g['columns'] as $col) {
+                    foreach ($col['cts_ids'] as $id) {
+                        $ctsIds[] = $id;
+                    }
+                }
+            }
+        }
 
         /*
          * 2. СТРОКИ: все студенты группы (даже без единой оценки).
@@ -72,114 +153,389 @@ class GroupStudentGradeController extends Controller
             ->values()
             ->toArray();
 
+        $studentIds = array_column($students, 'user_id');
+
         /*
-         * 3. ОЦЕНКИ: индекс [user_id][дисциплина|семестр|контроль] => оценка.
-         *    Учитывается последняя пересдача.
+         * 3. ОЦЕНКИ: индекс [user_id][cts_id] => оценка.
+         *
+         *    Приоритет: пересдача (student_retake_bulletins) -> протокол пересдачи/перезачёта
+         *    (student_exam_retake_protocols) -> обычная оценка (student_grades).
+         *    Оценки берутся по строкам учебного плана ТЕКУЩЕЙ группы (cts_id), а не по
+         *    ведомостям именно этой группы - так переведённые студенты не теряют оценки.
          */
-        $rawGrades = StudentGrades::join('bulletins', 'student_grades.bulletin_id', '=', 'bulletins.id')
-            ->join('work_study_plan_course_control_types_in_semesters', 'bulletins.work_study_plan_course_control_types_in_semesters_id', '=', 'work_study_plan_course_control_types_in_semesters.id')
-            ->join('control_types', 'work_study_plan_course_control_types_in_semesters.control_type_id', '=', 'control_types.id')
-            ->join('work_study_plan_courses_in_semesters', 'work_study_plan_course_control_types_in_semesters.work_study_plan_courses_in_semester_id', '=', 'work_study_plan_courses_in_semesters.id')
-            ->join('work_study_plan_courses', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
-            ->join('disciplines', 'work_study_plan_courses.discipline_id', '=', 'disciplines.id')
-            ->where('bulletins.group_id', '=', $groupId)
-            ->select(
-                'student_grades.user_id',
-                'disciplines.name as discipline_name',
-                'work_study_plan_courses_in_semesters.semester_number',
-                'control_types.name as control_name',
-                DB::raw("COALESCE((SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1), student_grades.grade) as grade")
-            )
-            ->get();
+        $gradeSql = "CASE
+                WHEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1) IS NOT NULL
+                    THEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1)
+                WHEN (SELECT grade FROM student_exam_retake_protocols WHERE student_exam_retake_protocols.user_id = student_grades.user_id
+                        AND student_exam_retake_protocols.work_study_plan_course_control_types_in_semesters_id = bulletins.work_study_plan_course_control_types_in_semesters_id ORDER BY id DESC LIMIT 1) IS NOT NULL
+                    THEN (SELECT grade FROM student_exam_retake_protocols WHERE student_exam_retake_protocols.user_id = student_grades.user_id
+                        AND student_exam_retake_protocols.work_study_plan_course_control_types_in_semesters_id = bulletins.work_study_plan_course_control_types_in_semesters_id ORDER BY id DESC LIMIT 1)
+                ELSE student_grades.grade
+            END as grade";
 
         $gradesIndex = [];
-        foreach ($rawGrades as $row) {
-            $key = $row->discipline_name . '|' . $row->semester_number . '|' . $row->control_name;
-            $gradesIndex[$row->user_id][$key] = $row->grade;
-        }
 
-        /*
-         * 4. ШАБЛОН И ТАБЛИЦА
-         */
-        $path = Storage::disk('public')->path('template/svodka.docx');
-        $filename = time() . '.docx';
+        if (!empty($studentIds) && !empty($ctsIds)) {
+            $rawGrades = StudentGrades::join('bulletins', 'student_grades.bulletin_id', '=', 'bulletins.id')
+                ->whereIn('student_grades.user_id', $studentIds)
+                ->whereIn('bulletins.work_study_plan_course_control_types_in_semesters_id', $ctsIds)
+                ->select(
+                    'student_grades.user_id',
+                    'bulletins.work_study_plan_course_control_types_in_semesters_id as cts_id',
+                    DB::raw($gradeSql)
+                )
+                ->orderBy('student_grades.id')
+                ->get();
 
-        $templateProcessor = new TemplateProcessor($path);
-        $templateProcessor->setValue('group_name', $group->group_name);
+            foreach ($rawGrades as $row) {
+                if (is_null($row->grade)) {
+                    continue;
+                }
 
-        $tableFontHeaderStyle = ['name' => 'Times New Roman'];
-        $tableFontStyle = ['name' => 'Times New Roman'];
-        $tableCellBtrlStyle = ['valign' => 'center', 'textDirection' => Cell::TEXT_DIR_TBRL];
+                $previous = $gradesIndex[$row->user_id][$row->cts_id] ?? null;
 
-        $controlShort = [
-            'Зачет' => 'ЗЧ',
-            'Экзамен' => 'ЭК',
-            'Дифференцированный зачет' => 'ДЗ',
-            'Курсовая работа' => 'КР',
-        ];
-
-        // Экранирование &, <, > и т.п. в названиях (иначе docx "повреждён")
-        Settings::setOutputEscapingEnabled(true);
-
-        $table = new Table(['borderSize' => 7, 'borderColor' => 'black', 'unit' => TblWidth::TWIP]);
-
-        // В Word в таблице не может быть больше 63 колонок, поэтому режем
-        // дисциплины на блоки и выводим блоки друг под другом в одной таблице.
-        $chunkSize = 25;
-        $blocks = array_chunk($listOfDisciplines, $chunkSize);
-        if (empty($blocks)) {
-            $blocks = [[]];
-        }
-
-        foreach ($blocks as $blockIndex => $block) {
-            // Пустая строка-разделитель между блоками
-            if ($blockIndex > 0) {
-                $table->addRow(300);
-                $table->addCell(500)->addText('', $tableFontStyle);
+                // Более поздняя запись заменяет раннюю, но "0" не затирает уже выставленную оценку
+                if (is_null($previous) || (int)$row->grade > 0 || (int)$previous === 0) {
+                    $gradesIndex[$row->user_id][$row->cts_id] = $row->grade;
+                }
             }
 
-            // Строка 1: заголовки (ФИО + повёрнутые названия дисциплин)
-            $table->addRow(5500);
-            $table->addCell(500, ['valign' => 'center'])->addText('ФИО', $tableFontHeaderStyle, ['align' => 'center']);
-            foreach ($block as $discipline) {
-                $table->addCell(500, $tableCellBtrlStyle)->addText((string)$discipline['discipline_name'], $tableFontHeaderStyle, ['align' => 'center']);
-            }
+            // Перезачёты/протоколы, по которым нет строки в student_grades
+            $rawProtocols = StudentExamRetakeProtocol::whereIn('user_id', $studentIds)
+                ->whereIn('work_study_plan_course_control_types_in_semesters_id', $ctsIds)
+                ->orderBy('id')
+                ->get(['user_id', 'work_study_plan_course_control_types_in_semesters_id', 'grade']);
 
-            // Строка 2: виды контроля
-            $table->addRow();
-            $table->addCell(500)->addText('', $tableFontStyle, ['align' => 'center']);
-            foreach ($block as $discipline) {
-                $control = $controlShort[$discipline['control_name']] ?? '-';
-                $table->addCell(500)->addText($control, $tableFontStyle, ['align' => 'center']);
-            }
+            foreach ($rawProtocols as $row) {
+                if (is_null($row->grade)) {
+                    continue;
+                }
 
-            // Строки студентов: ровно одна ячейка на каждую колонку
-            foreach ($students as $student) {
-                $table->addRow();
-                $table->addCell(500)->addText((string)$student['fio'], $tableFontStyle);
+                $ctsId = $row->work_study_plan_course_control_types_in_semesters_id;
 
-                foreach ($block as $discipline) {
-                    $key = $discipline['discipline_name'] . '|' . $discipline['semester_number'] . '|' . $discipline['control_name'];
-                    $grade = $gradesIndex[$student['user_id']][$key] ?? null;
-
-                    if (is_null($grade)) {
-                        $text = '-';
-                    } elseif ($discipline['control_name'] == 'Зачет') {
-                        $text = ($grade == 1) ? '1' : '0';
-                    } else {
-                        $text = (string)$grade;
-                    }
-
-                    $table->addCell(500)->addText($text, $tableFontStyle);
+                if (!isset($gradesIndex[$row->user_id][$ctsId])) {
+                    $gradesIndex[$row->user_id][$ctsId] = $row->grade;
                 }
             }
         }
 
-        $templateProcessor->setComplexBlock('table', $table);
+        /*
+         * 4. ТЕКСТ ЯЧЕЕК: [user_id][column_key] => '' | '0'..'5';
+         *    счётчик нулей и пробелов считается отдельно по каждому курсу: [course][user_id].
+         */
+        $cellText = [];
+        $badCount = [];
+        foreach ($groupsByCourse as $courseNumber => $groups) {
+            foreach ($students as $student) {
+                $uid = $student['user_id'];
+                $badCount[$courseNumber][$uid] = 0;
 
+                foreach ($groups as $g) {
+                    foreach ($g['columns'] as $col) {
+                        $grade = null;
+                        foreach ($col['cts_ids'] as $ctsId) {
+                            if (isset($gradesIndex[$uid][$ctsId])) {
+                                $grade = $gradesIndex[$uid][$ctsId];
+                                break;
+                            }
+                        }
+
+                        if (is_null($grade)) {
+                            $text = '';
+                        } elseif (in_array($col['control_name'], self::PASS_FAIL, true)) {
+                            $text = ((int)$grade === 1) ? '1' : '0';
+                        } else {
+                            $text = (string)(int)$grade;
+                        }
+
+                        $cellText[$uid][$col['key']] = $text;
+
+                        if ($text === '' || $text === '0') {
+                            $badCount[$courseNumber][$uid]++;
+                        }
+                    }
+                }
+            }
+        }
+
+        /*
+         * 5. ДОКУМЕНТ
+         */
+        Settings::setOutputEscapingEnabled(true);
+
+        $phpWord = new PhpWord();
+        $phpWord->setDefaultFontName('Times New Roman');
+        $phpWord->setDefaultFontSize(8);
+
+        $section = $phpWord->addSection([
+            'orientation' => 'landscape',
+            'marginTop' => 567,
+            'marginBottom' => 567,
+            'marginLeft' => 567,
+            'marginRight' => 567,
+        ]);
+
+        if (empty($groupsByCourse)) {
+            $section->addText(
+                'В учебном плане группы нет дисциплин с видами контроля.',
+                ['size' => 10],
+                ['alignment' => Jc::CENTER]
+            );
+        }
+
+        $firstCourse = true;
+        foreach ($groupsByCourse as $courseNumber => $groups) {
+            if (!$firstCourse) {
+                $section->addPageBreak();
+            }
+            $firstCourse = false;
+
+            $title = 'Сводная ведомость группы ' . trim($group->group_name) . ' за ' . $courseNumber . ' курс '
+                . $this->academicYear($group, $courseNumber) . ' уч. год';
+            $section->addText(
+                $title,
+                ['bold' => true, 'size' => 14],
+                ['alignment' => Jc::CENTER, 'spaceAfter' => 200]
+            );
+
+            $blocks = $this->splitIntoBlocks($groups);
+            $lastBlock = count($blocks) - 1;
+
+            foreach ($blocks as $blockIndex => $blockGroups) {
+                if ($blockIndex > 0) {
+                    $section->addPageBreak();
+                }
+
+                $this->addBlockTable($section, $blockGroups, $students, $cellText, $badCount[$courseNumber], $blockIndex === $lastBlock);
+            }
+        }
+
+        $filename = time() . '.docx';
         $tempFile = tempnam(sys_get_temp_dir(), $filename);
-        $templateProcessor->saveAs($tempFile);
+
+        $writer = IOFactory::createWriter($phpWord, 'Word2007');
+        $writer->save($tempFile);
 
         return ['tempFile' => $tempFile, 'filename' => $filename];
+    }
+
+    /**
+     * Учебный год выбранного курса: "2025/2026".
+     */
+    private function academicYear($group, int $course): string
+    {
+        $start = !empty($group->year_admission)
+            ? (int)substr((string)$group->year_admission, 0, 4) + $course - 1
+            : (int)date('Y') - 1;
+
+        return $start . '/' . ($start + 1);
+    }
+
+    /**
+     * Из строк учебного плана строит группы колонок.
+     *
+     * Группа = один заголовок дисциплины (с индексом "ОПД.Ф - ...") в семестре,
+     * внутри - колонки по видам контроля. Курсовая работа выводится отдельной
+     * группой "Курсовая работа по ...". Дубли дисциплины (разные записи справочника
+     * с одинаковым названием, отличающиеся пробелом) схлопываются в одну колонку.
+     * Контроль "-" не выводится.
+     *
+     * Порядок: семестр, затем название дисциплины по алфавиту (как в старой ведомости).
+     *
+     * @return array<int, array{title:string, sort:string, semester:int, columns:array}>
+     */
+    private function buildColumnGroups(array $plan): array
+    {
+        $groups = [];
+
+        foreach ($plan as $row) {
+            $controlName = trim((string)$row['control_name']);
+
+            if ($controlName === '' || $controlName === '-') {
+                continue;
+            }
+
+            $name = trim(preg_replace('/\s+/u', ' ', (string)$row['discipline_name']));
+            $isCourseWork = in_array($controlName, self::COURSE_WORK, true);
+
+            $displayName = $isCourseWork
+                ? 'Курсовая работа по ' . $this->courseWorkPrefix($row) . $name
+                : $name;
+
+            $prefix = '';
+            if (!is_null($row['index_name'])) {
+                $prefix = $row['index_name'] . (!is_null($row['section_name']) ? '.' . $row['section_name'] : '');
+            }
+
+            $title = ($prefix !== '' ? $prefix . ' - ' : '') . $displayName;
+
+            $groupKey = $row['semester_number'] . '|' . $prefix . '|' . mb_strtolower($displayName);
+            $columnKey = $groupKey . '|' . $controlName;
+
+            if (!isset($groups[$groupKey])) {
+                $groups[$groupKey] = [
+                    'title' => $title,
+                    'sort' => mb_strtolower($displayName),
+                    'semester' => (int)$row['semester_number'],
+                    'columns' => [],
+                ];
+            }
+
+            if (!isset($groups[$groupKey]['columns'][$columnKey])) {
+                $groups[$groupKey]['columns'][$columnKey] = [
+                    'key' => $columnKey,
+                    'control_id' => (int)$row['control_id'],
+                    'control_name' => $controlName,
+                    'short' => self::CONTROL_SHORT[$controlName] ?? mb_substr($controlName, 0, 3),
+                    'cts_ids' => [],
+                ];
+            }
+
+            $groups[$groupKey]['columns'][$columnKey]['cts_ids'][] = (int)$row['cts_id'];
+        }
+
+        foreach ($groups as &$g) {
+            $g['columns'] = array_values($g['columns']);
+            usort($g['columns'], fn($a, $b) => $a['control_id'] <=> $b['control_id']);
+        }
+        unset($g);
+
+        $groups = array_values($groups);
+        usort($groups, fn($a, $b) => [$a['semester'], $a['sort']] <=> [$b['semester'], $b['sort']]);
+
+        return $groups;
+    }
+
+    /**
+     * "ОП.06 " для общепрофессиональных дисциплин (как в "Курсовая работа по ОП.06 Экономика организации").
+     */
+    private function courseWorkPrefix(array $row): string
+    {
+        if (($row['index_name'] ?? null) === 'ОПД' && !empty($row['number_index'])) {
+            return 'ОП.' . sprintf('%02d', (int)$row['number_index']) . ' ';
+        }
+
+        return '';
+    }
+
+    /**
+     * Делит группы колонок на блоки не более MAX_COLUMNS_PER_TABLE колонок.
+     */
+    private function splitIntoBlocks(array $groups): array
+    {
+        $blocks = [];
+        $current = [];
+        $count = 0;
+
+        foreach ($groups as $g) {
+            $size = count($g['columns']);
+
+            if ($count > 0 && $count + $size > self::MAX_COLUMNS_PER_TABLE) {
+                $blocks[] = $current;
+                $current = [];
+                $count = 0;
+            }
+
+            $current[] = $g;
+            $count += $size;
+        }
+
+        if (!empty($current)) {
+            $blocks[] = $current;
+        }
+
+        return $blocks;
+    }
+
+    private function addBlockTable($section, array $blockGroups, array $students, array $cellText, array $badCount, bool $withTotals): void
+    {
+        $usableWidth = 15700;   // А4 альбомная минус поля, twips
+        $numWidth = 420;
+        $fioWidth = 2000;
+        $totalWidth = $withTotals ? 650 : 0;
+
+        $columnCount = 0;
+        foreach ($blockGroups as $g) {
+            $columnCount += count($g['columns']);
+        }
+
+        $colWidth = (int)floor(($usableWidth - $numWidth - $fioWidth - $totalWidth) / max(1, $columnCount));
+        $colWidth = max(380, min(700, $colWidth));
+
+        $center = ['alignment' => Jc::CENTER, 'spaceBefore' => 0, 'spaceAfter' => 0, 'lineHeight' => 1];
+        $left = ['alignment' => Jc::LEFT, 'spaceBefore' => 0, 'spaceAfter' => 0, 'lineHeight' => 1];
+        $headFont = ['name' => 'Times New Roman', 'size' => 7];
+        $font = ['name' => 'Times New Roman', 'size' => 8];
+
+        $table = $section->addTable([
+            'borderSize' => 6,
+            'borderColor' => '000000',
+            'cellMargin' => 30,
+            'layout' => TableStyle::LAYOUT_FIXED,
+            'unit' => TblWidth::TWIP,
+        ]);
+
+        // Строка 1: "№", "Фамилия И.О.", "Наименование дисциплины (модуля), практики", итог
+        $table->addRow(null, ['tblHeader' => true, 'cantSplit' => true]);
+        $table->addCell($numWidth, ['vMerge' => 'restart', 'valign' => 'center'])->addText('№', $font, $center);
+        $table->addCell($fioWidth, ['vMerge' => 'restart', 'valign' => 'center'])->addText('Фамилия И.О.', $font, $center);
+        $table->addCell($colWidth * $columnCount, ['gridSpan' => $columnCount, 'valign' => 'center'])
+            ->addText('Наименование дисциплины (модуля), практики', $font, $center);
+        if ($withTotals) {
+            $table->addCell($totalWidth, [
+                'vMerge' => 'restart',
+                'valign' => 'center',
+                'textDirection' => Cell::TEXT_DIR_BTLR,
+            ])->addText('Количество нулей и пробелов', $headFont, $center);
+        }
+
+        // Строка 2: названия дисциплин (повёрнуты снизу вверх)
+        $table->addRow(5200, ['tblHeader' => true, 'cantSplit' => true, 'exactHeight' => true]);
+        $table->addCell($numWidth, ['vMerge' => 'continue']);
+        $table->addCell($fioWidth, ['vMerge' => 'continue']);
+        foreach ($blockGroups as $g) {
+            $span = count($g['columns']);
+            $table->addCell($colWidth * $span, [
+                'gridSpan' => $span,
+                'valign' => 'center',
+                'textDirection' => Cell::TEXT_DIR_BTLR,
+            ])->addText($g['title'], $headFont, $left);
+        }
+        if ($withTotals) {
+            $table->addCell($totalWidth, ['vMerge' => 'continue']);
+        }
+
+        // Строка 3: виды контроля
+        $table->addRow(null, ['tblHeader' => true, 'cantSplit' => true]);
+        $table->addCell($numWidth, ['vMerge' => 'continue']);
+        $table->addCell($fioWidth, ['vMerge' => 'continue']);
+        foreach ($blockGroups as $g) {
+            foreach ($g['columns'] as $col) {
+                $table->addCell($colWidth, ['valign' => 'center'])->addText($col['short'], $headFont, $center);
+            }
+        }
+        if ($withTotals) {
+            $table->addCell($totalWidth, ['vMerge' => 'continue']);
+        }
+
+        // Студенты
+        foreach ($students as $i => $student) {
+            $uid = $student['user_id'];
+
+            $table->addRow(null, ['cantSplit' => true]);
+            $table->addCell($numWidth, ['valign' => 'center'])->addText((string)($i + 1), $font, $center);
+            $table->addCell($fioWidth, ['valign' => 'center'])->addText((string)$student['fio'], $font, $left);
+
+            foreach ($blockGroups as $g) {
+                foreach ($g['columns'] as $col) {
+                    $table->addCell($colWidth, ['valign' => 'center'])
+                        ->addText($cellText[$uid][$col['key']] ?? '', $font, $center);
+                }
+            }
+
+            if ($withTotals) {
+                $table->addCell($totalWidth, ['valign' => 'center'])->addText((string)($badCount[$uid] ?? 0), $font, $center);
+            }
+        }
     }
 }

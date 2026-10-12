@@ -114,6 +114,23 @@
             <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Моя успеваемость</span>
         </div>
     </a>
+    <a href="{{ route('student.payment') }}">
+        <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('student.payment')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
+            <div class="w-8 h-8 flex items-center justify-center"
+                x-effect="
+                    if (isMobileMenuVisible) {
+                        $el.removeAttribute('data-tippy-content');
+                        $el.removeAttribute('data-tippy-placement');
+                    } else {
+                        $el.setAttribute('data-tippy-content', 'Оплата');
+                        $el.setAttribute('data-tippy-placement', 'right');
+                    }
+                ">
+                <i class="fa-solid fa-credit-card fa-lg"></i>
+            </div>
+            <span x-show="isMobileMenuVisible" class="md:hidden text-sm whitespace-nowrap">Оплата</span>
+        </div>
+    </a>
     <a href="{{ route('student.my.attendance') }}">
         <div :class="{ 'justify-center': !isMobileMenuVisible, 'space-x-2 px-2': isMobileMenuVisible }" class="h-8 flex items-center {{ (request()->routeIs('student.my.attendance')) ? 'bg-blue-500 text-white' : 'hover:bg-blue-500 hover:text-white' }} rounded">
             <div class="w-8 h-8 flex items-center justify-center"

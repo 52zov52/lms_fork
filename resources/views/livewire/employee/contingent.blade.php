@@ -10,13 +10,8 @@
                 </select>
             </div>
             <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-                <button wire:click="downloadListOfStudents" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-2 text-xs text-left text-sky-400 hover:text-white font-bold">
-                    <span wire:loading.remove wire:target="downloadListOfStudents">
-                        <i class="fa-solid fa-download"></i> Скачать список студентов
-                    </span>
-                    <span wire:loading wire:target="downloadListOfStudents">
-                        <i class="fa-solid fa-spinner fa-spin-pulse"></i> Идет загрузка
-                    </span>
+                <button wire:click="openDownloadModal" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-2 text-xs text-left text-sky-400 hover:text-white font-bold">
+                    <i class="fa-solid fa-download"></i> Скачать список студентов
                 </button>
                 <button wire:click="downloadGroupStudentGrade" class="bg-white hover:bg-sky-400 dark:bg-slate-700 dark:hover:bg-slate-800 border rounded border-sky-400 px-2 py-2 text-xs text-left text-sky-400 hover:text-white font-bold">
                     <span wire:loading.remove wire:target="downloadGroupStudentGrade">
@@ -133,4 +128,54 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal dialog: format of the list of students -->
+    <x-dialog-modal wire:model="isShowDownloadModal">
+        <x-slot name="title">
+            Скачать список студентов
+        </x-slot>
+
+        <x-slot name="content">
+            <div class="flex flex-col space-y-2">
+                <span class="text-sm font-semibold">Формат файла:</span>
+                <label for="format-xlsx" class="flex items-center space-x-2 border rounded border-slate-400/20 px-3 py-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <input wire:model="downloadFormat" type="radio" name="downloadFormat" id="format-xlsx" value="xlsx">
+                    <i class="fa-solid fa-file-excel text-green-500"></i>
+                    <span>Excel (.xlsx)</span>
+                </label>
+                <label for="format-docx" class="flex items-center space-x-2 border rounded border-slate-400/20 px-3 py-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <input wire:model="downloadFormat" type="radio" name="downloadFormat" id="format-docx" value="docx">
+                    <i class="fa-solid fa-file-word text-blue-500"></i>
+                    <span>Word (.docx)</span>
+                </label>
+                <label for="format-pdf" class="flex items-center space-x-2 border rounded border-slate-400/20 px-3 py-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <input wire:model="downloadFormat" type="radio" name="downloadFormat" id="format-pdf" value="pdf">
+                    <i class="fa-solid fa-file-pdf text-red-500"></i>
+                    <span>PDF (.pdf)</span>
+                </label>
+
+                <label for="minimal-data" class="flex items-start space-x-2 pt-2 cursor-pointer">
+                    <input wire:model="minimalData" type="checkbox" name="minimalData" id="minimal-data" class="mt-1 rounded">
+                    <span>
+                        <span class="font-semibold">Минимум данных</span>
+                        <span class="block text-xs text-slate-500">Только № пп, ФИО и № студенческого билета (как в «Списках групп»). Без галочки - полный список: паспорт, адрес, образование, воинский учёт, телефон.</span>
+                    </span>
+                </label>
+            </div>
+        </x-slot>
+
+        <x-slot name="footer">
+            <button wire:click="$set('isShowDownloadModal', false)" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
+                {{ __('Закрыть') }}
+            </button>
+            <button wire:click="downloadListOfStudents" type="button" class="ml-2 w-full sm:w-auto bg-sky-500 hover:bg-sky-600 rounded shadow-xl px-2 py-1 text-white">
+                <span wire:loading.remove wire:target="downloadListOfStudents">
+                    <i class="fa-solid fa-download"></i> Скачать
+                </span>
+                <span wire:loading wire:target="downloadListOfStudents">
+                    <i class="fa-solid fa-spinner fa-spin-pulse"></i> Идет загрузка
+                </span>
+            </button>
+        </x-slot>
+    </x-dialog-modal>
 </div>

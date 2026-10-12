@@ -95,7 +95,10 @@ class StudentDocumentOrderReportController extends Controller
                 ? '.'
                 : ', стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются.');
  
-            $template->setValue('leave_orders', $this->formatLeaveOrders($issuance->leave_orders));
+            $leaveOrders = $this->formatLeaveOrders($issuance->leave_orders ?? null);
+
+            $this->setOptionalBlock($template, 'leave_orders_block', $leaveOrders);
+            $template->setValue('leave_oders', $leaveOrders);
         }
 
         // ФИО в именительном падеже: справка-вызов (3) и характеристика (4)
@@ -202,6 +205,17 @@ class StudentDocumentOrderReportController extends Controller
         $d = Carbon::parse($date);
 
         return $d->day . ' ' . self::MONTHS_GENITIVE[$d->month] . ' ' . $d->year;
+    }
+
+    private function setOptionalBlock(TemplateProcessor $template, string $block, ?string $value): void
+    {
+        if (is_null($value) || trim($value) === '') {
+            // deleteBlock() в PhpWord ломает XML, поэтому удаляем блок через cloneBlock с 0 копий
+            $template->cloneBlock($block, 0, true);
+            return;
+        }
+
+        $template->cloneBlock($block, 1, true);
     }
 
     private function transformTeachingForm($teachingForm): string

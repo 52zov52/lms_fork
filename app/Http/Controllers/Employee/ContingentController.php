@@ -11,15 +11,39 @@ use Illuminate\Support\Facades\DB;
 
 class ContingentController extends Controller
 {
+    /**
+     * Группы, в которых есть студенты (пустые группы не выводятся).
+     * Раньше брались группы из потоков текущего учебного года:
+     *
+     * return $this->extractGroupIds(StudyThread::join('study_thread_subgroups', 'study_threads.id', '=', 'study_thread_subgroups.study_thread_id')
+     *     ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
+     *     ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
+     *     ->where('study_threads.year', '=', AcademicYearController::getYear())
+     *     ->select('groups.id')
+     *     ->distinct()
+     *     ->get()->toArray());
+     */
     public function getGroupIds(): array
     {
-        return $this->extractGroupIds(StudyThread::join('study_thread_subgroups', 'study_threads.id', '=', 'study_thread_subgroups.study_thread_id')
-            ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
-            ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
-            ->where('study_threads.year', '=', AcademicYearController::getYear())
-            ->select('groups.id')
+        return $this->activeGroupsWithStudentsQuery()
             ->distinct()
-            ->get()->toArray());
+            ->pluck('group_student.group_id')
+            ->all();
+    }
+
+    /**
+     * Группы со студентами: срок обучения не закончился, уровень образования —
+     * СПО, бакалавриат или магистратура (аспирантура и служебные группы не выводятся).
+     */
+    private function activeGroupsWithStudentsQuery()
+    {
+        return GroupStudent::query()
+            ->join('groups', 'group_student.group_id', '=', 'groups.id')
+            ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
+            ->join('specialities', 'work_study_plans.speciality_id', '=', 'specialities.id')
+            ->join('level_educations', 'specialities.level_education_id', '=', 'level_educations.id')
+            ->where('groups.year_completion', '>=', now()->toDateString())
+            ->whereIn('level_educations.level_name', ['Среднее профессиональное', 'Бакалавриат', 'Магистратура']);
     }
 
     public function getFullContingent($groupId, $gender = [0, 1]): object
@@ -187,17 +211,27 @@ class ContingentController extends Controller
         }, $listGroupId);
     }
 
+    /**
+     * Группы со студентами по форме обучения.
+     * Раньше брались группы из потоков текущего учебного года:
+     *
+     * return $this->extractGroupIds(StudyThread::join('study_thread_subgroups', 'study_threads.id', '=', 'study_thread_subgroups.study_thread_id')
+     *     ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
+     *     ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
+     *     ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
+     *     ->where('study_threads.year', '=', AcademicYearController::getYear())
+     *     ->where('work_study_plans.teaching_form_id', '=', $teachingForm)
+     *     ->select('groups.id')
+     *     ->distinct()
+     *     ->get()->toArray());
+     */
     public function getGroupIdsByTeachingForm($teachingForm) : array
     {
-        return $this->extractGroupIds(StudyThread::join('study_thread_subgroups', 'study_threads.id', '=', 'study_thread_subgroups.study_thread_id')
-            ->join('group_study_thread_subgroup', 'study_thread_subgroups.id', '=', 'group_study_thread_subgroup.study_thread_subgroup_id')
-            ->join('groups', 'group_study_thread_subgroup.group_id', '=', 'groups.id')
-            ->join('work_study_plans', 'groups.work_study_plan_id', '=', 'work_study_plans.id')
-            ->where('study_threads.year', '=', AcademicYearController::getYear())
+        return $this->activeGroupsWithStudentsQuery()
             ->where('work_study_plans.teaching_form_id', '=', $teachingForm)
-            ->select('groups.id')
             ->distinct()
-            ->get()->toArray());
+            ->pluck('group_student.group_id')
+            ->all();
     }
 
      public function getStudentsEducationData(): object

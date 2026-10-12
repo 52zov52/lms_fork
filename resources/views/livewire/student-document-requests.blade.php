@@ -25,6 +25,7 @@
         <span class="bg-orange-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">В работе</span>
         <span class="bg-green-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">Выполнена</span>
         <span class="bg-red-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">Отклонена</span>
+        <span class="text-xs md:text-sm text-slate-500 self-center">Наведите на <i class="fa-solid fa-circle-info text-red-400"></i> у отклонённой заявки, чтобы увидеть причину</span>
     </div>
 
     @if(!is_null($studentDocumentRequests) && count($studentDocumentRequests) != 0)
@@ -62,7 +63,14 @@
                         @elseif($value->status == 2)
                         <span class="text-green-400 font-bold cursor-pointer" data-tippy-content="Выполнена">В</span>
                         @else
+                        @if(!empty($value->reject_reason))
+                        <span class="inline-flex items-center space-x-1 text-red-400 font-bold cursor-help border-b border-dotted border-red-400" data-tippy-content="Отклонена. Причина: {{ e($value->reject_reason) }}">
+                            <span>О</span>
+                            <i class="fa-solid fa-circle-info text-xs"></i>
+                        </span>
+                        @else
                         <span class="text-red-400 font-bold cursor-pointer" data-tippy-content="Отклонена">О</span>
+                        @endif
                         @endif
                     </td>
                     <td class="w-16 px-2 py-2 text-center">{{ $value->quantity }}</td>
