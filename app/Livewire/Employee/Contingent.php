@@ -21,7 +21,10 @@ class Contingent extends Component
     public bool $isShowDownloadModal = false;
     public string $downloadFormat = 'xlsx';   // xlsx | docx | pdf
     public bool $minimalData = false;         // true - только № пп, ФИО, № ст. билета
-
+    // Окно выбора формата для индивидуальной ведомости
+    public bool $isShowIndividualGradeModal = false;
+    public int $individualGradeUserId = 0;
+    public string $individualGradeFormat = 'docx';   // docx | xlsx | pdf
     public function render()
     {
         $contingentController = new ContingentController();
@@ -94,10 +97,37 @@ class Contingent extends Component
         return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }
 
-    public function downloadIndividualStudentGrade($userId)
+    public function openIndividualGradeModal($userId): void
     {
-        $individualStudentGradeController = new IndividualStudentGradeController();
-        $data = $individualStudentGradeController->print($userId);
+        $this->individualGradeUserId = (int) $userId;
+        $this->individualGradeFormat = 'docx';
+        $this->isShowIndividualGradeModal = true;
+    }
+
+    public function downloadIndividualStudentGrade()
+    {
+        if ($this->individualGradeUserId === 0) {
+            return;
+        }
+
+        $format = in_array($this->individualGradeFormat, IndividualStudentGradeController::FORMATS, true)
+            ? $this->individualGradeFormat
+            : 'docx';
+
+        try {
+            $data = (new IndividualStudentGradeController())->print($this->individualGradeUserId, $format);
+        } catch (\DomainException $e) {
+            $this->isShowIndividualGradeModal = false;
+            $this->dispatch('show-toast', message: $e->getMessage(), type: 'error');
+            return;
+        } catch (\Throwable $e) {
+            report($e);
+            $this->isShowIndividualGradeModal = false;
+            $this->dispatch('show-toast', message: 'Не удалось сформировать ведомость. Попробуйте другой формат.', type: 'error');
+            return;
+        }
+
+        $this->isShowIndividualGradeModal = false;
 
         return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }

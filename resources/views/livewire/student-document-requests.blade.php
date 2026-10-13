@@ -2,7 +2,7 @@
     <x-toastr type="{{ session('type') }}" message="{{ session('message') }}" />
 
     <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
-        <select wire:model="selectedDocumentType" wire:change="setDocumentType" name="documentType" id="document-type" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+        <select wire:model.live="selectedDocumentType" name="documentType" id="document-type" class="w-full md:w-auto bg-white dark:bg-slate-700 border rounded border-slate-200 dark:border-slate-400/20 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option value="0">Выберите из списка тип справки</option>
             @foreach($listDocumentTypes as $key => $value)
             <option value="{{ $key }}">{{ $value }}</option>
@@ -20,6 +20,22 @@
             Отправить заявку
         </button>
     </div>
+
+    {{-- Выбор вида характеристики (только для типа 4) --}}
+    @if ((int) $selectedDocumentType === 4)
+        <div class="flex flex-col space-y-1 p-3 border rounded border-slate-200 dark:border-slate-400/20">
+            <span class="text-xs font-semibold">Вид характеристики <span class="text-red-500">*</span></span>
+            <label class="flex items-center space-x-2 text-xs cursor-pointer">
+                <input wire:model.live="characteristicType" type="radio" value="positive">
+                <span class="text-green-600 font-semibold">Положительная</span>
+            </label>
+            <label class="flex items-center space-x-2 text-xs cursor-pointer">
+                <input wire:model.live="characteristicType" type="radio" value="negative">
+                <span class="text-red-500 font-semibold">Отрицательная</span>
+            </label>
+            @error('characteristicType') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+        </div>
+    @endif
 
     <div class="flex flex-row space-x-2">
         <span class="bg-orange-400 rounded px-2 py-1 text-xs md:text-sm text-white font-semibold">В работе</span>
@@ -55,6 +71,9 @@
                         {{ __('Справка-вызов') }}
                         @else
                         {{ __('Характеристика') }}
+                        <span class="font-semibold {{ $value->characteristic_type === 'negative' ? 'text-red-500' : 'text-green-600' }}">
+                            ({{ $value->characteristic_type === 'negative' ? 'отрицательная' : 'положительная' }})
+                        </span>
                         @endif
                     </td>
                     <td class="w-16 px-2 py-2 text-center">

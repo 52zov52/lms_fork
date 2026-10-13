@@ -58,7 +58,7 @@ class GroupStudentGradeController extends Controller
     private const COURSE_WORK = ['Курсовая работа', 'Защита курс/р (курсов. проекта)'];
 
     /** Максимум колонок с оценками в одной таблице (в Word лимит 63 колонки) */
-    private const MAX_COLUMNS_PER_TABLE = 34;
+    private const MAX_COLUMNS_PER_TABLE = 30;
 
     /**
      * @param int      $groupId
@@ -267,13 +267,18 @@ class GroupStudentGradeController extends Controller
         $phpWord->setDefaultFontName('Times New Roman');
         $phpWord->setDefaultFontSize(8);
 
+        // Явно задаём размеры A4 в альбомной ориентации (twips): 16838 x 11906.
+        // Без pageSizeW/pageSizeH Word иногда игнорирует 'orientation'.
         $section = $phpWord->addSection([
-            'orientation' => 'landscape',
-            'marginTop' => 567,
+            'orientation'  => 'landscape',
+            'pageSizeW'    => 16838,
+            'pageSizeH'    => 11906,
+            'marginTop'    => 567,
             'marginBottom' => 567,
-            'marginLeft' => 567,
-            'marginRight' => 567,
+            'marginLeft'   => 567,
+            'marginRight'  => 567,
         ]);
+
 
         if (empty($groupsByCourse)) {
             $section->addText(
@@ -354,6 +359,18 @@ class GroupStudentGradeController extends Controller
             if ($controlName === '' || $controlName === '-') {
                 continue;
             }
+            $firstCourse = false;
+
+            $title = 'Сводная ведомость группы ' . trim($group->group_name) . ' за ' . $courseNumber . ' курс '
+                . $this->academicYear($group, $courseNumber) . ' уч. год';
+            $section->addText(
+                $title,
+                ['bold' => true, 'size' => 14],
+                ['alignment' => Jc::CENTER, 'spaceAfter' => 200]
+            );
+
+            $blocks = $this->splitIntoBlocks($groups);
+            $lastBlock = count($blocks) - 1;
 
             $name = trim(preg_replace('/\s+/u', ' ', (string)$row['discipline_name']));
             $isCourseWork = in_array($controlName, self::COURSE_WORK, true);
@@ -366,6 +383,10 @@ class GroupStudentGradeController extends Controller
             if (!is_null($row['index_name'])) {
                 $prefix = $row['index_name'] . (!is_null($row['section_name']) ? '.' . $row['section_name'] : '');
             }
+        }
+
+        $filename = time() . '.docx';
+        $tempFile = tempnam(sys_get_temp_dir(), $filename);
 
             $title = ($prefix !== '' ? $prefix . ' - ' : '') . $displayName;
 
@@ -449,7 +470,7 @@ class GroupStudentGradeController extends Controller
 
     private function addBlockTable($section, array $blockGroups, array $students, array $cellText, array $badCount, bool $withTotals): void
     {
-        $usableWidth = 15700;   // А4 альбомная минус поля, twips
+        $usableWidth = 15300;   // А4 альбомная минус поля и запас на внутренние отступы ячеек (иначе таблица вылезает влево), twips
         $numWidth = 420;
         $fioWidth = 2000;
         $totalWidth = $withTotals ? 650 : 0;
@@ -460,7 +481,7 @@ class GroupStudentGradeController extends Controller
         }
 
         $colWidth = (int)floor(($usableWidth - $numWidth - $fioWidth - $totalWidth) / max(1, $columnCount));
-        $colWidth = max(380, min(700, $colWidth));
+        $colWidth = max(300, min(700, $colWidth));
 
         $center = ['alignment' => Jc::CENTER, 'spaceBefore' => 0, 'spaceAfter' => 0, 'lineHeight' => 1];
         $left = ['alignment' => Jc::LEFT, 'spaceBefore' => 0, 'spaceAfter' => 0, 'lineHeight' => 1];

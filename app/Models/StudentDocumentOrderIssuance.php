@@ -37,6 +37,21 @@ class StudentDocumentOrderIssuance extends Model
         'is_budget',
         'confirmiter_id',
         'signer_position',
-        'signer_fio'
+        'signer_fio',
+        'characteristic_type',
+        'original_characteristic_type',
+        'had_academic_leave',
+        'leave_orders',
+        'is_expelled',
+        'show_leave_orders',
+        'confirmed_at',
+    ];
+
+    protected $casts = [
+        'is_budget'          => 'boolean',
+        'had_academic_leave' => 'boolean',
+        'is_expelled'        => 'boolean',
+        'show_leave_orders'  => 'boolean',
+        'confirmed_at'       => 'datetime',
     ];
 }

@@ -60,7 +60,7 @@
                                 @endif
                             </td>
                             <td class="w-24 px-2 py-2 text-center">
-                                <button wire:click="downloadIndividualStudentGrade({{ $item->user_id }})" class="w-9 btn-download" title="" data-tippy-content="Скачать индивидуальную ведомость">
+                                <button wire:click="openIndividualGradeModal({{ $item->user_id }})" class="w-9 btn-download" title="" data-tippy-content="Скачать индивидуальную ведомость">
                                     <span wire:loading.remove wire:target="downloadIndividualStudentGrade({{ $item->user_id }})">
                                         <i class="fa-solid fa-download"></i>
                                     </span>
@@ -103,7 +103,7 @@
                     <div class="flex flex-col">
                         <span class="font-semibold">Действия:</span>
                         <div class="flex flex-row space-x-2">
-                            <button wire:click="downloadIndividualStudentGrade({{ $item->user_id }})" class="w-auto grow btn-download" title="" data-tippy-content="Скачать индивидуальную ведомость">
+                            <button wire:click="openIndividualGradeModal({{ $item->user_id }})" class="w-auto grow btn-download" title="" data-tippy-content="Скачать индивидуальную ведомость">
                                 <span wire:loading.remove wire:target="downloadIndividualStudentGrade({{ $item->user_id }})">
                                     <i class="fa-solid fa-download"></i>
                                 </span>
@@ -173,6 +173,50 @@
                     <i class="fa-solid fa-download"></i> Скачать
                 </span>
                 <span wire:loading wire:target="downloadListOfStudents">
+                    <i class="fa-solid fa-spinner fa-spin-pulse"></i> Идет загрузка
+                </span>
+            </button>
+        </x-slot>
+    </x-dialog-modal>
+        <!-- Modal dialog: format of the individual student grade -->
+    <x-dialog-modal wire:model="isShowIndividualGradeModal">
+        <x-slot name="title">
+            Скачать индивидуальную ведомость
+        </x-slot>
+
+        <x-slot name="content">
+            <div class="flex flex-col space-y-2">
+                <span class="text-sm font-semibold">Формат файла:</span>
+
+                <label for="ig-format-docx" class="flex items-center space-x-2 border rounded border-slate-400/20 px-3 py-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <input wire:model="individualGradeFormat" type="radio" name="individualGradeFormat" id="ig-format-docx" value="docx">
+                    <i class="fa-solid fa-file-word text-blue-500"></i>
+                    <span>Word (.docx) — рекомендуется</span>
+                </label>
+
+                <label for="ig-format-xlsx" class="flex items-center space-x-2 border rounded border-slate-400/20 px-3 py-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <input wire:model="individualGradeFormat" type="radio" name="individualGradeFormat" id="ig-format-xlsx" value="xlsx">
+                    <i class="fa-solid fa-file-excel text-green-500"></i>
+                    <span>Excel (.xlsx)</span>
+                </label>
+
+                <label for="ig-format-pdf" class="flex items-center space-x-2 border rounded border-slate-400/20 px-3 py-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <input wire:model="individualGradeFormat" type="radio" name="individualGradeFormat" id="ig-format-pdf" value="pdf">
+                    <i class="fa-solid fa-file-pdf text-red-500"></i>
+                    <span>PDF (.pdf)</span>
+                </label>
+            </div>
+        </x-slot>
+
+        <x-slot name="footer">
+            <button wire:click="$set('isShowIndividualGradeModal', false)" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded shadow-xl px-2 py-1 text-white">
+                {{ __('Закрыть') }}
+            </button>
+            <button wire:click="downloadIndividualStudentGrade" type="button" class="ml-2 w-full sm:w-auto bg-sky-500 hover:bg-sky-600 rounded shadow-xl px-2 py-1 text-white">
+                <span wire:loading.remove wire:target="downloadIndividualStudentGrade">
+                    <i class="fa-solid fa-download"></i> Скачать
+                </span>
+                <span wire:loading wire:target="downloadIndividualStudentGrade">
                     <i class="fa-solid fa-spinner fa-spin-pulse"></i> Идет загрузка
                 </span>
             </button>

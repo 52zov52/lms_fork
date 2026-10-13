@@ -58,6 +58,9 @@
                                 {{ __('Справка-вызов') }}
                                 @else
                                 {{ __('Характеристика') }}
+                                <span class="font-semibold {{ $value->characteristic_type === 'negative' ? 'text-red-500' : 'text-green-600' }}">
+                                    ({{ $value->characteristic_type === 'negative' ? 'отрицательная' : 'положительная' }})
+                                </span>
                                 @endif
                             </td>
                             <td class="w-16 px-2 py-2 text-center">
@@ -122,7 +125,10 @@
                         @elseif($value->document_type == 3)
                         <span>{{ __('Справка-вызов') }}</span>
                         @else
-                        <span>{{ __('Характеристика') }}</span>
+                        <span>{{ __('Характеристика') }}
+                            <span class="font-semibold {{ $value->characteristic_type === 'negative' ? 'text-red-500' : 'text-green-600' }}">
+                                ({{ $value->characteristic_type === 'negative' ? 'отрицательная' : 'положительная' }})
+                            </span></span>
                         @endif
                     </div>
                     <div class="flex flex-col">
@@ -197,7 +203,7 @@
 
     <!-- Modal dialog to confirm student document order -->
     <x-dialog-modal wire:model="isShowModalDialog" maxWidth="4xl">
-        <form>
+        <form wire:submit.prevent>
             @csrf
             <x-slot name="title">
                 Форма подтверждения заявки на документ
@@ -309,17 +315,17 @@
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                                     <div class="flex flex-col">
                                         <label for="check-in-date" class="font-semibold">Период заезда с<span class="text-red-400">*</span></label>
-                                        <input wire:model="checkInDate" type="date" name="checkInDate" id="check-in-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                        <input wire:model.live="checkInDate" type="date" name="checkInDate" id="check-in-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                         @error('checkInDate') <span class="text-red-500">{{ $message }}</span> @enderror
                                     </div>
                                     <div class="flex flex-col">
                                         <label for="check-out-date" class="font-semibold">Период заезда по<span class="text-red-400">*</span></label>
-                                        <input wire:model="checkOutDate" type="date" name="checkOutDate" id="check-out-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                        <input wire:model.live="checkOutDate" type="date" name="checkOutDate" id="check-out-date" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                         @error('checkOutDate') <span class="text-red-500">{{ $message }}</span> @enderror
                                     </div>
                                     <div class="flex flex-col">
-                                        <label for="check-in-duration" class="font-semibold">Продолжительность<span class="text-red-400">*</span></label>
-                                        <input wire:model="checkInDuration" type="text" name="checkInDuration" id="check-in-duration" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                        <label for="check-in-duration" class="font-semibold">Продолжительность (дней)<span class="text-red-400">*</span></label>
+                                        <input wire:model="checkInDuration" type="number" min="1" name="checkInDuration" id="check-in-duration" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                                         @error('checkInDuration') <span class="text-red-500">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
@@ -331,30 +337,85 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-col space-y-1">
-                        <label for="had-academic-leave" class="flex items-center font-semibold">
-                            <input wire:model="hadAcademicLeave" type="checkbox" name="hadAcademicLeave" id="had-academic-leave" class="mr-1">
-                            Предоставлялся академический отпуск
-                        </label>
-                        <label for="leave-orders" class="font-semibold">Приказы об академическом отпуске, выходе из него и об отчислении (по одному в строке)</label>
-                        <textarea wire:model="leaveOrders" name="leaveOrders" id="leave-orders" rows="3" placeholder="Приказ о предоставлении академического отпуска от 17.02.2026 № 109/с;" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
-                    </div>
-                    <div class="py-2">
-                        <label for="is-budget" class="flex items-center">
-                            <input wire:model="isBudget" wire:key="is-budget-{{ $studentDocumentOrderRequestId }}" type="checkbox" name="isBudget" id="is-budget" class="mr-1">
-                            Обучается на бюджете
-                        </label>
-                    </div>
+
+                    {{-- Для характеристики не нужны бюджет/академ/приказы --}}
+                    @if ((int) $documentType !== 4)
+                        <div class="flex flex-col space-y-1">
+                            <label for="had-academic-leave" class="flex items-center font-semibold">
+                                <input wire:model="hadAcademicLeave" type="checkbox" name="hadAcademicLeave" id="had-academic-leave" class="mr-1">
+                                Предоставлялся академический отпуск
+                            </label>
+                            <label for="show-leave-orders" class="flex items-center font-semibold">
+                                <input wire:model="showLeaveOrders" type="checkbox" name="showLeaveOrders" id="show-leave-orders" class="mr-1">
+                                Указать приказы в справке (отпуск, выход, отчисление, восстановление)
+                            </label>
+                            <label for="leave-orders" class="font-semibold">Приказы об академическом отпуске, выходе из него и об отчислении (по одному в строке)</label>
+                            <textarea wire:model="leaveOrders" name="leaveOrders" id="leave-orders" rows="3" placeholder="Приказ о предоставлении академического отпуска от 17.02.2026 № 109/с;" class="w-full border border-gray-300 rounded px-2 text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"></textarea>
+                        </div>
+                    @endif
+
+                    @if ((int) $documentType === 4)
+                        <div class="py-2 flex flex-col space-y-1">
+                            <span class="font-semibold">Вид характеристики в документе:</span>
+                            <label class="flex items-center space-x-1">
+                                <input wire:model="characteristicType" type="radio" value="positive">
+                                <span class="text-green-600 font-semibold">Положительная</span>
+                            </label>
+                            <label class="flex items-center space-x-1">
+                                <input wire:model="characteristicType" type="radio" value="negative">
+                                <span class="text-red-500 font-semibold">Отрицательная</span>
+                            </label>
+                            @error('characteristicType') <span class="text-red-500">{{ $message }}</span> @enderror
+
+                            @if ($characteristicType !== $originalCharacteristicType)
+                                <span class="text-xs text-amber-600 mt-1">
+                                    Студент заказывал:
+                                    <b>{{ $originalCharacteristicType === 'negative' ? 'отрицательную' : 'положительную' }}</b>.
+                                    После сохранения вид характеристики изменится.
+                                </span>
+                            @else
+                                <span class="text-xs text-slate-500 mt-1">Вид совпадает с тем, что выбрал студент.</span>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if ($documentType == 1)
+                        <div class="py-2">
+                            <label for="is-expelled" class="flex items-center font-semibold">
+                                <input wire:model="isExpelled" wire:key="is-expelled-{{ $studentDocumentOrderRequestId }}" type="checkbox" name="isExpelled" id="is-expelled" class="mr-1">
+                                Студент отчислен / выпускник (справка «являлся обучающимся»)
+                            </label>
+                        </div>
+                    @endif
+
+                    @if ((int) $documentType !== 4)
+                        <div class="py-2">
+                            <label for="is-budget" class="flex items-center">
+                                <input wire:model="isBudget" wire:key="is-budget-{{ $studentDocumentOrderRequestId }}" type="checkbox" name="isBudget" id="is-budget" class="mr-1">
+                                Обучается на бюджете
+                            </label>
+                        </div>
+                    @endif
+
                     <div class="flex flex-col">
-                        <label for="signer" class="font-semibold">Выберите должность сотрудника, который будет подписывать документ<span class="text-red-500">*</span></label>
+                        <label for="signer" class="font-semibold">
+                            Кто подписывает документ
+                            @if ((int) $documentType === 4)
+                                (Академический директор / Проректор по ВР и МП / Руководитель ОПОП)
+                            @else
+                                (Академический директор)
+                            @endif
+                            <span class="text-red-500">*</span>
+                        </label>
                         <select wire:model="signer" name="signer" id="signer" class="w-full md:w-auto border border-gray-300 rounded text-sm md:text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="">Выберите должность сотрудника</option>
-                            @foreach($listOfSigners as $key => $value)
-                            <option value="{{ $key }}|{{ $value }}">{{ $key }}</option>
+                            <option value="">Выберите подписанта</option>
+                            @foreach($this->signers as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
                             @endforeach
                         </select>
                         @error('signer') <span class="text-red-500">{{ $message }}</span> @enderror
                     </div>
+
                     <span class="text-red-500">*Поля обязательные для заполнения</span>
                 </div>
                 @endif

@@ -41,8 +41,14 @@ class StudentOrderHistory
      * @param string|null $completionDate дата окончания обучения группы (Y-m-d). Отчисление в эту дату
      *                          или позже считается отчислением в связи с завершением обучения.
      *
-     * @return array{hadLeave: bool, lines: string[]}
-     *         hadLeave = true, если есть хотя бы один приказ (отпуск, выход, отчисление, восстановление)
+     * @return array{hadLeave: bool, hasOrders: bool, lastKind: ?string, isExpelled: bool, isGraduated: bool, wasRestored: bool, lines: string[]}
+     *         hadLeave    = true ТОЛЬКО если действительно был академический отпуск (приказ о предоставлении или о выходе из него);
+     *                       по нему в справке пишется «Предоставлялся академический отпуск»;
+     *         hasOrders   = true, если есть хотя бы один приказ (отпуск, выход, отчисление, восстановление) - строки lines;
+     *         lastKind    = тип последнего приказа: leave | return | expel | graduate | restore | null;
+     *         isExpelled  = студент сейчас отчислен без завершения обучения (последний приказ - отчисление);
+     *         isGraduated = последний приказ - отчисление в связи с завершением обучения;
+     *         wasRestored = студента восстанавливали.
      */
     public static function build(
         array $orderRows,
@@ -111,6 +117,12 @@ class StudentOrderHistory
                 $events[$candidate]['kind'] = 'graduate';
             } elseif ($lastStateId === self::STATE_EXPELLED && (!$hasRestore || !$inGroup)) {
                 $events[$candidate]['kind'] = 'expel';
+            } elseif ($lastStateId === null && $completionDate !== null && $completionDate <= date('Y-m-d')) {
+                // Состояния студента в БД нет (так бывает у выпускников), но срок обучения группы уже истёк,
+                // а последним был индивидуальный приказ с группой: это отчисление.
+                // Приказ в пределах 90 дней до окончания обучения — выпуск, раньше — отчисление без завершения.
+                $threshold = date('Y-m-d', strtotime($completionDate . ' -90 days'));
+                $events[$candidate]['kind'] = $events[$candidate]['date'] >= $threshold ? 'graduate' : 'expel';
             }
         }
 
@@ -128,15 +140,27 @@ class StudentOrderHistory
 
         usort($events, fn($a, $b) => [$a['date'], $a['order_id']] <=> [$b['date'], $b['order_id']]);
 
-        // Галочка ставится, если есть хоть один приказ: отпуск, выход, отчисление, восстановление
-        $hadLeave = count($events) > 0;
+        $kinds = array_column($events, 'kind');
+
+        // Академический отпуск был, только если есть приказ о предоставлении или о выходе из отпуска.
+        // Отчисление и восстановление сами по себе отпуском не считаются.
+        $hadLeave = (bool) array_intersect($kinds, ['leave', 'return']);
+        $lastKind = $kinds ? end($kinds) : null;
 
         $lines = array_map(
             fn($e) => self::LABELS[$e['kind']] . ' от ' . self::formatDate($e['date']) . ' № ' . self::cleanNumber($e['number']) . ';',
             $events
         );
 
-        return ['hadLeave' => $hadLeave, 'lines' => $lines];
+        return [
+            'hadLeave' => $hadLeave,
+            'hasOrders' => count($events) > 0,
+            'lastKind' => $lastKind,
+            'isExpelled' => $lastKind === 'expel',
+            'isGraduated' => $lastKind === 'graduate',
+            'wasRestored' => in_array('restore', $kinds, true),
+            'lines' => $lines,
+        ];
     }
 
     /** «438/с от 31.08.2026» -> «438/с»; латинскую «c» после слэша заменяем на русскую «с» */

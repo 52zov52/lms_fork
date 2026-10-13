@@ -8,6 +8,7 @@ use App\Models\StudentDocumentOrderRequest;
 use App\Models\UserData;
 use Carbon\Carbon;
 use DomainException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\TemplateProcessor;
 
@@ -29,6 +30,25 @@ class StudentDocumentOrderReportController extends Controller
         10 => 'октября', 11 => 'ноября',  12 => 'декабря',
     ];
 
+    /**
+     * Приказы об академических отпусках студента, по одному в строке:
+     * "12.03.2025 № 109/с" (тот же формат, что и у приказа о зачислении).
+     */
+    private function getLeaveOrders(int $userId): string
+    {
+        return DB::table('students_academic_leaves')
+            ->join('orders', 'students_academic_leaves.order_id', '=', 'orders.id')
+            ->where('students_academic_leaves.user_id', '=', $userId)
+            ->where('students_academic_leaves.is_academic_leave', '=', 1)
+            ->whereNull('students_academic_leaves.deleted_at')
+            ->orderBy('orders.order_date')
+            ->select('orders.order_number', 'orders.order_date')
+            ->get()
+            ->unique(fn($row) => $row->order_date . '|' . $row->order_number)
+            ->map(fn($row) => Carbon::parse($row->order_date)->format('d.m.Y') . ' № ' . $row->order_number)
+            ->implode("\n");
+    }
+
     private function formatLeaveOrders(?string $leaveOrders): string
     {
         $lines = array_filter(array_map('trim', preg_split('/\R/u', (string) $leaveOrders)));
@@ -46,8 +66,12 @@ class StudentDocumentOrderReportController extends Controller
             ->firstOrFail();
 
         $type = (int) $request->document_type;
-
-        $path = $this->resolveTemplatePath($type, $issuance->level_education_name);
+        $path = $this->resolveTemplatePath(
+            $type,
+            $issuance->level_education_name,
+            (bool) $issuance->is_expelled,
+            (string) ($issuance->characteristic_type ?? 'positive')
+        );
         $template = new TemplateProcessor($path);
 
         // Общие поля для всех типов документов
@@ -76,6 +100,7 @@ class StudentDocumentOrderReportController extends Controller
             $template->setValue('edu_level', $this->buildEduLevel($issuance->level_education_name, $type));
             $template->setValue('sex', $issuance->sex ? 'она' : 'он');
             $template->setValue('student_word', $this->studentWord($issuance->sex));
+            $template->setValue('was_end', $issuance->sex ? 'лась' : 'лся'); // «являлся / являлась» (шаблоны для отчисленных)
             $template->setValue('vo_level', $this->voLevelWord($issuance->level_education_name));
             $template->setValue('sp', $issuance->specialty_code . ' - ' . $issuance->speciality_name);
             $template->setValue('orders', $issuance->orders);
@@ -89,15 +114,38 @@ class StudentDocumentOrderReportController extends Controller
                 ? ' за счет средств бюджетных ассигнований федерального бюджета '
                 : '');
  
-            $template->setValue('academic_leave', $issuance->had_academic_leave ? 'предоставлялся' : 'не предоставлялся');
- 
+            // Формы времени зависят от того, отчислен/выпускник или ещё учится
+            $isPast = (bool) $issuance->is_expelled;
+
+            $template->setValue(
+                'academic_leave',
+                $issuance->had_academic_leave ? 'предоставлялся' : 'не предоставлялся'
+            );
+
             $template->setValue('scholarship_end', $issuance->is_budget
                 ? '.'
-                : ', стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются.');
+                : ($isPast
+                    // отчислен / выпускник — прошедшее время
+                    ? ', стипендия не выплачивалась, иные меры социальной поддержки обучающихся не оказывались.'
+                    // учится — настоящее время
+                    : ', стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются.'));
  
-            $leaveOrders = $this->formatLeaveOrders($issuance->leave_orders ?? null);
+            // Приказы (отпуск, выход, отчисление, восстановление) берём из сохранённого при подтверждении текста.
+            // У старых справок он не заполнен — тогда по прежней логике (только академотпуск).
+            // Пустая строка -> блок leave_orders_block целиком удаляется из шаблона.
+            $savedOrders = trim((string) $issuance->leave_orders);
+            if ($savedOrders === '' && $issuance->had_academic_leave && is_null($issuance->leave_orders)) {
+                $savedOrders = $this->getLeaveOrders((int) $request->requester_id);
+            }
+            // Сотрудник снял галочку «указать приказы» -> блок не выводим
+            if (!$issuance->show_leave_orders) {
+                $savedOrders = '';
+            }
+            $leaveOrders = $this->formatLeaveOrders($savedOrders);
 
             $this->setOptionalBlock($template, 'leave_orders_block', $leaveOrders);
+            // два написания токена: в старых шаблонах была опечатка leave_oders
+            $template->setValue('leave_orders', $leaveOrders);
             $template->setValue('leave_oders', $leaveOrders);
         }
 
@@ -110,6 +158,7 @@ class StudentDocumentOrderReportController extends Controller
 
         // Только характеристика (4)
         if ($type === self::TYPE_CHARACTERISTIC) {
+            $this->fillCharacteristic($template, $issuance);
             $template->setValue('last_name_genitive', $issuance->last_name_genitive);
             $template->setValue('first_name_genitive', $issuance->first_name_genitive);
             $template->setValue('middle_name_genitive', $issuance->middle_name_genitive);
@@ -137,20 +186,55 @@ class StudentDocumentOrderReportController extends Controller
      *
      * @throws DomainException если для сочетания типа и уровня шаблона нет
      */
-    private function resolveTemplatePath(int $type, ?string $levelName): string
+    private function resolveTemplatePath(int $type, ?string $levelName, bool $isExpelled = false, string $characteristicType = 'positive'): string
     {
         $isSpo = $levelName === self::LEVEL_SPO;
 
         $relativePath = match (true) {
+            $type === self::TYPE_CHARACTERISTIC && $characteristicType === 'negative' => 'template/certificates/tmp_characteristic_negative.docx',
+            $type === self::TYPE_CHARACTERISTIC => 'template/certificates/tmp_characteristic_positive.docx',
+            $type === self::TYPE_STUDY && $isExpelled && $isSpo => 'template/certificates/tmp_about_study_otch.docx',
+            $type === self::TYPE_STUDY && $isExpelled => 'template/certificates/tmp_about_study_vo_otch.docx',
             $type === self::TYPE_STUDY && $isSpo => 'template/certificates/tmp_about_study_spo.docx',
             $type === self::TYPE_STUDY => 'template/certificates/tmp_about_study_vo.docx',
             $type === self::TYPE_TRANSPORT_CARD && $isSpo => 'template/certificates/tmp_about_study_transp_spo.docx',
             $type === self::TYPE_TRANSPORT_CARD => throw new DomainException('Справка для транспортных карт выдаётся только студентам колледжа.'),
             $type === self::TYPE_INVITATION => 'template/spravka.docx',
-            default => 'template/certificates/tmp_characteristic.docx',
+            default => throw new DomainException('Неизвестный тип документа.'),
         };
 
+        if (!Storage::disk('public')->exists($relativePath)) {
+            throw new DomainException('Не найден шаблон справки: ' . $relativePath);
+        }
+
         return Storage::disk('public')->path($relativePath);
+    }
+
+    /** Поля шаблонов характеристики (положительная / отрицательная), с учётом пола и уровня образования */
+    private function fillCharacteristic(TemplateProcessor $template, $issuance): void
+    {
+        $f = (bool) $issuance->sex; // 1 - женский
+        $isSpo = $issuance->level_education_name === self::LEVEL_SPO;
+
+        $template->setValue('student_gen', $f ? 'обучающейся' : 'обучающегося');
+        $template->setValue('program_gen', $isSpo ? 'специальности' : 'направления подготовки');
+        $template->setValue('program_dat', $isSpo ? 'специальности' : 'направлению подготовки');
+        $template->setValue('program_acc', $isSpo ? 'специальность' : 'направление подготовки');
+        $template->setValue('edu_note', match ($issuance->level_education_name) {
+            self::LEVEL_SPO => '(среднее профессиональное образование)',
+            self::LEVEL_BACHELOR => '(высшее образование - бакалавриат)',
+            self::LEVEL_MASTER => '(высшее образование - магистратура)',
+            default => '',
+        });
+        $template->setValue('enrolled', $f ? 'зачислена' : 'зачислен');
+        $template->setValue('showed', $f ? 'зарекомендовала' : 'зарекомендовал');
+        $template->setValue('student_noun', $f ? 'студентка' : 'студент');
+        $template->setValue('relating', $f ? 'относящаяся' : 'относящийся');
+        $template->setValue('skipped', $f ? 'Пропускала' : 'Пропускал');
+        $template->setValue('communicative', $f ? 'коммуникабельна' : 'коммуникабелен');
+        $template->setValue('correct', $f ? 'корректна' : 'корректен');
+        $template->setValue('friendly', $f ? 'доброжелательна' : 'доброжелателен');
+        $template->setValue('not_inclined', $f ? 'не склонна' : 'не склонен');
     }
 
     private function buildEduLevel(?string $levelName, int $type): string
@@ -210,8 +294,7 @@ class StudentDocumentOrderReportController extends Controller
     private function setOptionalBlock(TemplateProcessor $template, string $block, ?string $value): void
     {
         if (is_null($value) || trim($value) === '') {
-            // deleteBlock() в PhpWord ломает XML, поэтому удаляем блок через cloneBlock с 0 копий
-            $template->cloneBlock($block, 0, true);
+            $template->deleteBlock($block);
             return;
         }
 

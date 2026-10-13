@@ -6,6 +6,7 @@ use App\Http\Controllers\AcademicYearController;
 use App\Models\StudentDocumentOrderIssuance;
 use App\Models\StudentDocumentOrderRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,6 +18,9 @@ class StudentDocumentRequests extends Component
     public $selectedDocumentType = 0, $employmentPlace = '';
     public $showModal = false;
 
+    // Вид характеристики выбирает студент: 'positive' | 'negative' | '' (не выбран)
+    public string $characteristicType = '';
+
     public $listDocumentTypes = [
         1 => 'Справка о статусе студента',
         2 => 'Справка о статусе студента (для транспортных карт) - только для студентов колледжа',
@@ -26,9 +30,20 @@ class StudentDocumentRequests extends Component
 
     public function render()
     {
-        $studentDocumentOrderRequests = StudentDocumentOrderRequest::where('requester_id', Auth::user()->id)
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
+        // Вид характеристики хранится в выдаче (issuances), поэтому подтягиваем его join'ом
+        $studentDocumentOrderRequests = StudentDocumentOrderRequest::leftJoin(
+                'student_document_order_issuances',
+                'student_document_order_issuances.student_document_order_request_id',
+                '=',
+                'student_document_order_requests.id'
+            )
+            ->where('student_document_order_requests.requester_id', Auth::user()->id)
+            ->select(
+                'student_document_order_requests.*',
+                'student_document_order_issuances.characteristic_type'
+            )
+            ->orderByDesc('student_document_order_requests.created_at')
+            ->orderByDesc('student_document_order_requests.id')
             ->paginate(50);
 
         return view('livewire.student-document-requests', [
@@ -37,41 +52,78 @@ class StudentDocumentRequests extends Component
         ]);
     }
 
+    // Хук Livewire: вызывается при изменении selectedDocumentType
+    public function updatedSelectedDocumentType(): void
+    {
+        if ((int) $this->selectedDocumentType !== 4) {
+            $this->characteristicType = '';
+        }
+
+        $this->resetErrorBag('characteristicType');
+    }
+
     public function callMethod($methodName)
     {
         $this->{$methodName}();
     }
 
-    public function setDocumentType()
+    // Оставлен для совместимости со старым blade (wire:change="setDocumentType")
+    public function setDocumentType(): void
     {
-        $this->selectedDocumentType = $this->selectedDocumentType;
+        if ((int) $this->selectedDocumentType !== 4) {
+            $this->characteristicType = '';
+        }
     }
 
     public function sendRequest()
     {
-        if ($this->selectedDocumentType != 0) {
-            $this->validate(['quantity' => 'required|integer|min:1|max:10']);
-
-            if ($this->selectedDocumentType == 3) {
-                $this->showModal = true;
-            } else {
-                $this->store();
-            }
-        } else {
+        if ((int) $this->selectedDocumentType === 0) {
             session()->flash('type', 'error');
             session()->flash('message', 'Вы не выбрали тип документа!');
+            return;
+        }
+
+        $rules = ['quantity' => 'required|integer|min:1|max:10'];
+
+        if ((int) $this->selectedDocumentType === 4) {
+            $rules['characteristicType'] = ['required', Rule::in(['positive', 'negative'])];
+        }
+
+        $messages = [
+            'characteristicType.required' => 'Выберите вид характеристики: положительная или отрицательная',
+            'characteristicType.in'       => 'Неверный вид характеристики',
+        ];
+
+        $this->validate($rules, $messages);
+
+        if ((int) $this->selectedDocumentType === 3) {
+            $this->showModal = true;
+        } else {
+            $this->store();
         }
     }
 
     public function store()
     {
-        $rules = ['quantity' => 'required|integer|min:1|max:10'];
+        $rules = [
+            'selectedDocumentType' => ['required', Rule::in(array_keys($this->listDocumentTypes))],
+            'quantity' => 'required|integer|min:1|max:10',
+        ];
 
-        if ($this->selectedDocumentType == 3) {
+        if ((int) $this->selectedDocumentType === 3) {
             $rules['employmentPlace'] = 'required|string|max:1000';
         }
 
-        $this->validate($rules);
+        if ((int) $this->selectedDocumentType === 4) {
+            $rules['characteristicType'] = ['required', Rule::in(['positive', 'negative'])];
+        }
+
+        $messages = [
+            'characteristicType.required' => 'Выберите вид характеристики: положительная или отрицательная',
+            'characteristicType.in'       => 'Неверный вид характеристики',
+        ];
+
+        $this->validate($rules, $messages);
 
         $studentDocumentOrderRequest = StudentDocumentOrderRequest::create([
             'document_type' => $this->selectedDocumentType,
@@ -82,7 +134,7 @@ class StudentDocumentRequests extends Component
             'quantity' => (int) $this->quantity,
         ]);
 
-        if ($this->selectedDocumentType == 3) {
+        if ((int) $this->selectedDocumentType === 3) {
             StudentDocumentOrderIssuance::create([
                 'student_document_order_request_id' => $studentDocumentOrderRequest->id,
                 'employment_place' => $this->employmentPlace
@@ -91,9 +143,15 @@ class StudentDocumentRequests extends Component
             $this->showModal = false;
         } else {
             StudentDocumentOrderIssuance::create([
-                'student_document_order_request_id' => $studentDocumentOrderRequest->id
+                'student_document_order_request_id' => $studentDocumentOrderRequest->id,
+                'characteristic_type' => (int) $this->selectedDocumentType === 4
+                    ? $this->characteristicType
+                    : 'positive',
             ]);
         }
+
+        // Сбрасываем выбор, чтобы для следующей заявки студент снова выбрал вид
+        $this->characteristicType = '';
 
         session()->flash('type', 'success');
         session()->flash('message', 'Заявка успешно отправлена!');

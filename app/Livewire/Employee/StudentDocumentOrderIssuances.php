@@ -4,6 +4,7 @@ namespace App\Livewire\Employee;
 
 use App\Http\Controllers\Report\StudentDocumentOrderReportController;
 use App\Models\GroupStudent;
+use App\Models\OpopLeader;
 use App\Models\StudentDocumentOrderIssuance;
 use App\Models\StudentDocumentOrderRequest;
 use App\Models\UserData;
@@ -13,6 +14,8 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -26,12 +29,102 @@ class StudentDocumentOrderIssuances extends Component
     public int $selectedStatus = 0;
     public string $signer = '';
 
-    # Пока один вариант
-    # Если будут другие и выборка действительно будет - ${signer_position} и ${signer_fio} в шаблон
-    public $listOfSigners = [
-        #'Проректор по УиНР' => 'Е.В. Шпилевская',
-        'Академический директор' => 'Вартанян Н.А.',
-    ];
+    // Подписанты: академический директор всегда; руководители ОПОП — только для характеристики (тип 4).
+    // Значение в select: «должность|ФИО» -> в шаблон ${signer_position} и ${signer_fio}
+    private const DIRECTOR_POSITION = 'Академический директор';
+    private const DIRECTOR_FIO = 'Вартанян Н.А.';
+    public const OPOP_POSITION = 'Руководитель ОПОП';
+
+    public string $newOpopFio = '';
+
+    #[Computed]
+    public function signers(): array
+    {
+        $list = [
+            self::DIRECTOR_POSITION . '|' . self::DIRECTOR_FIO
+                => self::DIRECTOR_POSITION . ' (' . self::DIRECTOR_FIO . ')',
+        ];
+
+        if ((int) $this->documentType === 4) {
+            // Фиксированный подписант — проректор по воспитательной работе и молодёжной политике
+            $list['Проректор по ВР и МП|Фоменко А.И.']
+                = 'Проректор по ВР и МП (Фоменко А.И.)';
+
+            foreach (OpopLeader::where('is_active', true)->orderBy('fio')->get() as $leader) {
+                $short = $leader->short_fio;
+                $list[self::OPOP_POSITION . '|' . $short]
+                    = self::OPOP_POSITION . ' (' . $short . ')';
+            }
+        }
+
+        return $list;
+    }
+
+    // Метод оставлен, но UI добавления ОПОП убран из blade.
+    public function addOpopLeader()
+    {
+        if ((int) $this->documentType !== 4) {
+            return;
+        }
+
+        $fio = trim(preg_replace('/\s+/u', ' ', $this->newOpopFio));
+        $this->resetErrorBag('newOpopFio');
+
+        if (mb_strlen($fio) < 5 || mb_strlen($fio) > 100) {
+            $this->addError('newOpopFio', 'Укажите ФИО, например: Иванов И.И.');
+            return;
+        }
+
+        $leader = OpopLeader::firstOrCreate(['fio' => $fio]);
+        $leader->update(['is_active' => true]);
+
+        $this->signer = self::OPOP_POSITION . '|' . $leader->short_fio;
+        $this->newOpopFio = '';
+        $this->dispatch('show-toast', message: 'Руководитель ОПОП добавлен', type: 'success');
+    }
+
+    public function removeOpopLeader()
+    {
+        if ((int) $this->documentType !== 4) {
+            return;
+        }
+
+        $data = explode('|', $this->signer);
+        if (($data[0] ?? '') !== self::OPOP_POSITION) {
+            return;
+        }
+
+        OpopLeader::where('fio', $data[1] ?? '')->update(['is_active' => false]);
+        $this->signer = self::DIRECTOR_POSITION . '|' . self::DIRECTOR_FIO;
+        $this->dispatch('show-toast', message: 'Руководитель ОПОП убран из списка', type: 'success');
+    }
+
+    // Продолжительность (дней, включая первый и последний) считается автоматически
+    public function updatedCheckInDate()
+    {
+        $this->recalcCheckInDuration();
+    }
+
+    public function updatedCheckOutDate()
+    {
+        $this->recalcCheckInDuration();
+    }
+
+    private function recalcCheckInDuration(): void
+    {
+        if ($this->checkInDate === '' || $this->checkOutDate === '') {
+            return;
+        }
+
+        try {
+            $from = Carbon::parse($this->checkInDate)->startOfDay();
+            $to = Carbon::parse($this->checkOutDate)->startOfDay();
+        } catch (Exception $e) {
+            return;
+        }
+
+        $this->checkInDuration = $to->gte($from) ? $from->diffInDays($to) + 1 : 0;
+    }
 
     public $listOfDocumentTypes = [
         1 => 'Справка о статусе студента',
@@ -73,8 +166,21 @@ class StudentDocumentOrderIssuances extends Component
         $checkInDuration = 0,
         $employmentPlace = '',
         $isBudget = false;
-        public bool $hadAcademicLeave = false;
-        public string $leaveOrders = '';
+
+    public bool $hadAcademicLeave = false;
+
+    // Вид характеристики: текущий (можно менять вручную) и исходный (то, что заказал студент)
+    public string $characteristicType = 'positive';           // positive | negative
+    public string $originalCharacteristicType = 'positive';   // positive | negative
+
+    public bool $isExpelled = false; // справка отчисленному / выпускнику (шаблон «_otch»)
+    public string $leaveOrders = '';
+    public bool $showLeaveOrders = true; // выводить блок с приказами в справке
+
+    // Отклонение заявки
+    public bool $isShowRejectModal = false;
+    public int $rejectRequestId = 0;
+    public string $rejectReason = '';
 
     /**
      * Приказы студента для справки: академический отпуск, выход, отчисление, восстановление.
@@ -120,28 +226,7 @@ class StudentDocumentOrderIssuances extends Component
     }
 
     /**
-     * Группа студента, находящегося сейчас в академическом отпуске (state_id = 1),
-     * если он не числится ни в одной группе. Для остальных — null.
-     */
-    // private function academicLeaveGroupId(int $userId): ?int
-    // {
-    //     $lastState = DB::table('student_state')
-    //         ->where('user_id', '=', $userId)
-    //         ->whereNull('deleted_at')
-    //         ->orderByDesc('id')
-    //         ->first(['state_id', 'group_id']);
-
-    //     if (is_null($lastState) || (int) $lastState->state_id !== 1) {
-    //         return null;
-    //     }
-
-    //     return (int) $lastState->group_id ?: null;
-    // }
-
-    /**
-     * Группа студента, который сейчас выведен из групп: академотпуск (state_id = 1)
-     * или отчисление (state_id = 2). Для остальных — null.
-     * Если в последнем состоянии group_id пуст, берём последнюю известную группу из истории.
+     * Группа студента, который сейчас выведен из групп.
      */
     private function leftGroupId(int $userId): ?int
     {
@@ -194,6 +279,11 @@ class StudentDocumentOrderIssuances extends Component
                 'student_document_order_requests.academic_year',
                 'student_document_order_requests.half_year',
                 'student_document_order_requests.quantity',
+                'student_document_order_requests.reject_reason',
+                'student_document_order_issuances.characteristic_type',
+                'student_document_order_issuances.original_characteristic_type',
+                'student_document_order_issuances.signer_position',
+                'student_document_order_issuances.signer_fio',
                 DB::raw("CONCAT(users_data.last_name, ' ', users_data.first_name, ' ', users_data.middle_name) as fio"),
                 DB::raw("COALESCE(
                     (SELECT group_name FROM group_student INNER JOIN `groups` ON group_student.group_id = groups.id WHERE group_student.user_id = student_document_order_requests.requester_id ORDER BY group_student.id DESC LIMIT 1),
@@ -213,7 +303,7 @@ class StudentDocumentOrderIssuances extends Component
 
         $query->orderBy('student_document_order_requests.created_at', 'desc')
             ->orderBy('student_document_order_issuances.id', 'desc');
- 
+
         return $query->paginate(50);
     }
 
@@ -272,8 +362,6 @@ class StudentDocumentOrderIssuances extends Component
                 ->orderBy('group_student.id', 'desc')
                 ->first();
 
-            // Студент в академическом отпуске выведен из группы (нет записи в group_student):
-            // берём группу, из которой он ушёл в отпуск (последнее состояние в student_state)
             if (is_null($groupStudent)) {
                 $leaveGroupId = $this->leftGroupId((int) $requesterId);
 
@@ -303,7 +391,6 @@ class StudentDocumentOrderIssuances extends Component
                 }
             }
 
-            // Приказ о зачислении: первый приказ, где студент значился «Незачисленные»; иначе самый ранний
             $orderUser = DB::table('order_user')
                 ->join('orders', 'order_user.order_id', '=', 'orders.id')
                 ->where('order_user.user_id', '=', $requesterId)
@@ -332,7 +419,13 @@ class StudentDocumentOrderIssuances extends Component
                     'is_budget',
                     'confirmiter_id',
                     'had_academic_leave',
-                    'leave_orders'
+                    'leave_orders',
+                    'is_expelled',
+                    'characteristic_type',
+                    'original_characteristic_type',
+                    'show_leave_orders',
+                    'signer_position',
+                    'signer_fio'
                 )
                 ->first();
 
@@ -357,20 +450,6 @@ class StudentDocumentOrderIssuances extends Component
             $this->order = Carbon::parse($orderUser->order_date)->format('d.m.Y') . ' № ' . StudentOrderHistory::cleanNumber($orderUser->order_number);
             $this->trainingPeriod = 'с ' . Carbon::parse($groupStudent->year_admission)->format('d.m.Y') . 'г. по ' . Carbon::parse($groupStudent->year_completion)->format('d.m.Y') . 'г.';
 
-            // $lastConfirmetedDocumentNumber = StudentDocumentOrderIssuance::join('student_document_order_requests', 'student_document_order_issuances.student_document_order_request_id', '=', 'student_document_order_requests.id')
-            //     ->where('student_document_order_requests.document_type', '=', $this->documentType)->where('student_document_order_requests.status', '=', 2)
-            //     ->select('student_document_order_issuances.document_number')
-            //     ->orderBy('student_document_order_issuances.id', 'desc')
-            //     ->first();
-            // if (is_null($studentDocumentOrderIssuance->confirmiter_id)) {
-            //     $this->documentNumber = (is_null($lastConfirmetedDocumentNumber)) ?
-            //         StudentDocumentOrderRequest::where('document_type', '=', $this->documentType)->where('status', '=', 2)->count() + 1 :
-            //         ++$lastConfirmetedDocumentNumber->document_number;
-            // } else {
-            //     $this->documentNumber = $lastConfirmetedDocumentNumber->document_number;
-            // }
-
-            // Номер только для показа: реально он присваивается в update()
             $this->documentNumber = is_null($studentDocumentOrderIssuance->confirmiter_id)
                 ? $this->nextDocumentNumber()
                 : (int) $studentDocumentOrderIssuance->document_number;
@@ -379,19 +458,40 @@ class StudentDocumentOrderIssuances extends Component
             $this->checkInDuration = $studentDocumentOrderIssuance->check_in_duration;
             $this->employmentPlace = $studentDocumentOrderIssuance->employment_place;
             $this->isBudget = $studentDocumentOrderIssuance->is_budget;
-            // Подписант по умолчанию: первый из списка
-            $this->signer = array_key_first($this->listOfSigners) . '|' . reset($this->listOfSigners);
+
+            // Характеристика: текущий и исходный вид
+            $this->characteristicType = $studentDocumentOrderIssuance->characteristic_type ?: 'positive';
+            $this->originalCharacteristicType = $studentDocumentOrderIssuance->original_characteristic_type
+                ?: ($studentDocumentOrderIssuance->characteristic_type ?: 'positive');
+
+            // Подписант: для характеристики — сохраняем ранее выбранного ОПОПа; для остальных — только директор
+            $defaultSigner = self::DIRECTOR_POSITION . '|' . self::DIRECTOR_FIO;
+            $savedPosition = (string) ($studentDocumentOrderIssuance->signer_position ?? '');
+            $savedFio = (string) ($studentDocumentOrderIssuance->signer_fio ?? '');
+
+            if ((int) $documentType === 4 && $savedPosition !== '' && $savedFio !== '') {
+                $savedSigner = $savedPosition . '|' . $savedFio;
+                $this->signer = array_key_exists($savedSigner, $this->signers)
+                    ? $savedSigner
+                    : $defaultSigner;
+            } else {
+                $this->signer = $defaultSigner;
+            }
+
             if (is_null($studentDocumentOrderIssuance->confirmiter_id)) {
-                // Ещё не подтверждена: подставляем подсказку по данным БД
                 $leaveInfo = $this->detectLeaveInfo(
                     (int) $requesterId,
                     Carbon::parse($groupStudent->year_completion)->format('Y-m-d')
                 );
                 $this->hadAcademicLeave = $leaveInfo['hadLeave'];
+                $this->isExpelled = $leaveInfo['isExpelled'] || $leaveInfo['isGraduated'];
                 $this->leaveOrders = implode("\n", $leaveInfo['lines']);
+                $this->showLeaveOrders = $leaveInfo['hasOrders'];
             } else {
                 $this->hadAcademicLeave = (bool) $studentDocumentOrderIssuance->had_academic_leave;
+                $this->isExpelled = (bool) $studentDocumentOrderIssuance->is_expelled;
                 $this->leaveOrders = (string) $studentDocumentOrderIssuance->leave_orders;
+                $this->showLeaveOrders = (bool) $studentDocumentOrderIssuance->show_leave_orders;
             }
             $this->quantity = (int) StudentDocumentOrderRequest::whereKey($studentDocumentOrderRequestId)->value('quantity');
             $this->isShowModalDialog = true;
@@ -419,9 +519,9 @@ class StudentDocumentOrderIssuances extends Component
             'specialtyCode' => 'required|string|max:255',
             'order' => 'required|string|max:255',
             'trainingPeriod' => 'required|string|max:255',
-            'signer' => 'required',
+            'signer' => ['required', Rule::in(array_keys($this->signers))],
         ];
- 
+
         if ($this->documentType == 3) {
             $rules += [
                 'checkInDate' => 'required',
@@ -430,17 +530,22 @@ class StudentDocumentOrderIssuances extends Component
                 'employmentPlace' => 'required|string|max:1000',
             ];
         }
- 
+
+        if ($this->documentType == 4) {
+            $rules['characteristicType'] = ['required', Rule::in(['positive', 'negative'])];
+        }
+
         $this->validate($rules);
- 
+
         $isConfirmed = DB::transaction(function () {
             $issuance = StudentDocumentOrderIssuance::lockForUpdate()->findOrFail($this->id);
- 
-            // Уже подтверждена (например, двойной клик): ничего не меняем
-            if (!is_null($issuance->confirmiter_id)) {
+
+            $request = StudentDocumentOrderRequest::lockForUpdate()->findOrFail($this->studentDocumentOrderRequestId);
+
+            if (!is_null($issuance->confirmiter_id) || (int) $request->status === 3) {
                 return false;
             }
- 
+
             $issuance->document_number = $this->nextDocumentNumber();
             $issuance->last_name = $this->lastName;
             $issuance->first_name = $this->firstName;
@@ -460,39 +565,99 @@ class StudentDocumentOrderIssuances extends Component
             $issuance->specialty_code = $this->specialtyCode;
             $issuance->orders = $this->order;
             $issuance->training_period = $this->trainingPeriod;
- 
+
             if ($this->documentType == 3) {
                 $issuance->check_in_date = Carbon::parse($this->checkInDate)->format('Y-m-d');
                 $issuance->check_out_date = Carbon::parse($this->checkOutDate)->format('Y-m-d');
                 $issuance->check_in_duration = $this->checkInDuration;
                 $issuance->employment_place = $this->employmentPlace;
             }
- 
+
             $issuance->had_academic_leave = $this->hadAcademicLeave;
             $issuance->leave_orders = trim($this->leaveOrders) !== '' ? trim($this->leaveOrders) : null;
+            $issuance->show_leave_orders = $this->showLeaveOrders && trim($this->leaveOrders) !== '';
             $issuance->is_budget = $this->isBudget;
+            $issuance->is_expelled = $this->documentType == 1 && $this->isExpelled;
+
+            // Характеристика: сохраняем текущий вид + фиксируем исходный (тот, что был до правки)
+            if ($this->documentType == 4) {
+                $issuance->characteristic_type = $this->characteristicType;
+                $issuance->original_characteristic_type = $this->originalCharacteristicType;
+            }
+
             $issuance->confirmed_at = now();
             $issuance->confirmiter_id = Auth::user()->id;
- 
+
             $signerData = explode('|', $this->signer);
             $issuance->signer_position = $signerData[0];
             $issuance->signer_fio = $signerData[1] ?? '';
- 
+
             $issuance->update();
- 
-            $request = StudentDocumentOrderRequest::findOrFail($this->studentDocumentOrderRequestId);
+
             $request->status = 2;
             $request->update();
- 
+
             return true;
         });
- 
+
         $this->isShowModalDialog = false;
- 
+
         if ($isConfirmed) {
             $this->dispatch('show-toast', message: 'Заявка успешно подтверждена!', type: 'success');
         } else {
-            $this->dispatch('show-toast', message: 'Заявка уже была подтверждена ранее', type: 'info');
+            $this->dispatch('show-toast', message: 'Заявка уже была обработана ранее', type: 'info');
+        }
+    }
+
+    public function openReject($studentDocumentOrderRequestId)
+    {
+        $this->resetErrorBag();
+        $this->resetValidation();
+        $this->rejectRequestId = (int) $studentDocumentOrderRequestId;
+        $this->rejectReason = '';
+        $this->isShowRejectModal = true;
+    }
+
+    public function reject()
+    {
+        $this->validate(
+            ['rejectReason' => 'required|string|min:3|max:1000'],
+            [
+                'rejectReason.required' => 'Укажите причину отклонения',
+                'rejectReason.min' => 'Причина слишком короткая',
+                'rejectReason.max' => 'Причина не должна превышать 1000 символов',
+            ]
+        );
+
+        $result = DB::transaction(function () {
+            $request = StudentDocumentOrderRequest::lockForUpdate()->find($this->rejectRequestId);
+
+            if (is_null($request)) {
+                return 'missing';
+            }
+
+            if ((int) $request->status !== 1) {
+                return 'processed';
+            }
+
+            $request->status = 3;
+            $request->reject_reason = trim($this->rejectReason);
+            $request->rejected_at = now();
+            $request->rejected_by = Auth::id();
+            $request->save();
+
+            return 'ok';
+        });
+
+        $this->isShowRejectModal = false;
+        $this->rejectReason = '';
+
+        if ($result === 'ok') {
+            $this->dispatch('show-toast', message: 'Заявка отклонена', type: 'success');
+        } elseif ($result === 'processed') {
+            $this->dispatch('show-toast', message: 'Заявка уже была обработана ранее', type: 'info');
+        } else {
+            $this->dispatch('show-toast', message: 'Заявка не найдена', type: 'error');
         }
     }
 
