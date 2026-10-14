@@ -29,23 +29,21 @@ class DashboardController extends Controller
         $currentTime = now()->format('H:i');
 
         if (Auth::user()->hasRole('Student')) {
-            $groupStudent = GroupStudent::join('groups', 'group_student.group_id', '=', 'groups.id')
-                ->where('group_student.user_id', '=', Auth::user()->id)
-                ->select('groups.group_name')
-                ->orderBy('group_student.id', 'desc')
-                ->first();
-
-            // У студента может не быть группы (например, на локальной БД) - не падаем
-            $groupName = $groupStudent?->group_name;
+            // Группа в расписании пишется иначе, чем в LMS (без дефиса, без года), поэтому подбираем её через ScheduleController
+            $scheduleController = new ScheduleController();
+            $groupName = $scheduleController->currentGroupName((int) Auth::user()->id);
             $this->additionalInfoAboutUser = $groupName ?? '';
 
-            if ($groupName) {
-                $this->scheduleEventCount = Schedule::where('group', 'like', '%' . $groupName . '%')
+            // У студента может не быть группы (например, на локальной БД) - не падаем
+            $scheduleGroups = $groupName ? $scheduleController->resolveScheduleGroups($groupName) : [];
+
+            if (count($scheduleGroups) > 0) {
+                $this->scheduleEventCount = Schedule::whereIn('group', $scheduleGroups)
                     ->where('date', '>=', $currentDate)
                     ->select(DB::raw('COUNT(DISTINCT date, time) as count'))
                     ->first()->count;
 
-                $querySchedulesEvents = Schedule::where('group', 'like', '%' . $groupName . '%')
+                $querySchedulesEvents = Schedule::whereIn('group', $scheduleGroups)
                     ->where('date', '>=', $currentDate);
 
                 $firstSchedulesEvent = $querySchedulesEvents->orderBy('date', 'asc')->first();

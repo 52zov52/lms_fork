@@ -49,16 +49,6 @@ class StudentDocumentOrderReportController extends Controller
             ->implode("\n");
     }
 
-    private function formatLeaveOrders(?string $leaveOrders): string
-    {
-        $lines = array_filter(array_map('trim', preg_split('/\R/u', (string) $leaveOrders)));
- 
-        return implode(
-            '</w:t><w:br/><w:t xml:space="preserve">',
-            array_map(fn($line) => htmlspecialchars($line, ENT_XML1 | ENT_QUOTES, 'UTF-8'), $lines)
-        );
-    }
-
     public function downloadStudentDocument($studentDocumentOrderRequestId)
     {
         $request = StudentDocumentOrderRequest::findOrFail($studentDocumentOrderRequestId);
@@ -72,7 +62,20 @@ class StudentDocumentOrderReportController extends Controller
             (bool) $issuance->is_expelled,
             (string) ($issuance->characteristic_type ?? 'positive')
         );
-        $template = new TemplateProcessor($path);
+        // Блок приказов обрабатываем сами (см. prepareTemplate): deleteBlock/cloneBlock из PhpWord
+        // портят XML, когда маркеры блока стоят в отдельных абзацах-фреймах.
+        $leaveOrdersText = '';
+        if (in_array($type, [self::TYPE_STUDY, self::TYPE_TRANSPORT_CARD], true)) {
+            $savedOrders = trim((string) $issuance->leave_orders);
+            if ($savedOrders === '' && $issuance->had_academic_leave && is_null($issuance->leave_orders)) {
+                $savedOrders = $this->getLeaveOrders((int) $request->requester_id);
+            }
+            // Сотрудник снял галочку «указать приказы» -> блок не выводим
+            $leaveOrdersText = $issuance->show_leave_orders ? $savedOrders : '';
+        }
+
+        $preparedPath = $this->prepareTemplate($path, $leaveOrdersText);
+        $template = new TemplateProcessor($preparedPath);
 
         // Общие поля для всех типов документов
         // Дата выдачи справки = дата подтверждения
@@ -129,24 +132,6 @@ class StudentDocumentOrderReportController extends Controller
                     ? ', стипендия не выплачивалась, иные меры социальной поддержки обучающихся не оказывались.'
                     // учится — настоящее время
                     : ', стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются.'));
- 
-            // Приказы (отпуск, выход, отчисление, восстановление) берём из сохранённого при подтверждении текста.
-            // У старых справок он не заполнен — тогда по прежней логике (только академотпуск).
-            // Пустая строка -> блок leave_orders_block целиком удаляется из шаблона.
-            $savedOrders = trim((string) $issuance->leave_orders);
-            if ($savedOrders === '' && $issuance->had_academic_leave && is_null($issuance->leave_orders)) {
-                $savedOrders = $this->getLeaveOrders((int) $request->requester_id);
-            }
-            // Сотрудник снял галочку «указать приказы» -> блок не выводим
-            if (!$issuance->show_leave_orders) {
-                $savedOrders = '';
-            }
-            $leaveOrders = $this->formatLeaveOrders($savedOrders);
-
-            $this->setOptionalBlock($template, 'leave_orders_block', $leaveOrders);
-            // два написания токена: в старых шаблонах была опечатка leave_oders
-            $template->setValue('leave_orders', $leaveOrders);
-            $template->setValue('leave_oders', $leaveOrders);
         }
 
         // ФИО в именительном падеже: справка-вызов (3) и характеристика (4)
@@ -177,6 +162,7 @@ class StudentDocumentOrderReportController extends Controller
         $filename = time() . '.docx';
         $tempFile = tempnam(sys_get_temp_dir(), $filename);
         $template->saveAs($tempFile);
+        @unlink($preparedPath);
 
         return ['tempFile' => $tempFile, 'filename' => $filename];
     }
@@ -291,14 +277,68 @@ class StudentDocumentOrderReportController extends Controller
         return $d->day . ' ' . self::MONTHS_GENITIVE[$d->month] . ' ' . $d->year;
     }
 
-    private function setOptionalBlock(TemplateProcessor $template, string $block, ?string $value): void
+    /**
+     * Готовит копию шаблона:
+     *  - абзацы с маркерами ${leave_orders_block} / ${/leave_orders_block} удаляются всегда;
+     *  - абзац с ${leave_orders} (или старой опечаткой ${leave_oders}) удаляется, если приказов нет,
+     *    иначе в него подставляются строки приказов (перенос строки внутри одного абзаца);
+     *  - у абзацев-фреймов высота «exact» меняется на «atLeast», чтобы длинный список приказов
+     *    не обрезался и не уезжал за рамку.
+     * Шаблоны без блока приказов (характеристика, справка-вызов) возвращаются копией без изменений.
+     */
+    private function prepareTemplate(string $path, string $leaveOrdersText): string
     {
-        if (is_null($value) || trim($value) === '') {
-            $template->deleteBlock($block);
-            return;
+        $tmp = tempnam(sys_get_temp_dir(), 'tpl');
+        copy($path, $tmp);
+
+        $zip = new \ZipArchive();
+        if ($zip->open($tmp) !== true) {
+            return $tmp;
         }
 
-        $template->cloneBlock($block, 1, true);
+        $xml = $zip->getFromName('word/document.xml');
+        if ($xml === false || !str_contains($xml, 'leave_orders_block')) {
+            $zip->close();
+            return $tmp;
+        }
+
+        $lines = array_values(array_filter(array_map('trim', preg_split('/\R/u', $leaveOrdersText))));
+
+        // Токен в Word часто разбит на несколько <w:r> (проверка орфографии), поэтому смотрим на текст абзаца целиком
+        $xml = preg_replace_callback(
+            '#<w:p(?=[\s>])(?:(?!<w:p[\s>]).)*?</w:p>#su',
+            function (array $m) use ($lines) {
+                $paragraph = $m[0];
+                $text = strip_tags($paragraph);
+
+                if (!str_contains($text, 'leave_or') && !str_contains($text, 'leave_od')) {
+                    return $paragraph;
+                }
+
+                // маркеры блока и пустой список приказов: абзац убираем целиком
+                if (str_contains($text, 'leave_orders_block') || !$lines) {
+                    return '';
+                }
+
+                // абзац со списком приказов: оставляем свойства абзаца и первого run, текст заменяем
+                $pPr = preg_match('#<w:pPr>.*?</w:pPr>#su', $paragraph, $pm) ? $pm[0] : '';
+                $rPr = preg_match('#<w:r[ >](?:(?!</w:r>).)*?(<w:rPr>.*?</w:rPr>)#su', $paragraph, $rm) ? $rm[1] : '';
+                $open = preg_match('#^<w:p[^>]*>#u', $paragraph, $om) ? $om[0] : '<w:p>';
+                $escaped = array_map(fn($l) => htmlspecialchars($l, ENT_XML1 | ENT_QUOTES, 'UTF-8'), $lines);
+
+                return $open . $pPr . '<w:r>' . $rPr . '<w:t xml:space="preserve">'
+                    . implode('</w:t><w:br/><w:t xml:space="preserve">', $escaped)
+                    . '</w:t></w:r></w:p>';
+            },
+            $xml
+        ) ?? $xml;
+
+        $xml = str_replace('w:hRule="exact"', 'w:hRule="atLeast"', $xml);
+
+        $zip->addFromString('word/document.xml', $xml);
+        $zip->close();
+
+        return $tmp;
     }
 
     private function transformTeachingForm($teachingForm): string

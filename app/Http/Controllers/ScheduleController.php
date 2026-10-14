@@ -6,7 +6,9 @@ use App\Models\GroupStudent;
 use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use XBase\TableReader;
 
@@ -66,53 +68,323 @@ class ScheduleController extends Controller
         return (is_null($schedule)) ? '' : Carbon::parse($schedule->created_at)->format('d.m.Y H:i:s');
     }
 
-    public function uploadSchedule(): void
+    /**
+     * Проверка, что скачанное действительно DBF (dBase III/IV/FoxPro), а не HTML и не архив.
+     */
+    private function assertLooksLikeDbf(string $body, string $contentType = ''): void
     {
-        $schedule = [
-            ['number' => 1, 'time' => '08:20-09:50'],
-            ['number' => 2, 'time' => '10:00-11:30'],
-            ['number' => 3, 'time' => '11:40-13:10'],
-            ['number' => 4, 'time' => '13:30-15:00'],
-            ['number' => 5, 'time' => '15:10-16:40'],
-            ['number' => 6, 'time' => '17:00-18:30'],
-            ['number' => 7, 'time' => '18:40-20:10'],
-            ['number' => 8, 'time' => '20:20-21:50']
-        ];
+        $head = substr($body, 0, 4);
+        $firstByte = ord($body[0]);
+        $validVersions = [0x02, 0x03, 0x04, 0x05, 0x30, 0x31, 0x32, 0x83, 0x8B, 0x8E, 0xF5, 0xFB];
 
-        $contents = file_get_contents('https://iubip.ru/upload/iblock/ab7/vr7vuzn1u41ly0mmcs6tah16c2ytu59k.DBF');
-        Storage::disk('public')->put('schedule/RASP.DBF', $contents);
+        $looksHtml = preg_match('/^\s*(<|\xEF\xBB\xBF<)/', substr($body, 0, 20)) === 1;
+        $looksZip = $head === "PK\x03\x04";
 
-        $path  = Storage::disk('public')->path('schedule/RASP.DBF');
+        if ($looksHtml || $looksZip || !in_array($firstByte, $validVersions, true) || strlen($body) < 100) {
+            $preview = preg_replace('/\s+/u', ' ', mb_substr(strip_tags(mb_convert_encoding(substr($body, 0, 400), 'UTF-8', 'UTF-8, CP1251')), 0, 200));
 
-        $table = new TableReader($path, [
-            'encoding' => 'cp1251'
-        ]);
+            throw new \RuntimeException(
+                'По ссылке расписания пришёл не DBF-файл (Content-Type: ' . ($contentType ?: 'не указан')
+                . ', размер ' . strlen($body) . ' байт, начало: «' . $preview . '»). '
+                . 'Возможно, сайт iubip.ru заблокировал запрос с этого сервера или ссылка изменилась.'
+            );
+        }
+    }
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        Schedule::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+    /**
+     * Запасной разбор DBF без библиотеки: читает заголовок и записи по спецификации dBase.
+     * Нужен для файлов, у которых заголовок библиотека hisamu/php-xbase не принимает
+     * («Wrong fieldCount calculation»: нет терминатора 0x0D, лишние байты, нестандартная длина заголовка).
+     *
+     * @return \Generator<array<string, string>> записи вида ['LES' => '1', 'NAME' => '...']
+     */
+    private function readDbfFallback(string $path, string $encoding = 'CP1251'): \Generator
+    {
+        $fh = fopen($path, 'rb');
+        if ($fh === false) {
+            throw new \RuntimeException('Не удалось открыть файл расписания: ' . $path);
+        }
+
+        try {
+            $header = fread($fh, 32);
+            if (strlen($header) < 32) {
+                throw new \RuntimeException('Файл расписания слишком короткий для DBF.');
+            }
+
+            $recordLength = unpack('v', substr($header, 10, 2))[1];
+            $headerLength = unpack('v', substr($header, 8, 2))[1];
+
+            // поля: по 32 байта до байта 0x0D
+            $fields = [];
+            $offset = 1; // первый байт записи - признак удаления
+            while (!feof($fh)) {
+                $chunk = fread($fh, 32);
+                if ($chunk === false || strlen($chunk) < 32 || $chunk[0] === "\x0D") {
+                    break;
+                }
+
+                $name = rtrim(substr($chunk, 0, 11), "\0 ");
+                $length = ord($chunk[16]);
+                $fields[] = ['name' => strtoupper($name), 'type' => $chunk[11], 'offset' => $offset, 'length' => $length];
+                $offset += $length;
+            }
+
+            if (!$fields || $recordLength < 2) {
+                throw new \RuntimeException('В заголовке DBF не найдено ни одного поля.');
+            }
+
+            fseek($fh, $headerLength);
+
+            while (($raw = fread($fh, $recordLength)) !== false && strlen($raw) === $recordLength) {
+                if ($raw[0] === '*') { // удалённая запись
+                    continue;
+                }
+
+                $row = [];
+                foreach ($fields as $f) {
+                    if ($f['type'] === 'M' || $f['type'] === 'G' || $f['type'] === 'B') {
+                        continue;
+                    }
+                    $value = substr($raw, $f['offset'], $f['length']);
+                    $row[$f['name']] = trim(mb_convert_encoding($value, 'UTF-8', $encoding));
+                }
+
+                yield $row;
+            }
+        } finally {
+            fclose($fh);
+        }
+    }
+
+    /**
+     * Все записи расписания как массивы: сначала через библиотеку, при ошибке чтения заголовка - запасным разбором.
+     *
+     * @return \Generator<array<string, string>>
+     */
+    private function readScheduleRecords(string $path): \Generator
+    {
+        $columns = ['LES', 'NAME', 'DATE', 'GROUP', 'COURSE', 'DAY', 'WEEK', 'AUD', 'SUBJECT', 'SUBJ_TYPE', 'CAFEDRA'];
+
+        try {
+            $table = new TableReader($path, ['encoding' => 'cp1251']);
+        } catch (\LogicException $e) {
+            \Illuminate\Support\Facades\Log::warning('Расписание: библиотека не прочитала заголовок DBF (' . $e->getMessage() . '), используется запасной разбор.');
+
+            yield from $this->readDbfFallback($path);
+            return;
+        }
 
         while ($record = $table->nextRecord()) {
-            $classTime = array_search($record->get('LES'), array_column($schedule, 'number'));
-            $groups = explode(',', $record->get('GROUP'));
-            $teacher = preg_replace('/\s+/', ' ', $record->get('NAME'));
-            $teacher = trim($teacher);
-            foreach ($groups as $group) {
-                Schedule::create([
-                    'group' => $group,
-                    'course' => $record->get('COURSE'),
-                    'lesson_number' => $record->get('LES'),
-                    'day' => $record->get('DAY'),
-                    'week' => $record->get('WEEK'),
-                    'date' => Carbon::parse($record->get('DATE'))->format('Y-m-d'),
-                    'time' => $schedule[$classTime]['time'],
-                    'lesson_place' => $record->get('AUD'),
-                    'discipline' => $record->get('SUBJECT'),
-                    'lesson_type' => $record->get('SUBJ_TYPE'),
-                    'teacher' => $teacher,
-                    'chair' => $record->get('CAFEDRA')
-                ]);
+            $row = [];
+            foreach ($columns as $column) {
+                $row[$column] = (string) $record->get($column);
             }
+
+            yield $row;
+        }
+    }
+
+    /**
+     * Скачивает DBF с сайта в storage/app/public/schedule/RASP.DBF и возвращает путь к файлу.
+     * Вне production, если скачать не удалось, а файл уже лежит в этой папке (например, положили вручную),
+     * берётся он - удобно для локальной разработки.
+     */
+    private function fetchScheduleFile(): string
+    {
+        $url = 'https://iubip.ru/upload/iblock/ab7/vr7vuzn1u41ly0mmcs6tah16c2ytu59k.DBF';
+        $relative = 'schedule/RASP.DBF';
+
+        try {
+            try {
+                $request = fn(array $cookies = []) => Http::timeout(120)
+                    ->withHeaders(['User-Agent' => 'Mozilla/5.0 (compatible; LMS schedule loader)'])
+                    ->withHeaders($cookies ? ['Cookie' => implode('; ', $cookies)] : [])
+                    ->get($url);
+
+                $response = $request();
+
+                // Защита хостинга Beget: первый ответ - страница со скриптом, который ставит cookie beget=begetok
+                // и перезагружает страницу. Повторяем запрос с этой cookie, как это сделал бы браузер.
+                if (str_contains($response->body(), 'beget=begetok')) {
+                    $response = $request(['beget=begetok']);
+                }
+            } catch (ConnectionException $e) {
+                // причина (DNS, SSL-сертификат, таймаут, нет выхода в интернет) попадёт в лог и в сообщение
+                throw new \RuntimeException('Не удалось подключиться к iubip.ru: ' . $e->getMessage(), 0, $e);
+            }
+
+            if (!$response->successful()) {
+                throw new \RuntimeException('Сайт iubip.ru вернул HTTP ' . $response->status() . ' при загрузке файла расписания (возможно, ссылка на файл изменилась).');
+            }
+
+            $body = $response->body();
+
+            if ($body === '') {
+                throw new \RuntimeException('Файл расписания с сайта пустой.');
+            }
+
+            // Вместо DBF сайт может отдать страницу-заглушку (антибот, ошибка, редирект на HTML): такой файл
+            // нельзя сохранять поверх рабочего, иначе разбор падает с «Wrong fieldCount calculation».
+            $this->assertLooksLikeDbf($body, (string) $response->header('Content-Type'));
+
+            Storage::disk('public')->put($relative, $body);
+        } catch (\RuntimeException $e) {
+            // Ранее сохранённый файл годится, только если это настоящий DBF (раньше сюда могла попасть HTML-заглушка)
+            $cachedOk = false;
+            if (Storage::disk('public')->exists($relative)) {
+                try {
+                    $this->assertLooksLikeDbf(Storage::disk('public')->get($relative));
+                    $cachedOk = true;
+                } catch (\RuntimeException $bad) {
+                    Storage::disk('public')->delete($relative);
+                }
+            }
+
+            if (!app()->isProduction() && $cachedOk) {
+                \Illuminate\Support\Facades\Log::warning('Расписание: ' . $e->getMessage() . ' Используется ранее сохранённый файл ' . $relative);
+            } else {
+                throw $e;
+            }
+        }
+
+        return Storage::disk('public')->path($relative);
+    }
+
+    /**
+     * Приводит название группы к виду, в котором её пишут в DBF расписания:
+     * без дефисов и пробелов, без префикса архивной группы «яв26.» и без суффикса-года «К1Л1(9) 2024».
+     * «ЭДК-203» -> «эдк203», «К1Л1(9) 2024» -> «к1л1(9)», «ЭМ-101 2026» -> «эм101».
+     */
+    public static function normalizeGroupName(string $name): string
+    {
+        $n = mb_strtolower(trim($name));
+        $n = preg_replace('/^яв\d{2}\./u', '', $n);
+        $n = preg_replace('/\s+\d{4}$/u', '', $n);
+
+        return preg_replace('/[\s\-_]+/u', '', $n);
+    }
+
+    /**
+     * Названия групп из расписания, соответствующие группе LMS.
+     *
+     * @return string[]
+     */
+    public function resolveScheduleGroups(string $lmsGroupName): array
+    {
+        $target = self::normalizeGroupName($lmsGroupName);
+
+        if ($target === '') {
+            return [];
+        }
+
+        return Schedule::select('group')->distinct()->pluck('group')
+            ->filter(fn($g) => self::normalizeGroupName((string) $g) === $target)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Название текущей группы студента: последняя группа, срок обучения которой ещё не закончился;
+     * если таких нет - просто последняя (например, у выпускника).
+     */
+    public function currentGroupName(int $userId): ?string
+    {
+        $groups = GroupStudent::join('groups', 'group_student.group_id', '=', 'groups.id')
+            ->where('group_student.user_id', '=', $userId)
+            ->orderBy('group_student.id', 'desc')
+            ->get(['groups.group_name', 'groups.year_completion']);
+
+        $today = now()->format('Y-m-d');
+
+        $active = $groups->first(fn($g) => is_null($g->year_completion) || $g->year_completion >= $today);
+
+        return ($active ?? $groups->first())?->group_name;
+    }
+
+    /**
+     * Загрузка расписания из DBF-файла с сайта.
+     *
+     * Сначала файл целиком читается и проверяется в памяти, и только потом, в одной транзакции,
+     * старое расписание заменяется новым: если что-то пойдёт не так, прежнее расписание остаётся нетронутым
+     * (раньше таблица очищалась до загрузки, и при ошибке на середине расписание оставалось неполным).
+     */
+    public function uploadSchedule(): void
+    {
+        // номер пары => время
+        $lessonTimes = [
+            1 => '08:20-09:50',
+            2 => '10:00-11:30',
+            3 => '11:40-13:10',
+            4 => '13:30-15:00',
+            5 => '15:10-16:40',
+            6 => '17:00-18:30',
+            7 => '18:40-20:10',
+            8 => '20:20-21:50',
+        ];
+
+        $path = $this->fetchScheduleFile();
+
+
+        $now = now();
+        $rows = [];
+        $skipped = 0;
+
+        foreach ($this->readScheduleRecords($path) as $record) {
+            $lessonNumber = (int) trim((string) ($record['LES'] ?? ''));
+
+            if (!isset($lessonTimes[$lessonNumber])) {
+                $skipped++;
+                continue;
+            }
+
+            if (trim((string) ($record['DATE'] ?? '')) === '') {
+                $skipped++;
+                continue;
+            }
+
+            $teacher = trim(preg_replace('/\s+/', ' ', (string) ($record['NAME'] ?? '')));
+            $date = Carbon::parse($record['DATE'])->format('Y-m-d');
+
+            foreach (explode(',', (string) ($record['GROUP'] ?? '')) as $group) {
+                $group = trim(preg_replace('/\s+/', ' ', $group));
+
+                if ($group === '') {
+                    continue;
+                }
+
+                $rows[] = [
+                    'group' => mb_substr($group, 0, 100),
+                    'course' => mb_substr(trim((string) ($record['COURSE'] ?? '')), 0, 50),
+                    'lesson_number' => $lessonNumber,
+                    'day' => mb_substr(trim((string) ($record['DAY'] ?? '')), 0, 50),
+                    'week' => mb_substr(trim((string) ($record['WEEK'] ?? '')), 0, 50),
+                    'date' => $date,
+                    'time' => $lessonTimes[$lessonNumber],
+                    'lesson_place' => mb_substr(trim((string) ($record['AUD'] ?? '')), 0, 255),
+                    'discipline' => mb_substr(trim((string) ($record['SUBJECT'] ?? '')), 0, 255),
+                    'lesson_type' => mb_substr(trim((string) ($record['SUBJ_TYPE'] ?? '')), 0, 255),
+                    'teacher' => mb_substr($teacher, 0, 255),
+                    'chair' => mb_substr(trim((string) ($record['CAFEDRA'] ?? '')), 0, 255),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+
+        if (count($rows) === 0) {
+            throw new \RuntimeException('В файле расписания нет ни одной записи, старое расписание оставлено без изменений.');
+        }
+
+        DB::transaction(function () use ($rows) {
+            DB::table('schedules')->delete();
+
+            foreach (array_chunk($rows, 500) as $chunk) {
+                DB::table('schedules')->insert($chunk);
+            }
+        });
+
+        if ($skipped > 0) {
+            \Illuminate\Support\Facades\Log::warning("Загрузка расписания: пропущено записей с неизвестным номером пары: $skipped");
         }
     }
 
@@ -148,25 +420,14 @@ class ScheduleController extends Controller
         $weekEndDate = $now->endOfWeek()->format('Y-m-d');
 
         if (Auth::user()->hasRole('Student')) {
-            $groupStudent = GroupStudent::join('groups', 'group_student.group_id', '=', 'groups.id')
-                ->where('group_student.user_id', '=', Auth::user()->id)
-                ->select('groups.group_name')
-                ->orderBy('group_student.id', 'desc')
-                ->first();
-
             // У студента может не быть группы (например, на локальной БД) - тогда расписание пустое
-            if ($groupStudent) {
-                $groupName = explode('-', $groupStudent->group_name);
+            $groupName = $this->currentGroupName((int) Auth::user()->id);
+            $scheduleGroups = $groupName ? $this->resolveScheduleGroups($groupName) : [];
 
-                if (count($groupName) == 2) {
-                    $group = $groupName[0] . $groupName[1];
-                } else {
-                    $group = $groupName[0];
-                }
-
+            if (count($scheduleGroups) > 0) {
                 $schedule = Schedule::where('date', '>=', $weekStartDate)
                     ->where('date', '<=', $weekEndDate)
-                    ->where('group', 'like', '%' . $group . '%')
+                    ->whereIn('group', $scheduleGroups)
                     ->orderBy('date', 'ASC')
                     ->orderBy('lesson_number', 'ASC')
                     ->get()->toArray();
