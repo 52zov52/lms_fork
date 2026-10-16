@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\Report\ContingentReportController;
+use App\Http\Controllers\Report\StudentsEducationReportController;
 use App\Http\Controllers\Reports\SocialPassportController;
 use App\Http\Controllers\ScheduleController;
 use App\Models\EJournal;
@@ -15,7 +16,8 @@ class Report extends Component
         $isGroupModalVisible = false,
         $isRoomsModalVisible = false,
         $isEJournalModalVisible = false,
-        $isSocialPassportModalVisible = false;
+        $isSocialPassportModalVisible = false,
+        $isStudentsEducationModalVisible = false;
 
     public $teachers = [], $groups = [], $weeksRange = [];
     public string $fio = "", $group = "", $week = "";
@@ -32,6 +34,10 @@ class Report extends Component
 
     public $childCategories = '';
     public $hasPushkinCard = 2;
+
+    // Отчет по студентам: выбор колонок и формата
+    public array $studentsEducationColumns = [];
+    public string $studentsEducationFormat = 'xlsx';   // xlsx | docx | pdf
 
     public function render()
     {
@@ -250,11 +256,45 @@ class Report extends Component
         return redirect()->route('generate.spt.report');
     }
 
+    public function showStudentsEducationModal(): void
+    {
+        // Каждый раз открываем окно с основными колонками (ничего не запоминается)
+        $this->resetStudentsEducationColumns();
+        $this->studentsEducationFormat = 'xlsx';
+        $this->isStudentsEducationModalVisible = true;
+    }
+
+    public function resetStudentsEducationColumns(): void
+    {
+        $this->studentsEducationColumns = StudentsEducationReportController::defaultColumns();
+    }
+
+    public function selectAllStudentsEducationColumns(): void
+    {
+        $this->studentsEducationColumns = array_keys(StudentsEducationReportController::columnOptions());
+    }
+
     public function downloadStudentsEducationReport()
     {
-        $contingentReportController = new ContingentReportController();
-        $data = $contingentReportController->downloadStudentsEducationReport();
- 
+        if (empty($this->studentsEducationColumns)) {
+            $this->dispatch('show-toast', message: 'Выберите хотя бы одну колонку!', type: 'error');
+
+            return;
+        }
+
+        $format = in_array($this->studentsEducationFormat, StudentsEducationReportController::FORMATS, true)
+            ? $this->studentsEducationFormat
+            : 'xlsx';
+
+        try {
+            $data = (new StudentsEducationReportController())->download($this->studentsEducationColumns, $format);
+        } catch (\Throwable $e) {
+            report($e);
+            $this->dispatch('show-toast', message: 'Не удалось сформировать отчет: ' . $e->getMessage(), type: 'error');
+
+            return;
+        }
+
         return Response::download($data['tempFile'], $data['filename'])->deleteFileAfterSend(true);
     }
 }

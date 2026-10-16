@@ -257,16 +257,21 @@ class StudentListReportController extends Controller
         $phpWord->setDefaultFontName('Times New Roman');
 
         $minimal = $table['minimal'];
-        $fontSize = $minimal ? 12 : 7;
+        $fontSize = $minimal ? 12 : 6.5;
 
+        // Размеры задаём явно (twips), чтобы Word не растягивал таблицу за край листа.
+        // Полный список - А4 альбомная; для А3 поменяйте на 23811 x 16838 и $total ниже на 22900.
         $section = $phpWord->addSection($minimal
             ? [
                 'orientation' => 'portrait',
+                'pageSizeW' => 11906,
+                'pageSizeH' => 16838,
                 'marginTop' => 850, 'marginBottom' => 850, 'marginLeft' => 1130, 'marginRight' => 850,
             ]
             : [
                 'orientation' => 'landscape',
-                'paperSize' => 'A3',
+                'pageSizeW' => 16838,
+                'pageSizeH' => 11906,
                 'marginTop' => 567, 'marginBottom' => 567, 'marginLeft' => 567, 'marginRight' => 567,
             ]);
 
@@ -275,7 +280,7 @@ class StudentListReportController extends Controller
         $section->addText($line2, ['size' => 12, 'bold' => true], ['alignment' => Jc::CENTER, 'spaceAfter' => 200]);
 
         // Ширина области таблицы в twips
-        $total = $minimal ? 9900 : 22900;
+        $total = $minimal ? 9900 : 15600;   // 11906-1980 / 16838-1134
 
         $wordTable = $section->addTable([
             'borderSize' => 6,
@@ -307,6 +312,12 @@ class StudentListReportController extends Controller
 
         $tmp = tempnam(sys_get_temp_dir(), 'docx_');
         WordIOFactory::createWriter($phpWord, 'Word2007')->save($tmp);
+
+        // Полный список: размер и ориентацию листа гарантированно прописываем в самом файле (А4 альбомная),
+        // не полагаясь на то, как PhpWord пересчитает параметры раздела
+        if (!$minimal) {
+            $this->forceLandscape($tmp);
+        }
         $content = file_get_contents($tmp);
         @unlink($tmp);
 
@@ -374,5 +385,32 @@ class StudentListReportController extends Controller
         }
 
         return $pdf->output();
+    }
+
+    /** Подменяет <w:pgSz> в document.xml на A4 альбомный */
+    private function forceLandscape(string $file): void
+    {
+        $zip = new \ZipArchive();
+
+        if ($zip->open($file) !== true) {
+            return;
+        }
+
+        $xml = $zip->getFromName('word/document.xml');
+
+        if ($xml !== false) {
+            $pgSz = '<w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/>';
+            $count = 0;
+            $xml = preg_replace('/<w:pgSz\b[^>]*\/>/', $pgSz, $xml, -1, $count);
+
+            if ($count === 0) {
+                // нет pgSz в sectPr - добавляем сразу после открывающего тега
+                $xml = preg_replace('/(<w:sectPr\b[^>]*>)/', '$1' . $pgSz, $xml, 1);
+            }
+
+            $zip->addFromString('word/document.xml', $xml);
+        }
+
+        $zip->close();
     }
 }

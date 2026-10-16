@@ -98,11 +98,46 @@ class IndividualStudentGradeController extends Controller
         $groupName = $groupStudent->group_name;
         $bySemester = $this->groupStudentGradesBySemester($unique);
 
+        $baseName = 'Индивидуальная ведомость_'
+            . $this->shortFio($fio) . '_'
+            . $this->safeName($groupName);
+
         return match ($format) {
-            'xlsx' => $this->renderXlsx($fio, $groupName, $bySemester),
-            'pdf'  => $this->renderPdf($fio, $groupName, $bySemester),
-            default => $this->renderDocx($fio, $groupName, $bySemester),
+            'xlsx' => $this->renderXlsx($fio, $groupName, $bySemester, $this->safeFileName($baseName, 'xlsx')),
+            'pdf'  => $this->renderPdf($fio, $groupName, $bySemester, $this->safeFileName($baseName, 'pdf')),
+            default => $this->renderDocx($fio, $groupName, $bySemester, $this->safeFileName($baseName, 'docx')),
         };
+    }
+
+    /* ------------------------------------------------------------------
+     * Хелперы имён
+     * ---------------------------------------------------------------- */
+
+    private function shortFio(string $fio): string
+    {
+        $parts = preg_split('/\s+/u', trim($fio));
+        if (empty($parts) || $parts[0] === '') {
+            return 'без ФИО';
+        }
+
+        $short = $parts[0];
+        if (!empty($parts[1])) $short .= ' ' . mb_substr($parts[1], 0, 1) . '.';
+        if (!empty($parts[2])) $short .= mb_substr($parts[2], 0, 1) . '.';
+
+        return $short;
+    }
+
+    private function safeName(string $name): string
+    {
+        $name = preg_replace('/[\\\\\/:*?"<>|\r\n\t]+/u', ' ', $name);
+        $name = preg_replace('/\s+/u', ' ', $name);
+
+        return trim($name, " .\t");
+    }
+
+    private function safeFileName(string $name, string $ext): string
+    {
+        return $this->safeName($name) . '.' . $ext;
     }
 
     private function groupStudentGradesBySemester($studentGrades): array
@@ -134,8 +169,12 @@ class IndividualStudentGradeController extends Controller
         return (string) (int) $grade;
     }
 
+    /* ------------------------------------------------------------------
+     * Рендеры
+     * ---------------------------------------------------------------- */
+
     /** === DOCX через PhpWord === */
-    private function renderDocx(string $fio, string $groupName, array $bySemester): array
+    private function renderDocx(string $fio, string $groupName, array $bySemester, string $filename): array
     {
         $phpWord = new PhpWord();
         $phpWord->setDefaultFontName('Times New Roman');
@@ -189,17 +228,14 @@ class IndividualStudentGradeController extends Controller
             }
         }
 
-        $filename = time() . '.docx';
-        $tempFile = tempnam(sys_get_temp_dir(), $filename);
-
-        $writer = IOFactory::createWriter($phpWord, 'Word2007');
-        $writer->save($tempFile);
+        $tempFile = tempnam(sys_get_temp_dir(), 'docx');
+        IOFactory::createWriter($phpWord, 'Word2007')->save($tempFile);
 
         return ['tempFile' => $tempFile, 'filename' => $filename];
     }
 
     /** === XLSX через PhpSpreadsheet === */
-    private function renderXlsx(string $fio, string $groupName, array $bySemester): array
+    private function renderXlsx(string $fio, string $groupName, array $bySemester, string $filename): array
     {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -243,22 +279,17 @@ class IndividualStudentGradeController extends Controller
         $sheet->getColumnDimension('C')->setWidth(28);
         $sheet->getColumnDimension('D')->setWidth(14);
 
-        $filename = time() . '.xlsx';
-        $tempFile = tempnam(sys_get_temp_dir(), $filename);
-
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx');
         (new XlsxWriter($spreadsheet))->save($tempFile);
 
         return ['tempFile' => $tempFile, 'filename' => $filename];
     }
 
     /** === PDF через DomPDF с Unicode-шрифтом === */
-    private function renderPdf(string $fio, string $groupName, array $bySemester): array
+    private function renderPdf(string $fio, string $groupName, array $bySemester, string $filename): array
     {
-        $filename = time() . '.pdf';
-        $tempFile = tempnam(sys_get_temp_dir(), $filename);
+        $tempFile = tempnam(sys_get_temp_dir(), 'pdf');
 
-        // DejaVu Sans идёт в комплекте с DomPDF и содержит кириллицу.
-        // Без этой опции русские буквы рендерятся как «?».
         $pdf = PDF::setOptions([
             'defaultFont' => 'DejaVu Sans',
             'isHtml5ParserEnabled' => true,

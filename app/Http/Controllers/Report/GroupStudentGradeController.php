@@ -18,13 +18,6 @@ use PhpOffice\PhpWord\Style\Table as TableStyle;
 
 /**
  * Групповая сводка успеваемости.
- *
- * Формат повторяет сводную ведомость из старой базы:
- *  - заголовок "Сводная ведомость группы ... за N курс ГГГГ/ГГГГ уч. год";
- *  - колонки: № | Фамилия И.О. | дисциплины (название с индексом "ОПД.Ф - ...",
- *    под ним виды контроля) | Количество нулей и пробелов;
- *  - за один курс (два семестра), дисциплины без контроля ("-") не выводятся;
- *  - пустая оценка остаётся пустой ячейкой.
  */
 class GroupStudentGradeController extends Controller
 {
@@ -51,18 +44,19 @@ class GroupStudentGradeController extends Controller
         'ТК по разделу' => 'ТК',
     ];
 
-    /** Виды контроля, оценка по которым выводится как 1 / 0 (зачёт / незачёт) */
+    /** Виды контроля, оценка по которым выводится как 1 / 0 */
     private const PASS_FAIL = ['Зачет', 'Зачёт', 'Комплексный зачёт', 'Комплексный зачет', 'Отчет по практике'];
 
-    /** Виды контроля курсовых работ: выводятся отдельной группой "Курсовая работа по ..." */
+    /** Виды контроля курсовых работ */
     private const COURSE_WORK = ['Курсовая работа', 'Защита курс/р (курсов. проекта)'];
 
-    /** Максимум колонок с оценками в одной таблице (в Word лимит 63 колонки) */
+    /** Максимум колонок с оценками в одной таблице */
     private const MAX_COLUMNS_PER_TABLE = 30;
 
     /**
      * @param int      $groupId
-     * @param int|null $course  номер курса; если не задан - все курсы подряд (каждый со своим заголовком и таблицей)
+     * @param int|null $course
+     * @return array{tempFile:string, filename:string}
      */
     public function print($groupId, $course = null)
     {
@@ -71,7 +65,7 @@ class GroupStudentGradeController extends Controller
         $course = (int)$course > 0 ? (int)$course : null;
 
         /*
-         * 1. КОЛОНКИ: контроли учебного плана группы (за все курсы или за выбранный).
+         * 1. КОЛОНКИ
          */
         $planQuery = DB::table('work_study_plan_courses')
             ->join('work_study_plan_courses_in_semesters', 'work_study_plan_courses_in_semesters.work_study_plan_course_id', '=', 'work_study_plan_courses.id')
@@ -98,7 +92,6 @@ class GroupStudentGradeController extends Controller
 
         $plan = $planQuery->get()->map(fn($item) => (array)$item)->toArray();
 
-        // Курс = (семестр + 1) / 2: семестры 1-2 -> 1 курс, 3-4 -> 2 курс и т.д.
         $planByCourse = [];
         foreach ($plan as $row) {
             $planByCourse[(int)ceil($row['semester_number'] / 2)][] = $row;
@@ -126,7 +119,7 @@ class GroupStudentGradeController extends Controller
         }
 
         /*
-         * 2. СТРОКИ: все студенты группы (даже без единой оценки).
+         * 2. СТРОКИ
          */
         $students = GroupStudent::join('users_data', 'group_student.user_id', '=', 'users_data.user_id')
             ->where('group_student.group_id', '=', $groupId)
@@ -156,12 +149,7 @@ class GroupStudentGradeController extends Controller
         $studentIds = array_column($students, 'user_id');
 
         /*
-         * 3. ОЦЕНКИ: индекс [user_id][cts_id] => оценка.
-         *
-         *    Приоритет: пересдача (student_retake_bulletins) -> протокол пересдачи/перезачёта
-         *    (student_exam_retake_protocols) -> обычная оценка (student_grades).
-         *    Оценки берутся по строкам учебного плана ТЕКУЩЕЙ группы (cts_id), а не по
-         *    ведомостям именно этой группы - так переведённые студенты не теряют оценки.
+         * 3. ОЦЕНКИ
          */
         $gradeSql = "CASE
                 WHEN (SELECT grade FROM student_retake_bulletins WHERE student_grades_id = student_grades.id ORDER BY id DESC LIMIT 1) IS NOT NULL
@@ -194,13 +182,11 @@ class GroupStudentGradeController extends Controller
 
                 $previous = $gradesIndex[$row->user_id][$row->cts_id] ?? null;
 
-                // Более поздняя запись заменяет раннюю, но "0" не затирает уже выставленную оценку
                 if (is_null($previous) || (int)$row->grade > 0 || (int)$previous === 0) {
                     $gradesIndex[$row->user_id][$row->cts_id] = $row->grade;
                 }
             }
 
-            // Перезачёты/протоколы, по которым нет строки в student_grades
             $rawProtocols = StudentExamRetakeProtocol::whereIn('user_id', $studentIds)
                 ->whereIn('work_study_plan_course_control_types_in_semesters_id', $ctsIds)
                 ->orderBy('id')
@@ -220,8 +206,7 @@ class GroupStudentGradeController extends Controller
         }
 
         /*
-         * 4. ТЕКСТ ЯЧЕЕК: [user_id][column_key] => '' | '0'..'5';
-         *    счётчик нулей и пробелов считается отдельно по каждому курсу: [course][user_id].
+         * 4. ТЕКСТ ЯЧЕЕК
          */
         $cellText = [];
         $badCount = [];
@@ -267,8 +252,6 @@ class GroupStudentGradeController extends Controller
         $phpWord->setDefaultFontName('Times New Roman');
         $phpWord->setDefaultFontSize(8);
 
-        // Явно задаём размеры A4 в альбомной ориентации (twips): 16838 x 11906.
-        // Без pageSizeW/pageSizeH Word иногда игнорирует 'orientation'.
         $section = $phpWord->addSection([
             'orientation'  => 'landscape',
             'pageSizeW'    => 16838,
@@ -278,7 +261,6 @@ class GroupStudentGradeController extends Controller
             'marginLeft'   => 567,
             'marginRight'  => 567,
         ]);
-
 
         if (empty($groupsByCourse)) {
             $section->addText(
@@ -315,8 +297,22 @@ class GroupStudentGradeController extends Controller
             }
         }
 
-        $filename = time() . '.docx';
-        $tempFile = tempnam(sys_get_temp_dir(), $filename);
+        $groupName = trim((string) $group->group_name);
+        $courses   = array_keys($groupsByCourse);
+
+        $courseLabel = match (true) {
+            $course !== null          => $course . ' курс',
+            count($courses) === 1     => $courses[0] . ' курс',
+            count($courses) > 1       => 'все курсы',
+            default                   => 'без курса',
+        };
+
+        $filename = $this->safeFileName(
+            'Сводная ведомость_' . $groupName . '_' . $courseLabel,
+            'docx'
+        );
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'docx');
 
         $writer = IOFactory::createWriter($phpWord, 'Word2007');
         $writer->save($tempFile);
@@ -337,15 +333,54 @@ class GroupStudentGradeController extends Controller
     }
 
     /**
+     * Человекочитаемое имя файла вида:
+     *   "Сводная ведомость - ИС-21 - 2 курс - 2025-2026 уч.год.docx"
+     * Если course == null — все курсы:
+     *   "Сводная ведомость - ИС-21 - все курсы - 2025-2026 уч.год.docx"
+     */
+    private function makeFileName($group, ?int $course, array $groupsByCourse): string
+    {
+        $groupName = $this->sanitizeFileName((string)$group->group_name);
+
+        $courses = array_keys($groupsByCourse);
+        if ($course !== null) {
+            $courseLabel = $course . ' курс';
+            $yearLabel   = $this->academicYear($group, $course);
+        } elseif (!empty($courses)) {
+            $courseLabel = count($courses) === 1
+                ? $courses[0] . ' курс'
+                : 'все курсы';
+            $yearLabel = $this->academicYear($group, (int)min($courses))
+                . (count($courses) > 1 ? ' и далее' : '');
+        } else {
+            $courseLabel = 'без курса';
+            $yearLabel   = '';
+        }
+
+        $parts = [
+            'Сводная ведомость',
+            $groupName,
+            $courseLabel,
+            $yearLabel ? $yearLabel . ' уч.год' : null,
+            now()->format('d.m.Y'),
+        ];
+
+        return $this->sanitizeFileName(implode(' - ', array_filter($parts))) . '.docx';
+    }
+
+    /**
+     * Убирает из имени файла символы, недопустимые в Windows/Unix,
+     * и схлопывает пробелы.
+     */
+    private function sanitizeFileName(string $name): string
+    {
+        $name = preg_replace('/[\\\\\/:*?"<>|\r\n\t]+/u', ' ', $name);
+        $name = preg_replace('/\s+/u', ' ', $name);
+        return trim($name, " .\t");
+    }
+
+    /**
      * Из строк учебного плана строит группы колонок.
-     *
-     * Группа = один заголовок дисциплины (с индексом "ОПД.Ф - ...") в семестре,
-     * внутри - колонки по видам контроля. Курсовая работа выводится отдельной
-     * группой "Курсовая работа по ...". Дубли дисциплины (разные записи справочника
-     * с одинаковым названием, отличающиеся пробелом) схлопываются в одну колонку.
-     * Контроль "-" не выводится.
-     *
-     * Порядок: семестр, затем название дисциплины по алфавиту (как в старой ведомости).
      *
      * @return array<int, array{title:string, sort:string, semester:int, columns:array}>
      */
@@ -359,18 +394,6 @@ class GroupStudentGradeController extends Controller
             if ($controlName === '' || $controlName === '-') {
                 continue;
             }
-            $firstCourse = false;
-
-            $title = 'Сводная ведомость группы ' . trim($group->group_name) . ' за ' . $courseNumber . ' курс '
-                . $this->academicYear($group, $courseNumber) . ' уч. год';
-            $section->addText(
-                $title,
-                ['bold' => true, 'size' => 14],
-                ['alignment' => Jc::CENTER, 'spaceAfter' => 200]
-            );
-
-            $blocks = $this->splitIntoBlocks($groups);
-            $lastBlock = count($blocks) - 1;
 
             $name = trim(preg_replace('/\s+/u', ' ', (string)$row['discipline_name']));
             $isCourseWork = in_array($controlName, self::COURSE_WORK, true);
@@ -383,10 +406,6 @@ class GroupStudentGradeController extends Controller
             if (!is_null($row['index_name'])) {
                 $prefix = $row['index_name'] . (!is_null($row['section_name']) ? '.' . $row['section_name'] : '');
             }
-        }
-
-        $filename = time() . '.docx';
-        $tempFile = tempnam(sys_get_temp_dir(), $filename);
 
             $title = ($prefix !== '' ? $prefix . ' - ' : '') . $displayName;
 
@@ -428,7 +447,7 @@ class GroupStudentGradeController extends Controller
     }
 
     /**
-     * "ОП.06 " для общепрофессиональных дисциплин (как в "Курсовая работа по ОП.06 Экономика организации").
+     * "ОП.06 " для общепрофессиональных дисциплин.
      */
     private function courseWorkPrefix(array $row): string
     {
@@ -470,7 +489,7 @@ class GroupStudentGradeController extends Controller
 
     private function addBlockTable($section, array $blockGroups, array $students, array $cellText, array $badCount, bool $withTotals): void
     {
-        $usableWidth = 15300;   // А4 альбомная минус поля и запас на внутренние отступы ячеек (иначе таблица вылезает влево), twips
+        $usableWidth = 15300;
         $numWidth = 420;
         $fioWidth = 2000;
         $totalWidth = $withTotals ? 650 : 0;
@@ -496,7 +515,7 @@ class GroupStudentGradeController extends Controller
             'unit' => TblWidth::TWIP,
         ]);
 
-        // Строка 1: "№", "Фамилия И.О.", "Наименование дисциплины (модуля), практики", итог
+        // Строка 1
         $table->addRow(null, ['tblHeader' => true, 'cantSplit' => true]);
         $table->addCell($numWidth, ['vMerge' => 'restart', 'valign' => 'center'])->addText('№', $font, $center);
         $table->addCell($fioWidth, ['vMerge' => 'restart', 'valign' => 'center'])->addText('Фамилия И.О.', $font, $center);
@@ -510,7 +529,7 @@ class GroupStudentGradeController extends Controller
             ])->addText('Количество нулей и пробелов', $headFont, $center);
         }
 
-        // Строка 2: названия дисциплин (повёрнуты снизу вверх)
+        // Строка 2: названия дисциплин
         $table->addRow(5200, ['tblHeader' => true, 'cantSplit' => true, 'exactHeight' => true]);
         $table->addCell($numWidth, ['vMerge' => 'continue']);
         $table->addCell($fioWidth, ['vMerge' => 'continue']);
@@ -558,5 +577,13 @@ class GroupStudentGradeController extends Controller
                 $table->addCell($totalWidth, ['valign' => 'center'])->addText((string)($badCount[$uid] ?? 0), $font, $center);
             }
         }
+    }
+
+    private function safeFileName(string $name, string $ext): string
+    {
+        $name = preg_replace('/[\\\\\/:*?"<>|\r\n\t]+/u', ' ', $name);
+        $name = preg_replace('/\s+/u', ' ', $name);
+
+        return trim($name, " .\t") . '.' . $ext;
     }
 }

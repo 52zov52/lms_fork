@@ -62,23 +62,19 @@ class StudentDocumentOrderReportController extends Controller
             (bool) $issuance->is_expelled,
             (string) ($issuance->characteristic_type ?? 'positive')
         );
-        // Блок приказов обрабатываем сами (см. prepareTemplate): deleteBlock/cloneBlock из PhpWord
-        // портят XML, когда маркеры блока стоят в отдельных абзацах-фреймах.
+
         $leaveOrdersText = '';
         if (in_array($type, [self::TYPE_STUDY, self::TYPE_TRANSPORT_CARD], true)) {
             $savedOrders = trim((string) $issuance->leave_orders);
             if ($savedOrders === '' && $issuance->had_academic_leave && is_null($issuance->leave_orders)) {
                 $savedOrders = $this->getLeaveOrders((int) $request->requester_id);
             }
-            // Сотрудник снял галочку «указать приказы» -> блок не выводим
             $leaveOrdersText = $issuance->show_leave_orders ? $savedOrders : '';
         }
 
         $preparedPath = $this->prepareTemplate($path, $leaveOrdersText);
         $template = new TemplateProcessor($preparedPath);
 
-        // Общие поля для всех типов документов
-        // Дата выдачи справки = дата подтверждения
         $template->setValue('date', $this->formatDateWithMonthName($issuance->confirmed_at ?? $issuance->updated_at));
         $template->setValue('number', $issuance->document_number . '-эл.');
         $template->setValue('course', $issuance->course);
@@ -86,14 +82,12 @@ class StudentDocumentOrderReportController extends Controller
         $template->setValue('signer_position', $issuance->signer_position);
         $template->setValue('signer_fio', $issuance->signer_fio);
 
-        // Дательный падеж ФИО (справки 1, 2, 3)
         if (in_array($type, [self::TYPE_STUDY, self::TYPE_TRANSPORT_CARD, self::TYPE_INVITATION], true)) {
             $template->setValue('last_name_dative', $issuance->last_name_dative);
             $template->setValue('first_name_dative', $issuance->first_name_dative);
             $template->setValue('middle_name_dative', $issuance->middle_name_dative);
         }
 
-        // Поля, общие для справок об обучении и характеристики (1, 2, 4)
         if ($type !== self::TYPE_INVITATION) {
             $confirmiter = UserData::select('last_name', 'first_name', 'middle_name')
                 ->where('user_id', '=', $issuance->confirmiter_id)
@@ -103,7 +97,7 @@ class StudentDocumentOrderReportController extends Controller
             $template->setValue('edu_level', $this->buildEduLevel($issuance->level_education_name, $type));
             $template->setValue('sex', $issuance->sex ? 'она' : 'он');
             $template->setValue('student_word', $this->studentWord($issuance->sex));
-            $template->setValue('was_end', $issuance->sex ? 'лась' : 'лся'); // «являлся / являлась» (шаблоны для отчисленных)
+            $template->setValue('was_end', $issuance->sex ? 'лась' : 'лся');
             $template->setValue('vo_level', $this->voLevelWord($issuance->level_education_name));
             $template->setValue('sp', $issuance->specialty_code . ' - ' . $issuance->speciality_name);
             $template->setValue('orders', $issuance->orders);
@@ -111,13 +105,11 @@ class StudentDocumentOrderReportController extends Controller
             $template->setValue('confirmiter', $this->formatConfirmiter($confirmiter));
         }
 
-        // Только справки об обучении (1, 2)
         if (in_array($type, [self::TYPE_STUDY, self::TYPE_TRANSPORT_CARD], true)) {
             $template->setValue('is_budget', $issuance->is_budget
                 ? ' за счет средств бюджетных ассигнований федерального бюджета '
                 : '');
- 
-            // Формы времени зависят от того, отчислен/выпускник или ещё учится
+
             $isPast = (bool) $issuance->is_expelled;
 
             $template->setValue(
@@ -128,20 +120,16 @@ class StudentDocumentOrderReportController extends Controller
             $template->setValue('scholarship_end', $issuance->is_budget
                 ? '.'
                 : ($isPast
-                    // отчислен / выпускник — прошедшее время
                     ? ', стипендия не выплачивалась, иные меры социальной поддержки обучающихся не оказывались.'
-                    // учится — настоящее время
                     : ', стипендия не выплачивается, иные меры социальной поддержки обучающихся не оказываются.'));
         }
 
-        // ФИО в именительном падеже: справка-вызов (3) и характеристика (4)
         if ($type === self::TYPE_INVITATION || $type === self::TYPE_CHARACTERISTIC) {
             $template->setValue('last_name', $issuance->last_name);
             $template->setValue('first_name', $issuance->first_name);
             $template->setValue('middle_name', $issuance->middle_name);
         }
 
-        // Только характеристика (4)
         if ($type === self::TYPE_CHARACTERISTIC) {
             $this->fillCharacteristic($template, $issuance);
             $template->setValue('last_name_genitive', $issuance->last_name_genitive);
@@ -149,7 +137,6 @@ class StudentDocumentOrderReportController extends Controller
             $template->setValue('middle_name_genitive', $issuance->middle_name_genitive);
         }
 
-        // Только справка-вызов (3)
         if ($type === self::TYPE_INVITATION) {
             $template->setValue('specialty_code', $issuance->specialty_code);
             $template->setValue('speciality_name', $issuance->speciality_name);
@@ -159,8 +146,22 @@ class StudentDocumentOrderReportController extends Controller
             $template->setValue('employment_place', $issuance->employment_place);
         }
 
-        $filename = time() . '.docx';
-        $tempFile = tempnam(sys_get_temp_dir(), $filename);
+        // ФИО в именительном падеже для имени файла
+        $fio = $this->shortFio($issuance->last_name, $issuance->first_name, $issuance->middle_name);
+
+        $base = match ($type) {
+            self::TYPE_STUDY          => 'Справка',
+            self::TYPE_TRANSPORT_CARD => 'Транспортная',
+            self::TYPE_INVITATION     => 'Справка-вызов',
+            self::TYPE_CHARACTERISTIC => ($issuance->characteristic_type ?? 'positive') === 'negative'
+                ? 'Характеристика_отр'
+                : 'Характеристика_пол',
+            default => 'Документ',
+        };
+
+        $filename = $this->safeFileName($base . '_' . $fio, 'docx');
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'docx');
         $template->saveAs($tempFile);
         @unlink($preparedPath);
 
@@ -339,6 +340,31 @@ class StudentDocumentOrderReportController extends Controller
         $zip->close();
 
         return $tmp;
+    }
+
+        private function shortFio(?string $last, ?string $first, ?string $middle): string
+    {
+        $last   = trim((string) $last);
+        $first  = trim((string) $first);
+        $middle = trim((string) $middle);
+
+        if ($last === '') {
+            return 'без ФИО';
+        }
+
+        $fio = $last;
+        if ($first  !== '') $fio .= ' ' . mb_substr($first,  0, 1) . '.';
+        if ($middle !== '') $fio .= mb_substr($middle, 0, 1) . '.';
+
+        return $fio;
+    }
+
+    private function safeFileName(string $name, string $ext): string
+    {
+        $name = preg_replace('/[\\\\\/:*?"<>|\r\n\t]+/u', ' ', $name);
+        $name = preg_replace('/\s+/u', ' ', $name);
+
+        return trim($name, " .\t") . '.' . $ext;
     }
 
     private function transformTeachingForm($teachingForm): string

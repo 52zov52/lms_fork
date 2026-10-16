@@ -30,7 +30,7 @@
         <li><a wire:click="generateContingentByAgeAndGenderWithoutTeachingFromReport" href="#" class="text-blue-500 hover:underline">Отчет по численности контингента распределённый по возрасту и полу в разрезе уровней обучения</a></li>
         <li><a wire:click="downloadListOfForeignStudents" href="#" class="text-blue-500 hover:underline">Отчет по иностранным обучающимся</a></li>
         <li><a wire:click="showSocialPassportModal" href="#" class="text-blue-500 hover:underline">Социальный паспорт обучающегося</a></li>
-        <li><a wire:click="downloadStudentsEducationReport" href="#" class="text-blue-500 hover:underline">Отчет по студентам</a></li>
+        <li><a wire:click="showStudentsEducationModal" href="#" class="text-blue-500 hover:underline">Отчет по студентам</a></li>
     </ul>
     @endcan
     @can('access-to-social-passport-report')
@@ -257,6 +257,65 @@
                     {{ __('Закрыть') }}
                 </button>
                 <button wire:click.prevent="downloadSocialPassportReport" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
+                    {{ __('Сформировать отчет') }}
+                </button>
+            </x-slot>
+        </form>
+    </x-dialog-modal>
+
+    <!-- Modal dialog students education report -->
+    <x-dialog-modal wire:model="isStudentsEducationModalVisible">
+        <form>
+            @csrf
+            <x-slot name="title">
+                Отчет по студентам: выбор колонок и формата
+            </x-slot>
+
+            <x-slot name="content">
+                <div class="w-full flex flex-col space-y-3">
+                    <div class="flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <label class="font-semibold">Колонки отчета</label>
+                            <div class="text-sm space-x-3">
+                                <a wire:click.prevent="selectAllStudentsEducationColumns" href="#" class="text-blue-500 hover:underline">Выбрать все</a>
+                                <a wire:click.prevent="resetStudentsEducationColumns" href="#" class="text-blue-500 hover:underline">Только основные</a>
+                            </div>
+                        </div>
+                        <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                            @foreach(\App\Http\Controllers\Report\StudentsEducationReportController::columnOptions() as $columnKey => $columnLabel)
+                            <label class="flex space-x-2 items-center cursor-pointer">
+                                <input wire:model="studentsEducationColumns" value="{{ $columnKey }}" type="checkbox" class="rounded border-gray-300">
+                                <span>{{ $columnLabel }}</span>
+                            </label>
+                            @endforeach
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Колонка «№ п/п» выводится всегда.</p>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="font-semibold">Формат файла</label>
+                        <div class="flex flex-row space-x-4">
+                            <label class="flex space-x-1 items-center cursor-pointer">
+                                <input wire:model="studentsEducationFormat" type="radio" value="xlsx">
+                                <span>Excel</span>
+                            </label>
+                            <label class="flex space-x-1 items-center cursor-pointer">
+                                <input wire:model="studentsEducationFormat" type="radio" value="docx">
+                                <span>Word</span>
+                            </label>
+                            <label class="flex space-x-1 items-center cursor-pointer">
+                                <input wire:model="studentsEducationFormat" type="radio" value="pdf">
+                                <span>PDF</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </x-slot>
+
+            <x-slot name="footer">
+                <button wire:click="$toggle('isStudentsEducationModalVisible')" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 rounded px-2 py-1 text-white">
+                    {{ __('Закрыть') }}
+                </button>
+                <button wire:click.prevent="downloadStudentsEducationReport" type="button" class="ml-2 w-full sm:w-auto bg-blue-500 hover:bg-blue-600 rounded px-2 py-1 text-white">
                     {{ __('Сформировать отчет') }}
                 </button>
             </x-slot>
