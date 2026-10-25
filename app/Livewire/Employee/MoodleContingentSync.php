@@ -18,8 +18,23 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
  * Пайплайн:
  *   1. Получить список студентов из БД ЛК (кеш 30 мин).
  *   2. Загрузить CSV-файл с данными Moodle (стриминг, построчно).
- *   3. Сравнить по логину → определить зачисления, отчисления, смены ФИО, переводы.
- *   4. Сгенерировать SQL-запрос (Блоки 1–5) для приведения Moodle в соответствие с ЛК.
+ *   3. Сопоставить людей и определить изменения (см. compare()).
+ *   4. Сгенерировать SQL-запрос (Блоки 1–6) для приведения Moodle в соответствие с ЛК.
+ *
+ * Категории Moodle (колонка «Категория» в CSV):
+ *   1 — Стандарт: студент в актуальной (видимой) когорте.
+ *   2 — Свободные: логин st* есть, но ни в одной когорте (отчислен
+ *       либо академический отпуск). Таких не отчисляем — их отсутствие
+ *       в ЛК (где видны только активные группы) ничего не значит.
+ *   3 — Доп. набор: временный логин vr*, настоящий логин ЛК известен.
+ *       Сопоставляется по ФИО, логин предлагается заменить vr → st.
+ *
+ * Сопоставление людей (compare()):
+ *   1. По логину — точное совпадение.
+ *   2. По ФИО — если логина в Moodle нет. Категории перебираются
+ *      «Стандарт» → «Свободные» → «Доп. набор»; неоднозначное ФИО
+ *      (несколько равноценных кандидатов) не сопоставляется вовсе.
+ *   3. Не найден — зачисление нового пользователя.
  *
  * Особенности ФИО:
  *   - В ЛК фамилия/имя/отчество хранятся раздельно (users_data).
@@ -37,8 +52,12 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
  *   1 — создание пользователей (INSERT mdl_user)
  *   2 — обновление ФИО (UPDATE mdl_user)
  *   3 — удаление из старых когорт (DELETE mdl_cohort_members)
- *   4 — добавление в новые когорт (INSERT mdl_cohort_members)
+ *   4 — добавление в новые когорты (INSERT mdl_cohort_members)
  *   5 — отчисление (DELETE + UPDATE mdl_user SET deleted=1)
+ *   6 — смена временного логина доп. набора (UPDATE mdl_user SET username)
+ *
+ * Порядок блоков важен: смена логина (6) идёт последней, потому что
+ * все UPDATE выше адресуют пользователя ещё по временному vr-логину.
  */
 class MoodleContingentSync extends Component
 {
@@ -76,7 +95,7 @@ class MoodleContingentSync extends Component
     /** Ключ кеша с массивом $changes (загружается в boot() на каждый запрос). */
     public string $changesKey = '';
 
-    /** Активная вкладка таблиц результатов ('fio'|'enroll'|'transfer'|'expel'). */
+    /** Активная вкладка таблиц результатов ('fio'|'enroll'|'transfer'|'expel'|'relink'). */
     public string $activeTab = 'fio';
 
     /**
@@ -85,12 +104,17 @@ class MoodleContingentSync extends Component
      */
     public array $selected = [];
 
-    /** Счётчики по типам: enroll (зачисление), expel (отчисление), fio (ФИО), transfer (перевод). */
+    /**
+     * Счётчики по типам: enroll (зачисление), expel (отчисление), fio (ФИО),
+     * transfer (перевод/добавление в группу), relink (смена временного логина
+     * доп. набора на настоящий).
+     */
     public array $stats = [
         'enroll' => 0,
         'expel'  => 0,
         'fio'    => 0,
         'transfer' => 0,
+        'relink' => 0,
     ];
 
     /**
@@ -119,8 +143,17 @@ class MoodleContingentSync extends Component
      */
     public array $lkWarnings = [];
 
+    /**
+     * Предупреждения по данным Moodle.
+     *
+     * Сейчас: неоднозначное ФИО — в ЛК и в Moodle нашлось несколько
+     * кандидатов с одинаковым ФИО, поэтому человек не сопоставлен и был
+     * создан как новый пользователь. Требует ручной проверки.
+     */
+    public array $moodleWarnings = [];
+
     /** Текущие страницы таблиц результатов (пагинация — против зависания на тысячах строк). */
-    public array $page = ['fio' => 1, 'enroll' => 1, 'transfer' => 1, 'expel' => 1];
+    public array $page = ['fio' => 1, 'enroll' => 1, 'transfer' => 1, 'expel' => 1, 'relink' => 1];
 
     /** Строк на страницу в таблицах результатов. */
     public int $perPage = 50;
@@ -235,9 +268,9 @@ class MoodleContingentSync extends Component
             return;
         }
 
-        $this->reset('selected', 'stats', 'parsed', 'lkUnavailable', 'lkWarnings');
-        $this->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0];
-        $this->page = ['fio' => 1, 'enroll' => 1, 'transfer' => 1, 'expel' => 1];
+        $this->reset('selected', 'stats', 'parsed', 'lkUnavailable', 'lkWarnings', 'moodleWarnings');
+        $this->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0, 'relink' => 0];
+        $this->page = ['fio' => 1, 'enroll' => 1, 'transfer' => 1, 'expel' => 1, 'relink' => 1];
         $this->invalidateSql();
         $this->activeTab = 'fio';
 
@@ -310,7 +343,7 @@ class MoodleContingentSync extends Component
      */
     public function setTab(string $tab): void
     {
-        if (in_array($tab, ['fio', 'enroll', 'transfer', 'expel'], true)) {
+        if (in_array($tab, ['fio', 'enroll', 'transfer', 'expel', 'relink'], true)) {
             $this->activeTab = $tab;
         }
     }
@@ -409,6 +442,12 @@ class MoodleContingentSync extends Component
         return $this->pagedChanges('expel');
     }
 
+    /** @return array{items: array, total: int, pages: int, page: int} */
+    public function getRelinkChangesProperty(): array
+    {
+        return $this->pagedChanges('relink');
+    }
+
     /**
      * Скачивание сгенерированного SQL-запроса в .txt-файл.
      */
@@ -479,6 +518,8 @@ class MoodleContingentSync extends Component
                 $map['email'] = $i;
             } elseif (in_array($h, ['group_name_fixed', 'group', 'группа', 'реальный_группа', 'real_group'])) {
                 $map['group'] = $i;
+            } elseif (in_array($h, ['категория', 'category', 'кат'])) {
+                $map['category'] = $i;
             }
         }
 
@@ -588,7 +629,16 @@ class MoodleContingentSync extends Component
                     'last_name'  => trim($row[$map['last_name']]),
                     'first_name' => trim($row[$map['first_name']]),
                     'email'      => isset($map['email']) ? trim($row[$map['email']]) : '',
+                    // Исходное название группы (может быть пустым у «Свободных»).
+                    'groupRaw'   => trim($row[$map['group']]),
                     'group'      => $this->normalizeGroup(trim($row[$map['group']])),
+                    'category'   => $this->resolveCategory(
+                        isset($map['category']) && isset($row[$map['category']])
+                            ? (int) trim($row[$map['category']])
+                            : 0,
+                        $login,
+                        trim($row[$map['group']])
+                    ),
                 ];
             };
 
@@ -746,16 +796,266 @@ class MoodleContingentSync extends Component
         return $warnings;
     }
 
+    // ─── Категории Moodle и сопоставление по ФИО ───────────────
+
+    /** Категория 1: студент в актуальной (видимой) когорте. */
+    private const CAT_STANDARD = 1;
+
+    /** Категория 2: студент без когорт (отчислен либо в академ. отпуске). */
+    private const CAT_FREE = 2;
+
+    /** Категория 3: студент дополнительного набора (временный логин vr*). */
+    private const CAT_EXTRA = 3;
+
+    /**
+     * Порог схожести ФИО для сопоставления «одного и того же человека».
+     *
+     * Ниже порога строки считаются разными людьми: лучше лишнее
+     * «зачисление нового пользователя», чем привязка чужого ФИО.
+     */
+    private const FIO_MATCH_MIN_SCORE = 0.85;
+
+    /**
+     * Старая группа студента Moodle для SQL-операций.
+     *
+     * У «Свободных» группа пустая — удалять из когорты нечего, поэтому
+     * возвращаем именно '' (а не нормализованное ' (2026)').
+     * Резолвер нужен и для строк без поля groupRaw (старые выгрузки/тесты).
+     *
+     * @param  array  $moodleRow  Строка Moodle
+     * @return string  Название группы или '' (нет когорты)
+     */
+    private function moodleGroupOld(array $moodleRow): string
+    {
+        return (string) ($moodleRow['groupRaw'] ?? $moodleRow['group'] ?? '');
+    }
+
+    /**
+     * Определение категории строки Moodle.
+     *
+     * Колонка «Категория» приходит из запроса (1/2/3), но в старых выгрузках
+     * её может не быть — тогда категория выводится из логина и группы:
+     * временный логин vr → доп. набор, пустая группа → свободные,
+     * иначе стандарт.
+     *
+     * @param  int     $value  Значение колонки «Категория» (0, если колонки нет)
+     * @param  string  $login  Логин студента
+     * @param  string  $group  Исходное название группы (без нормализации)
+     * @return int  CAT_STANDARD | CAT_FREE | CAT_EXTRA
+     */
+    private function resolveCategory(int $value, string $login, string $group): int
+    {
+        if (in_array($value, [self::CAT_STANDARD, self::CAT_FREE, self::CAT_EXTRA], true)) {
+            return $value;
+        }
+
+        if ($this->norm($login) !== '' && str_starts_with($this->norm($login), 'vr')) {
+            return self::CAT_EXTRA;
+        }
+
+        return trim($group) === '' ? self::CAT_FREE : self::CAT_STANDARD;
+    }
+
+    /**
+     * Слова полного ФИО Moodle (оба поля скопом — раскладка не важна).
+     *
+     * @param  array  $moodleRow  Строка Moodle
+     * @return array<int, string>  Отсортированные слова в нижнем регистре
+     */
+    private function moodleFioWords(array $moodleRow): array
+    {
+        return $this->wordsOf($this->moodleFullName($moodleRow));
+    }
+
+    /**
+     * Слова полного ФИО ЛК (фамилия + имя + отчество).
+     *
+     * @param  array  $lkRow  Строка ЛК
+     * @return array<int, string>  Отсортированные слова в нижнем регистре
+     */
+    private function lkFioWords(array $lkRow): array
+    {
+        return $this->wordsOf($this->lkFullName($lkRow));
+    }
+
+    /**
+     * Разбор ФИО на отсортированный набор слов (регистр и ё/е нормализованы).
+     *
+     * @param  string  $value  Строка ФИО
+     * @return array<int, string>
+     */
+    private function wordsOf(string $value): array
+    {
+        $value = mb_strtolower(trim($value));
+        $value = str_replace('ё', 'е', $value);
+        $value = str_replace(['-', '‐', '‑', '‒', '–', '—', '―'], ' ', $value);
+        $words = preg_split('/\s+/u', $value, -1, PREG_SPLIT_NO_EMPTY);
+
+        if ($words === false) {
+            return [];
+        }
+
+        sort($words);
+
+        return array_values($words);
+    }
+
+    /**
+     * Индекс слов ФИО Moodle: слово => список логинов.
+     *
+     * Нужен, чтобы не перебирать все пары «ЛК × Moodle»: для каждого слова ФИО
+     * ЛК берётся список кандидатов из индекса, и проверяются только они.
+     *
+     * @param  array  $moodle  Данные Moodle (login => row)
+     * @return array<string, array<int, string>>
+     */
+    private function moodleWordIndex(array $moodle): array
+    {
+        $index = [];
+        foreach ($moodle as $login => $row) {
+            foreach ($this->moodleFioWords($row) as $word) {
+                $index[$word][] = $login;
+            }
+        }
+
+        return $index;
+    }
+
+    /**
+     * Оценка схожести ФИО ЛК и Moodle: 1 — совпадение, 0 — разные люди.
+     *
+     * Правила (все обязательные):
+     *   - все слова фамилии ЛК присутствуют в ФИО Moodle (иначе «Иванов»
+     *     склеился бы с «Иванова»);
+     *   - общих слов не меньше двух;
+     *   - либо ФИО Moodle целиком содержится в ФИО ЛК (в Moodle может не быть
+     *     отчества), либо совпадение по Жаккару выше порога.
+     *
+     * @param  array<int, string>  $surnameWords  Слова фамилии ЛК
+     * @param  array<int, string>  $lkWords       Слова ФИО ЛК
+     * @param  array<int, string>  $moodleWords   Слова ФИО Moodle
+     * @return float  0.0 — не тот человек, иначе 0.85…1.0
+     */
+    private function fioScore(array $surnameWords, array $lkWords, array $moodleWords): float
+    {
+        if ($surnameWords === [] || count($lkWords) < 2 || count($moodleWords) < 2) {
+            return 0.0;
+        }
+
+        // Фамилия обязана полностью содержаться в ФИО Moodle.
+        foreach ($surnameWords as $word) {
+            if (! in_array($word, $moodleWords, true)) {
+                return 0.0;
+            }
+        }
+
+        $common = array_intersect($lkWords, $moodleWords);
+        if (count($common) < 2) {
+            return 0.0;
+        }
+
+        // В Moodle может не быть отчества — все его слова есть в ЛК.
+        $moodleOnly = array_diff($moodleWords, $lkWords);
+        if ($moodleOnly === []) {
+            return count($common) === count($moodleWords) ? 1.0 : 0.9;
+        }
+
+        $jaccard = count($common) / count(array_unique(array_merge($lkWords, $moodleWords)));
+
+        return $jaccard >= self::FIO_MATCH_MIN_SCORE ? $jaccard : 0.0;
+    }
+
+    /**
+     * Поиск в Moodle пользователя с тем же ФИО — в порядке категорий
+     * «Стандарт» → «Свободные» → «Доп. набор».
+     *
+     * Внутри категории берётся лучший кандидат по оценке схожести; если
+     * кандидатов несколько (неоднозначное ФИО), пользователь не подбирается
+     * вовсе — иначе высок риск привязать не того человека.
+     *
+     * @param  array         $lkRow       Строка ЛК
+     * @param  array         $moodle      Данные Moodle (login => row)
+     * @param  array         $wordIndex   Индекс слов Moodle (см. moodleWordIndex)
+     * @param  array<string, bool>  $used  Логины Moodle, уже сопоставленные с ЛК
+     * @param  array<int, string>  $ambiguous  Заполняется логинами кандидатов,
+     *        чьё ФИО совпало с ЛК с одинаковой лучшей оценкой в одной категории
+     * @return string|null  Логин Moodle или null, если кандидата нет
+     */
+    private function findMoodleByFio(array $lkRow, array $moodle, array $wordIndex, array $used, array &$ambiguous = []): ?string
+    {
+        $surnameWords = $this->wordsOf($lkRow['last_name'] ?? '');
+        $lkWords = $this->lkFioWords($lkRow);
+
+        // Кандидаты — только те, чьё ФИО содержит хотя бы одно слово фамилии.
+        $candidates = [];
+        foreach ($surnameWords as $word) {
+            foreach ($wordIndex[$word] ?? [] as $login) {
+                if (isset($used[$login])) {
+                    continue;
+                }
+                $candidates[$login] = true;
+            }
+        }
+        if ($candidates === []) {
+            return null;
+        }
+
+        // Оценки схожести, сгруппированные по категориям.
+        $scored = [];
+        foreach (array_keys($candidates) as $login) {
+            $score = $this->fioScore($surnameWords, $lkWords, $this->moodleFioWords($moodle[$login]));
+            if ($score <= 0.0) {
+                continue;
+            }
+            $category = $moodle[$login]['category'] ?? self::CAT_STANDARD;
+            $scored[$category][$login] = $score;
+        }
+        if ($scored === []) {
+            return null;
+        }
+
+        // Категории с меньшим номером приоритетнее: берём первую, где есть хоть
+        // один кандидат, даже если в более поздней категории оценка выше.
+        ksort($scored);
+
+        foreach ($scored as $logins) {
+            $best = max($logins);
+            $winners = array_keys(array_filter($logins, fn ($score) => $score === $best));
+
+            // Внутри одной категории несколько кандидатов с одинаковой лучшей
+            // оценкой — ФИО неоднозначно, сопоставлять нельзя: высок риск
+            // привязать не того человека. В том числе при равенстве 0.9,
+            // когда у нескольких в Moodle не заполнено отчество.
+            if (count($winners) > 1) {
+                $ambiguous = array_merge($ambiguous, $winners);
+
+                return null;
+            }
+
+            return $winners[0];
+        }
+
+        return null;
+    }
+
     // ─── Сравнение данных ──────────────────────────────────────
 
     /**
      * Сравнение данных ЛК и Moodle, формирование списка изменений.
      *
-     * Логика по логину:
-     *   - Есть в ЛК, нет в Moodle → enroll (зачисление)
-     *   - Есть в Moodle, нет в ЛК  → expel  (отчисление)
-     *   - Есть в обоих, различается ФИО → fio
-     *   - Есть в обоих, различается группа → transfer (перевод)
+     * Сопоставление людей идёт в три приёма, в порядке приоритета:
+     *
+     *   1. По логину — точное совпадение st-логина ЛК и логина Moodle.
+     *   2. По ФИО — если логина в Moodle нет (временный vr-логин доп. набора
+     *      либо устаревший номер), ищем «того же человека» по ФИО. Категории
+     *      Moodle перебираются в порядке «Стандарт» → «Свободные» →
+     *      «Доп. набор», внутри категории побеждает лучшее совпадение ФИО.
+     *   3. Ничего не найдено — зачисление нового пользователя.
+     *
+     * Для найденного по ФИО пользователя Moodle генерируется НЕ зачисление,
+     * а перевод/добавление в группу (существующий аккаунт не пересоздаём).
+     * Для доп. набора (логин vr*) дополнительно генерируется смена логина
+     * на настоящий st-логин — отдельным типом 'relink'.
      *
      * Сравнение ФИО — по неупорядоченному набору слов полного имени
      * (см. normalizeFioWords): ЛК «Фамилия Имя Отчество» против обоих
@@ -770,30 +1070,98 @@ class MoodleContingentSync extends Component
         $lkLogins = array_keys($lk);
         $moodleLogins = array_keys($moodle);
 
-        $onlyLk = array_diff($lkLogins, $moodleLogins);
-        $onlyMoodle = array_diff($moodleLogins, $lkLogins);
-        $both = array_intersect($lkLogins, $moodleLogins);
-
-        // ── Зачисление: есть в ЛК, нет в Moodle ──
-        foreach ($onlyLk as $login) {
-            $targetGroup = $this->targetGroup($lk[$login]['group']);
-            $this->addChange([
-                'type'       => 'enroll',
-                'reason'     => 'Есть в ЛК, нет в Мудл',
-                'login'      => $login,
-                'surnameOld' => '',
-                'surnameNew' => $lk[$login]['last_name'],
-                'nameOld'    => '',
-                // «Имя Отчество» целиком — иначе отчество потеряется при создании в Moodle.
-                'nameNew'    => $this->lkNameWithPatronymic($lk[$login]),
-                'groupOld'   => '',
-                'groupNew'   => $targetGroup,
-                'email'      => $lk[$login]['email'],
-            ]);
+        // Логины Moodle, уже сопоставленные с ЛК — чтобы не отчислить
+        // пользователя, которого нашли по ФИО, и не подобрать его дважды.
+        $used = [];
+        foreach ($lkLogins as $login) {
+            if (isset($moodle[$login])) {
+                $used[$login] = true;
+            }
         }
 
-        // ── Отчисление: есть в Moodle, нет в ЛК ──
-        foreach ($onlyMoodle as $login) {
+        $wordIndex = $this->moodleWordIndex($moodle);
+        $fioMisses = [];
+        $lkFullNameOf = fn (array $row): string => trim(($row['last_name'] ?? '') . ' ' . ($row['first_name'] ?? '') . ' ' . ($row['middle_name'] ?? ''));
+
+        foreach ($lkLogins as $login) {
+            // ── 1. Совпадение по логину ──
+            if (isset($moodle[$login])) {
+                $this->compareMatched($login, $lk[$login], $moodle[$login]);
+                continue;
+            }
+
+            // ── 2. Поиск по ФИО среди ещё не сопоставленных ──
+            $ambiguous = [];
+            $moodleLogin = $this->findMoodleByFio($lk[$login], $moodle, $wordIndex, $used, $ambiguous);
+
+            if ($moodleLogin === null) {
+                // Человека нет в Moodle — зачисляем нового.
+                if ($ambiguous !== []) {
+                    $fioMisses[] = sprintf(
+                        'ЛК %s (%s): ФИО совпало с несколькими в Мудл (%s) — сопоставление пропущено, создан новый пользователь.',
+                        $login,
+                        $lkFullNameOf($lk[$login]),
+                        implode(', ', array_map(fn ($l) => $l . ' [' . ($moodle[$l]['last_name'] ?? '') . ' ' . ($moodle[$l]['first_name'] ?? '') . ']', $ambiguous))
+                    );
+                }
+
+                $this->addChange([
+                    'type'       => 'enroll',
+                    'reason'     => 'Есть в ЛК, нет в Мудл',
+                    'login'      => $login,
+                    'surnameOld' => '',
+                    'surnameNew' => $lk[$login]['last_name'],
+                    'nameOld'    => '',
+                    // «Имя Отчество» целиком — иначе отчество потеряется при создании в Moodle.
+                    'nameNew'    => $this->lkNameWithPatronymic($lk[$login]),
+                    'groupOld'   => '',
+                    'groupNew'   => $this->targetGroup($lk[$login]['group']),
+                    'email'      => $lk[$login]['email'],
+                ]);
+                continue;
+            }
+
+            $used[$moodleLogin] = true;
+            $moodleRow = $moodle[$moodleLogin];
+            $isExtra = ($moodleRow['category'] ?? self::CAT_STANDARD) === self::CAT_EXTRA;
+
+            // Человек найден по ФИО: это тот же человек, но с другим логином.
+            // Раз логины разные, нового пользователя не создаём — правим существующий.
+            // У «Доп. набора» группу меняет сама операция relink, поэтому
+            // отдельный перевод не создаём.
+            $this->compareMatched($moodleLogin, $lk[$login], $moodleRow, ! $isExtra);
+
+            if ($isExtra) {
+                // Доп. набор: настоящий логин берём из ЛК, Moodle отдаст vr-версию.
+                $this->addChange([
+                    'type'       => 'relink',
+                    'reason'     => 'Доп. набор: временный логин vr → настоящий st',
+                    'login'      => $moodleLogin,
+                    'loginNew'   => $login,
+                    'surnameOld' => $moodleRow['last_name'],
+                    'surnameNew' => $lk[$login]['last_name'],
+                    'nameOld'    => $moodleRow['first_name'],
+                    'nameNew'    => $this->lkNameWithPatronymic($lk[$login]),
+                    'groupOld'   => $this->moodleGroupOld($moodleRow),
+                    'groupNew'   => $this->targetGroup($lk[$login]['group']),
+                    'email'      => $lk[$login]['email'],
+                ]);
+            }
+        }
+
+        // ── Отчисление: есть в Moodle, нет в ЛК и не сопоставлено по ФИО ──
+        //
+        // Категории «Свободные» (2) и «Доп. набор» (3) из отчисления
+        // исключены: там люди без когорты — это в том числе академические
+        // отпуска и временные логины, а не отчисленные. Их отсутствие в ЛК
+        // (где видны только студенты активных групп) не означает отчисления.
+        foreach ($moodleLogins as $login) {
+            if (isset($used[$login])) {
+                continue;
+            }
+            if (($moodle[$login]['category'] ?? self::CAT_STANDARD) !== self::CAT_STANDARD) {
+                continue;
+            }
             $this->addChange([
                 'type'       => 'expel',
                 'reason'     => 'Есть в Мудл, нет в ЛК',
@@ -802,62 +1170,77 @@ class MoodleContingentSync extends Component
                 'surnameNew' => '',
                 'nameOld'    => $moodle[$login]['first_name'],
                 'nameNew'    => '',
-                'groupOld'   => $moodle[$login]['group'],
+                'groupOld'   => $this->moodleGroupOld($moodle[$login]),
                 'groupNew'   => '',
                 'email'      => $moodle[$login]['email'],
             ]);
         }
 
-        // ── Сравнение ФИО и группы для общих студентов ──
-        //
-        // ФИО сравнивается как неупорядоченный набор слов полного имени:
-        // ЛК «Фамилия Имя Отчество» против обоих полей Moodle скопом.
-        // Так переставленные поля Moodle и отчество в любом из них не дают
-        // ложных расхождений, а пропущенное отчество — наоборот, находится.
-        foreach ($both as $login) {
-            $lkRow = $lk[$login];
-            $moodleRow = $moodle[$login];
-            $targetGroup = $this->targetGroup($lkRow['group']);
+        if ($fioMisses !== []) {
+            $this->moodleWarnings = array_merge($this->moodleWarnings, $fioMisses);
+        }
+    }
 
-            $fioDiff = $this->normalizeFioWords($this->lkFullName($lkRow))
-                !== $this->normalizeFioWords($this->moodleFullName($moodleRow));
-            $groupDiff = $this->norm($targetGroup) !== $this->norm($moodleRow['group']);
+    /**
+     * Сравнение ФИО и группы для одного найденного пользователя Moodle.
+     *
+     * $login — логин в Moodle (может отличаться от логина ЛК, если человек
+     * найден по ФИО), в SQL-операциях используется именно он.
+     *
+     * @param  string  $login      Логин Moodle
+     * @param  array   $lkRow      Строка ЛК
+     * @param  array   $moodleRow  Строка Moodle
+     * @param  bool    $withGroup  Формировать ли отдельную операцию смены группы.
+     *                             Для «Доп. набора» — нет: смена группы уже несёт
+     *                             операция relink, иначе студент попал бы в две
+     *                             строки с одинаковой группой.
+     */
+    private function compareMatched(string $login, array $lkRow, array $moodleRow, bool $withGroup = true): void
+    {
+        $targetGroup = $this->targetGroup($lkRow['group']);
 
-            // ── Различие ФИО ──
-            if ($fioDiff) {
-                $this->addChange([
-                    'type'       => 'fio',
-                    'reason'     => 'Различие ФИО',
-                    'login'      => $login,
-                    'surnameOld' => $moodleRow['last_name'],
-                    'surnameNew' => $lkRow['last_name'],
-                    'nameOld'    => $moodleRow['first_name'],
-                    // «Имя Отчество» целиком — иначе отчество затрётся в Moodle.
-                    'nameNew'    => $this->lkNameWithPatronymic($lkRow),
-                    'groupOld'   => $moodleRow['group'],
-                    'groupNew'   => $moodleRow['group'],
-                    'email'      => '',
-                    // Текущая раскладка пользователя в Moodle (для Блока 2 SQL):
-                    // true — фамилия в колонке Moodle `firstname`.
-                    'surnameInFirstname' => $this->isSurnameInMoodleFirstname($lkRow, $moodleRow),
-                ]);
-            }
+        $fioDiff = $this->normalizeFioWords($this->lkFullName($lkRow))
+            !== $this->normalizeFioWords($this->moodleFullName($moodleRow));
+        $groupDiff = $this->norm($targetGroup) !== $this->norm($moodleRow['group']);
 
-            // ── Различие группы (перевод) ──
-            if ($groupDiff) {
-                $this->addChange([
-                    'type'       => 'transfer',
-                    'reason'     => 'Различие группы',
-                    'login'      => $login,
-                    'surnameOld' => $moodleRow['last_name'],
-                    'surnameNew' => $moodleRow['last_name'],
-                    'nameOld'    => $moodleRow['first_name'],
-                    'nameNew'    => $moodleRow['first_name'],
-                    'groupOld'   => $moodleRow['group'],
-                    'groupNew'   => $targetGroup,
-                    'email'      => '',
-                ]);
-            }
+        // Студент «Свободных» или найденный по ФИО без группы: перевода из
+        // старой когорты не будет (удалять нечего) — только добавление в новую.
+        $groupOld = $this->moodleGroupOld($moodleRow);
+
+        // ── Различие ФИО ──
+        if ($fioDiff) {
+            $this->addChange([
+                'type'       => 'fio',
+                'reason'     => 'Различие ФИО',
+                'login'      => $login,
+                'surnameOld' => $moodleRow['last_name'],
+                'surnameNew' => $lkRow['last_name'],
+                'nameOld'    => $moodleRow['first_name'],
+                // «Имя Отчество» целиком — иначе отчество затрётся в Moodle.
+                'nameNew'    => $this->lkNameWithPatronymic($lkRow),
+                'groupOld'   => $groupOld,
+                'groupNew'   => $targetGroup,
+                'email'      => '',
+                // Текущая раскладка пользователя в Moodle (для Блока 2 SQL):
+                // true — фамилия в колонке Moodle `firstname`.
+                'surnameInFirstname' => $this->isSurnameInMoodleFirstname($lkRow, $moodleRow),
+            ]);
+        }
+
+        // ── Различие группы (перевод или добавление) ──
+        if ($groupDiff && $withGroup) {
+            $this->addChange([
+                'type'       => 'transfer',
+                'reason'     => $groupOld === '' ? 'Нет в группе Мудл — добавить' : 'Различие группы',
+                'login'      => $login,
+                'surnameOld' => $moodleRow['last_name'],
+                'surnameNew' => $moodleRow['last_name'],
+                'nameOld'    => $moodleRow['first_name'],
+                'nameNew'    => $moodleRow['first_name'],
+                'groupOld'   => $groupOld,
+                'groupNew'   => $targetGroup,
+                'email'      => '',
+            ]);
         }
     }
 
@@ -956,7 +1339,9 @@ class MoodleContingentSync extends Component
         $data['id'] = $id;
         $this->changes[] = $data;
         $this->selected[$id] = true;
-        $this->stats[$data['type']]++;
+        // ?? 0 — тип может отсутствовать в счётчиках, если состояние
+        // компонента выставлено вручную (тесты, восстановление кеша).
+        $this->stats[$data['type']] = ($this->stats[$data['type']] ?? 0) + 1;
     }
 
     /**
@@ -1039,6 +1424,7 @@ class MoodleContingentSync extends Component
      *   - Блок 3: DELETE FROM mdl_cohort_members (удаление из старых когорт)
      *   - Блок 4: INSERT INTO mdl_cohort_members (добавление в новые когорты)
      *   - Блок 5: DELETE + UPDATE SET deleted=1 (отчисление)
+     *   - Блок 6: UPDATE mdl_user SET username (смена логина доп. набора vr → st)
      *   - COMMIT
      *
      * Плейсхолдеры когорт заменить на реальные ID (mdl_cohort.id) перед выполнением.
@@ -1054,14 +1440,18 @@ class MoodleContingentSync extends Component
         $fio = $rows->where('type', 'fio');
         $transfer = $rows->where('type', 'transfer');
         $expel = $rows->where('type', 'expel');
+        $relink = $rows->where('type', 'relink');
 
         // ── Сбор использованных групп ──
+        //
+        // Пустая старая группа (студент без когорты) в карту не попадает:
+        // удалять из нечего, а плейсхолдер «NULL» в DELETE был бы шумом.
         $groupsUsed = [];
         foreach ($rows as $r) {
-            if (in_array($r['type'], ['enroll', 'transfer']) && $r['groupNew'] !== '') {
+            if (in_array($r['type'], ['enroll', 'transfer', 'relink']) && $r['groupNew'] !== '') {
                 $groupsUsed[$r['groupNew']] = true;
             }
-            if (in_array($r['type'], ['transfer', 'expel']) && $r['groupOld'] !== '') {
+            if (in_array($r['type'], ['transfer', 'expel', 'relink']) && $r['groupOld'] !== '') {
                 $groupsUsed[$r['groupOld']] = true;
             }
         }
@@ -1143,8 +1533,16 @@ class MoodleContingentSync extends Component
         }
 
         // ── Блок 3: Удаление из старых когорт ──
-        if ($transfer->isNotEmpty()) {
-            $byOldGroup = $transfer->groupBy('groupOld');
+        //
+        // Пропускаем две ситуации:
+        //   - groupOld пуст («Свободные») — удалять из когорты нечего;
+        //   - groupOld == groupNew (доп. набор, уже в нужной когорте) —
+        //     удалять и тут же добавлять бессмысленно.
+        $leaving = $transfer->merge($relink)->filter(
+            fn ($r) => $r['groupOld'] !== '' && $r['groupOld'] !== $r['groupNew']
+        );
+        if ($leaving->isNotEmpty()) {
+            $byOldGroup = $leaving->groupBy('groupOld');
             $sql .= "-- ============================================================\n";
             $sql .= "-- БЛОК 3: УДАЛЕНИЕ ИЗ СТАРЫХ ГРУПП\n";
             $sql .= "-- ============================================================\n";
@@ -1158,21 +1556,25 @@ class MoodleContingentSync extends Component
         }
 
         // ── Блок 4: Добавление в новые когорты ──
-        $addToGroup = $enroll->merge($transfer);
+        //
+        // relink с groupOld == groupNew не добавляем: человек уже в этой
+        // когорте, меняется только логин (Блок 6).
+        $addToGroup = $enroll->merge($transfer)->merge($relink)->filter(
+            fn ($r) => $r['groupNew'] !== '' && $r['groupOld'] !== $r['groupNew']
+        );
         if ($addToGroup->isNotEmpty()) {
-            $byNewGroup = $addToGroup->groupBy('groupNew');
-            $sql .= "-- ============================================================\n";
-            $sql .= "-- БЛОК 4: ДОБАВЛЕНИЕ В НОВЫЕ ГРУППЫ\n";
-            $sql .= "-- ============================================================\n";
-            foreach ($byNewGroup as $group => $items) {
-                if ($group === '') {
-                    continue;
+            $byNewGroup = $addToGroup->filter(fn ($r) => $r['groupNew'] !== '')->groupBy('groupNew');
+            if ($byNewGroup->isNotEmpty()) {
+                $sql .= "-- ============================================================\n";
+                $sql .= "-- БЛОК 4: ДОБАВЛЕНИЕ В НОВЫЕ ГРУППЫ\n";
+                $sql .= "-- ============================================================\n";
+                foreach ($byNewGroup as $group => $items) {
+                    $token = $cohortMap[$group] ?? 'NULL';
+                    $sql .= "-- Новая группа: \"" . $this->commentSafe($group) . "\"\n";
+                    $sql .= "INSERT INTO mdl_cohort_members (cohortid, userid, timeadded)\n";
+                    $sql .= "SELECT $token, id, UNIX_TIMESTAMP()\n";
+                    $sql .= "FROM mdl_user WHERE username IN (" . $this->inList($items->pluck('login')) . ");\n\n";
                 }
-                $token = $cohortMap[$group] ?? 'NULL';
-                $sql .= "-- Новая группа: \"" . $this->commentSafe($group) . "\"\n";
-                $sql .= "INSERT INTO mdl_cohort_members (cohortid, userid, timeadded)\n";
-                $sql .= "SELECT $token, id, UNIX_TIMESTAMP()\n";
-                $sql .= "FROM mdl_user WHERE username IN (" . $this->inList($items->pluck('login')) . ");\n\n";
             }
         }
 
@@ -1180,7 +1582,9 @@ class MoodleContingentSync extends Component
         if ($expel->isNotEmpty()) {
             $byOldGroup = $expel->groupBy('groupOld');
             $sql .= "-- ============================================================\n";
-            $sql .= "-- БЛОК 5: ОТЧИСЛЕНИЕ (если студент только в Мудл)\n";
+            $sql .= "-- БЛОК 5: ОТЧИСЛЕНИЕ (есть в Мудл в стандартной когорте, нет в ЛК)\n";
+            $sql .= "-- ВНИМАНИЕ: выполните этот блок ПОСЛЕ проверки. Доп. набор (vr*)\n";
+            $sql .= "-- и «Свободные» (студенты без когорты) сюда не попадают.\n";
             $sql .= "-- ============================================================\n";
             foreach ($byOldGroup as $group => $items) {
                 $token = $cohortMap[$group] ?? 'NULL';
@@ -1191,6 +1595,30 @@ class MoodleContingentSync extends Component
                 $sql .= "  AND userid IN (SELECT id FROM mdl_user WHERE username IN ($logins));\n";
                 $sql .= "UPDATE mdl_user SET deleted = 1\n";
                 $sql .= "WHERE username IN ($logins);\n\n";
+            }
+        }
+
+        // ── Блок 6: Смена временного логина доп. набора (vr → st) ──
+        //
+        // Идёт последним: до него пользователь ещё называется vr-логином,
+        // и все UPDATE/DELETE выше (ФИО, когорты) адресуют его старым именем.
+        // Смена выполняется для одного пользователя — сначала проверяем,
+        // что новый логин свободен, иначе запрос упадёт на дубликате.
+        if ($relink->isNotEmpty()) {
+            $sql .= "-- ============================================================\n";
+            $sql .= "-- БЛОК 6: СМЕНА ВРЕМЕННОГО ЛОГИНА ДОП. НАБОРА (vr → st)\n";
+            $sql .= "-- Сопоставление сделано по ФИО: временный логин заменяется\n";
+            $sql .= "-- настоящим логином ЛК. Каждая пара — проверенная замена.\n";
+            $sql .= "-- Выполнять ПОСЛЕ блоков 1–5: выше пользователь ещё vr.\n";
+            $sql .= "-- ============================================================\n";
+            foreach ($relink as $r) {
+                $sql .= "-- {$r['login']} → {$r['loginNew']} ({$r['surnameNew']} {$r['nameNew']})\n";
+                $sql .= "UPDATE mdl_user SET username = '" . $this->esc($r['loginNew']) . "'\n";
+                $sql .= "WHERE username = '" . $this->esc($r['login']) . "'\n";
+                $sql .= "  AND NOT EXISTS (\n";
+                $sql .= "    SELECT 1 FROM mdl_user u2\n";
+                $sql .= "    WHERE u2.username = '" . $this->esc($r['loginNew']) . "'\n";
+                $sql .= "  );\n\n";
             }
         }
 
@@ -1289,18 +1717,34 @@ class MoodleContingentSync extends Component
     // ─── SQL-запрос Moodle ─────────────────────────────────────
 
     /**
-     * Возвращает SQL-запрос для выборки всех студентов из видимых когорт Moodle.
+     * Возвращает SQL-запрос для выборки всех студентов Moodle в трёх категориях.
      *
      * Используется в Step 1: пользователь копирует запрос, выполняет в Moodle,
      * выгружает результат в CSV для загрузки в Step 2.
      *
-     * Фильтры:
+     * Категории:
+     *   1. Стандарт   — студенты в видимых когортах, имена когорт склеены
+     *                  GROUP_CONCAT (студент в нескольких когортах — одна строка)
+     *   2. Свободные — логины /^st[0-9]/ без когорт и не в скрытой когорте
+     *   3. Доп. набор— логины /^vr/, которых НЕТ в актуальных когортах
+     *                  (иначе они уже попали бы в категорию 1 дважды)
+     *
+     * Фильтры (категории 1 и 3):
      *   - видимые когорты (c.visible = 1)
      *   - названия не начинаются с цифры
      *   - не аспирантура
      *   - латинские символы исключены
+     *   - только логины контингента: /^st[0-9]/ или /^vr/
      *   - только студенты (role = student)
      *   - soft-deleted записи исключены
+     *
+     * Колонки Категория/Описание — информационные, парсер CSV читает
+     * только «Категория» (для выбора источника при сопоставлении по ФИО),
+     * «Описание» игнорируется.
+     *
+     * ВНИМАНИЕ, чего запрос НЕ делает:
+     *   - не учитывает contextid когорт — членство склеивается между курсами;
+     *   - не проверяет mdl_cohort.deleted (в Moodle 4.x у когорты есть флаг).
      *
      * @return string  SQL-запрос
      */
@@ -1308,40 +1752,131 @@ class MoodleContingentSync extends Component
     {
         return <<<'SQL'
 -- ============================================================
--- ВСЕ СТУДЕНТЫ В ВИДИМЫХ ГРУППАХ (КОГОРТАХ)
--- ФАМИЛИЯ И ИМЯ РАЗДЕЛЬНО
+-- ЕДИНЫЙ СПИСОК СТУДЕНТОВ (3 КАТЕГОРИИ)
+-- 1. В актуальных (видимых) когортах
+-- 2. Логин st, без когорт и не в скрытой когорте
+-- 3. Логин vr
+-- ============================================================
+
+-- ============================================================
+-- БЛОК 1: СТУДЕНТЫ В ВИДИМЫХ КОГОРТАХ
 -- ============================================================
 SELECT
+    1 AS Категория,
+    'Стандарт' AS Описание,
     u.username AS st_ticket,
     u.firstname AS last_name,
     u.lastname  AS first_name,
     u.email AS email,
-    c.name AS group_name_fixed
-FROM `mdl_user` u
-JOIN `mdl_cohort_members` cm ON cm.userid = u.id
-JOIN `mdl_cohort` c ON c.id = cm.cohortid
+    GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') AS group_name_fixed
+FROM mdl_user u
+JOIN mdl_cohort_members cm ON cm.userid = u.id
+JOIN mdl_cohort c ON c.id = cm.cohortid
 WHERE
     c.visible = 1
     AND c.name NOT REGEXP '^[0-9]'
     AND c.name NOT LIKE 'Асп%'
     AND c.name NOT REGEXP '[A-Za-z]'
     AND u.deleted = 0
+    -- Только логины контингента ЛК: st<номер> и временные vr* доп. набора.
+    -- Школьники (school*, gimnaziya*, licey*), СПО (stp*) и служебные
+    -- (abiturbak*, onex000, st_userid301) в сверке не участвуют: их нет
+    -- и не будет в ЛК, и без этого фильтра они попадали бы в «отчисление».
+    AND u.username REGEXP '^(st[0-9]|vr)'
     AND EXISTS (
         SELECT 1
-        FROM `mdl_role_assignments` ra
-        JOIN `mdl_role` r ON r.id = ra.roleid
+        FROM mdl_role_assignments ra
+        JOIN mdl_role r ON r.id = ra.roleid
         WHERE ra.userid = u.id
           AND r.shortname = 'student'
     )
+GROUP BY u.id, u.username, u.firstname, u.lastname, u.email
+
+UNION ALL
+
+-- ============================================================
+-- БЛОК 2: ЛОГИН st, БЕЗ КОГОРТ И НЕ В СКРЫТОЙ КОГОРТЕ
+-- ============================================================
+SELECT
+    2 AS Категория,
+    'Свободные' AS Описание,
+    u.username AS st_ticket,
+    u.firstname AS last_name,
+    u.lastname  AS first_name,
+    u.email AS email,
+    '' AS group_name_fixed
+FROM mdl_user u
+WHERE
+    u.username REGEXP '^st[0-9]'
+    AND u.deleted = 0
+    -- нет ни в одной ВИДИМОЙ когорте
+    AND NOT EXISTS (
+        SELECT 1
+        FROM mdl_cohort_members cm
+        JOIN mdl_cohort c ON c.id = cm.cohortid
+        WHERE cm.userid = u.id
+          AND c.visible = 1
+          AND c.name NOT REGEXP '^[0-9]'
+          AND c.name NOT LIKE 'Асп%'
+          AND c.name NOT REGEXP '[A-Za-z]'
+    )
+    -- и не в скрытой когорте (т.е. вообще ни в какой когорте)
+    AND NOT EXISTS (
+        SELECT 1
+        FROM mdl_cohort_members cm
+        JOIN mdl_cohort c ON c.id = cm.cohortid
+        WHERE cm.userid = u.id
+          AND c.visible = 0
+    )
     AND EXISTS (
         SELECT 1
-        FROM `mdl_cohort_members` cm2
-        WHERE cm2.cohortid = c.id
+        FROM mdl_role_assignments ra
+        JOIN mdl_role r ON r.id = ra.roleid
+        WHERE ra.userid = u.id
+          AND r.shortname = 'student'
     )
-GROUP BY
-    u.id, u.username, u.lastname, u.firstname, u.email, c.name
-ORDER BY
-    c.name, u.lastname, u.firstname;
+
+UNION ALL
+
+-- ============================================================
+-- БЛОК 3: ЛОГИН vr, НО НЕ В АКТУАЛЬНОЙ КОГОРТЕ
+-- Из уже отобранных блоком 1 исключаем тех, кто в актуальных
+-- когортах, — иначе такие студенты попали бы в выгрузку дважды.
+-- ============================================================
+SELECT
+    3 AS Категория,
+    'Доп. набор' AS Описание,
+    u.username AS st_ticket,
+    u.firstname AS last_name,
+    u.lastname  AS first_name,
+    u.email AS email,
+    GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') AS group_name_fixed
+FROM mdl_user u
+LEFT JOIN mdl_cohort_members cm ON cm.userid = u.id
+LEFT JOIN mdl_cohort c ON c.id = cm.cohortid AND c.visible = 1
+WHERE
+    u.username REGEXP '^vr'
+    AND u.deleted = 0
+    AND NOT EXISTS (
+        SELECT 1
+        FROM mdl_cohort_members cm2
+        JOIN mdl_cohort c2 ON c2.id = cm2.cohortid
+        WHERE cm2.userid = u.id
+          AND c2.visible = 1
+          AND c2.name NOT REGEXP '^[0-9]'
+          AND c2.name NOT LIKE 'Асп%'
+          AND c2.name NOT REGEXP '[A-Za-z]'
+    )
+    AND EXISTS (
+        SELECT 1
+        FROM mdl_role_assignments ra
+        JOIN mdl_role r ON r.id = ra.roleid
+        WHERE ra.userid = u.id
+          AND r.shortname = 'student'
+    )
+GROUP BY u.id, u.username, u.firstname, u.lastname, u.email
+
+ORDER BY Категория, group_name_fixed, st_ticket;
 SQL;
     }
 }

@@ -121,12 +121,27 @@
             </div>
             @endif
 
-            {{-- ─── Предупреждения по данным ЛК (многогрупповые студенты) ─── --}}
+{{-- ─── Предупреждения по данным ЛК (многогрупповые студенты) ─── --}}
             @if (! empty($lkWarnings))
             <div class="rounded-lg bg-amber-50 ring-1 ring-amber-200 p-4 text-sm text-amber-800 space-y-1">
                 @foreach ($lkWarnings as $warning)
-                <p><i class="fa-solid fa-triangle-exclamation mr-1"></i>{{ $warning }}</p>
+                    <p><i class="fa-solid fa-triangle-exclamation mr-1"></i>{{ $warning }}</p>
                 @endforeach
+            </div>
+            @endif
+
+            {{-- ─── Предупреждения по данным Moodle (неоднозначное ФИО) ─── --}}
+            @if (! empty($moodleWarnings))
+            <div class="rounded-lg bg-amber-50 ring-1 ring-amber-200 p-4 text-sm text-amber-800 space-y-1">
+                <p><i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                    <b>Неоднозначное ФИО.</b> Сопоставление по ФИО пропущено, для этих студентов создан новый пользователь:
+                </p>
+                @foreach (array_slice($moodleWarnings, 0, 20) as $warning)
+                    <p class="pl-5 font-mono text-xs">{{ $warning }}</p>
+                @endforeach
+                @if (count($moodleWarnings) > 20)
+                    <p class="pl-5 text-xs">…и ещё {{ count($moodleWarnings) - 20 }}.</p>
+                @endif
             </div>
             @endif
 
@@ -144,9 +159,12 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-medium bg-rose-50 text-rose-700 ring-1 ring-rose-200">
                     <i class="fa-solid fa-user-minus"></i> Отчисления: <b class="ml-0.5">{{ $stats['expel'] }}</b>
                 </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-medium bg-violet-50 text-violet-700 ring-1 ring-violet-200">
+                    <i class="fa-solid fa-right-left"></i> Доп. набор: <b class="ml-0.5">{{ $stats['relink'] }}</b>
+                </span>
             </div>
 
-            @if ($stats['fio'] === 0 && $stats['enroll'] === 0 && $stats['transfer'] === 0 && $stats['expel'] === 0)
+            @if ($stats['fio'] === 0 && $stats['enroll'] === 0 && $stats['transfer'] === 0 && $stats['expel'] === 0 && $stats['relink'] === 0)
                 <p class="text-sm text-slate-500">Расхождений не обнаружено. Контингент Мудл соответствует ЛК.</p>
             @endif
 
@@ -164,6 +182,9 @@
                 <button type="button" wire:click="setTab('expel')"
                     role="tab" aria-selected="{{ $activeTab === 'expel' ? 'true' : 'false' }}" aria-controls="tab-expel" id="tab-btn-expel"
                     class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ $activeTab === 'expel' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500' }}">Отчисления ({{ $stats['expel'] }})</button>
+                <button type="button" wire:click="setTab('relink')"
+                    role="tab" aria-selected="{{ $activeTab === 'relink' ? 'true' : 'false' }}" aria-controls="tab-relink" id="tab-btn-relink"
+                    class="tab-btn px-4 py-2 text-sm font-medium border-b-2 {{ $activeTab === 'relink' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500' }}">Доп. набор ({{ $stats['relink'] }})</button>
             </div>
 
             {{-- ─── Таблица: ФИО (рендерится только на своей вкладке) ─── --}}
@@ -272,7 +293,13 @@
                             <tr class="border-b border-slate-200 hover:bg-slate-50">
                                 <td class="p-2.5 font-mono border border-slate-200 bg-white">{{ $change['login'] }}</td>
                                 <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
-                                <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['groupOld'] }}</td>
+                                <td class="p-2.5 border border-slate-200 bg-white">
+                                    @if ($change['groupOld'] === '')
+                                        <span class="text-amber-600">— (нет группы)</span>
+                                    @else
+                                        <span class="line-through text-red-500">{{ $change['groupOld'] }}</span>
+                                    @endif
+                                </td>
                                 <td class="p-2.5 font-semibold text-emerald-600 border border-slate-200 bg-white">{{ $change['groupNew'] }}</td>
                                 <td class="p-2.5 text-center border border-slate-200 bg-white">
                                     <input type="checkbox" wire:model="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
@@ -313,6 +340,65 @@
                                 <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameOld'] }} {{ $change['nameOld'] }}</td>
                                 <td class="p-2.5 line-through text-red-500 border border-slate-200 bg-white">{{ $change['groupOld'] }}</td>
                                 <td class="p-2.5 font-semibold text-rose-500 border border-slate-200 bg-white">— (отчислить)</td>
+                                <td class="p-2.5 text-center border border-slate-200 bg-white">
+                                    <input type="checkbox" wire:model="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            @endif
+
+            {{-- ─── Таблица: Доп. набор (смена временного логина vr → st) ─── --}}
+            @if ($activeTab === 'relink')
+            <div id="tab-relink" role="tabpanel" aria-labelledby="tab-btn-relink" tabindex="0">
+                <div class="flex flex-wrap items-center gap-2 mb-2 text-xs">
+                    <button type="button" wire:click="toggleType('relink', true)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Выбрать все</button>
+                    <button type="button" wire:click="toggleType('relink', false)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700">Снять все</button>
+                    <span class="ml-auto text-slate-500">Стр. {{ $this->relinkChanges['page'] }} из {{ $this->relinkChanges['pages'] }} (всего {{ $this->relinkChanges['total'] }})</span>
+                    <button type="button" wire:click="gotoPage('relink', {{ $this->relinkChanges['page'] - 1 }})" @disabled($this->relinkChanges['page'] <= 1) class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40">←</button>
+                    <button type="button" wire:click="gotoPage('relink', {{ $this->relinkChanges['page'] + 1 }})" @disabled($this->relinkChanges['page'] >= $this->relinkChanges['pages']) class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40">→</button>
+                </div>
+                <p class="text-xs text-slate-500 mb-2">
+                    <i class="fa-solid fa-circle-info mr-1 text-blue-500"></i>
+                    Студенты доп. набора найдены в Мудл по ФИО и имеют временный логин с префиксом <span class="font-mono">vr</span>.
+                    Здесь решается, заменять ли его настоящим логином <span class="font-mono">st</span> — сопоставление сделано по ФИО,
+                    поэтому проверьте каждую строку. Снятый чекбокс оставляет временный логин как есть.
+                </p>
+                <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Логин</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">ФИО</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Смена префикса</th>
+                            <th class="text-left p-2.5 border border-slate-200 text-slate-600 font-semibold">Группа</th>
+                            <th class="text-center p-2.5 w-16 border border-slate-200 text-slate-600 font-semibold">✓</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($this->relinkChanges['items'] as $change)
+                            <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                <td class="p-2.5 font-mono text-violet-700 font-semibold border border-slate-200 bg-white">{{ $change['login'] }}</td>
+                                <td class="p-2.5 border border-slate-200 bg-white">{{ $change['surnameNew'] }} {{ $change['nameNew'] }}</td>
+                                <td class="p-2.5 border border-slate-200 bg-white">
+                                    <span class="inline-flex items-center gap-1.5 font-mono">
+                                        <span class="line-through text-red-500">{{ $change['login'] }}</span>
+                                        <i class="fa-solid fa-arrow-right text-slate-400 text-xs"></i>
+                                        <span class="font-semibold text-emerald-600">{{ $change['loginNew'] }}</span>
+                                    </span>
+                                </td>
+                                <td class="p-2.5 border border-slate-200 bg-white">
+                                    @if ($change['groupOld'] === '')
+                                        <span class="text-amber-600">— (нет группы)</span>
+                                    @else
+                                        <span class="line-through text-red-500">{{ $change['groupOld'] }}</span>
+                                    @endif
+                                    <i class="fa-solid fa-arrow-right mx-1 text-slate-400 text-xs"></i>
+                                    <span class="font-semibold text-emerald-600">{{ $change['groupNew'] }}</span>
+                                </td>
                                 <td class="p-2.5 text-center border border-slate-200 bg-white">
                                     <input type="checkbox" wire:model="selected.{{ $change['id'] }}" class="w-4 h-4 text-blue-600 rounded">
                                 </td>
