@@ -72,7 +72,7 @@ class MoodleContingentSyncTest extends TestCase
     {
         $this->setChanges([]);
         $this->component->selected = [];
-        $this->component->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0];
+        $this->component->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0, 'relink' => 0];
         $this->callPrivate('compare', [$lk, $moodle]);
         return $this->getChanges();
     }
@@ -84,7 +84,7 @@ class MoodleContingentSyncTest extends TestCase
     {
         $this->setChanges([]);
         $this->component->selected = [];
-        $this->component->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0];
+        $this->component->stats = ['enroll' => 0, 'expel' => 0, 'fio' => 0, 'transfer' => 0, 'relink' => 0];
 
         foreach ($changes as $c) {
             $id = count($this->getChanges());
@@ -796,6 +796,169 @@ class MoodleContingentSyncTest extends TestCase
     }
 
     // ═══════════════════════════════════════════════════════════
+    // Категории Moodle и сопоставление по ФИО
+    // ═══════════════════════════════════════════════════════════
+
+    /**
+     * Строка Moodle с категорией и исходной (пустой) группой.
+     *
+     * @param  string  $login     Логин
+     * @param  string  $last      Moodle firstname (в CSV идёт в колонку last_name)
+     * @param  string  $first     Moodle lastname
+     * @param  int     $category  1 — стандарт, 2 — свободные, 3 — доп. набор
+     * @param  string  $group     Исходная группа ('' — без когорты)
+     */
+    private function makeMoodleRow(string $login, string $last, string $first, int $category = 1, string $group = 'БАЗА (2026)'): array
+    {
+        return [
+            $login => [
+                'login' => $login,
+                'last_name' => $last,
+                'first_name' => $first,
+                'email' => "{$login}@test.ru",
+                'groupRaw' => $group,
+                'group' => $group === '' ? ' (2026)' : $group,
+                'category' => $category,
+            ],
+        ];
+    }
+
+    #[Test]
+    public function compare_free_student_is_not_expelled(): void
+    {
+        // Категория 2: логин st* есть, когорты нет (академ. отпуск/отчислен).
+        // В ЛК его нет — отчислять нельзя, в ЛК видны только активные группы.
+        $moodle = $this->makeMoodleRow('st100075', 'Ким', 'Дарья', 2, '');
+        $result = $this->compareDirect([], $moodle);
+
+        $this->assertCount(0, $result);
+    }
+
+    #[Test]
+    public function compare_free_student_gets_added_to_group(): void
+    {
+        // Тот же студент, но он есть в ЛК: нужен перевод, а не зачисление.
+        // Группа приходит из ЛК уже нормализованной (нормализация — в SQL ЛК).
+        $lk = $this->makeStudent('st100075', 'Ким', 'Дарья', 'ИТ-24К1 (2026)');
+        $moodle = $this->makeMoodleRow('st100075', 'Ким', 'Дарья', 2, '');
+        $result = $this->compareDirect($lk, $moodle);
+
+        $this->assertCount(1, $result);
+        $this->assertSame('transfer', $result[0]['type']);
+        $this->assertSame('', $result[0]['groupOld'], 'У студента без когорты нечего удалять');
+        $this->assertSame('ИТ-24К1 (2026)', $result[0]['groupNew']);
+    }
+
+    #[Test]
+    public function compare_extra_set_matches_by_fio_and_generates_relink(): void
+    {
+        // Доп. набор: в Moodle временный логин vr*, в ЛК настоящий st*.
+        // Сопоставление только по ФИО — логины разные.
+        $lk = $this->makeStudent('st113099', 'Ткаченко', 'Елена', 'К1Л1(11)', 'Георгиевна');
+        $moodle = $this->makeMoodleRow('vr_elena1', 'Елена Георгиевна', 'Ткаченко', 3, 'К1Л1(11) (2026)');
+        $result = $this->compareDirect($lk, $moodle);
+
+        $relink = array_values(array_filter($result, fn ($c) => $c['type'] === 'relink'));
+        $this->assertCount(1, $relink, 'Должен быть ровно один relink');
+        $this->assertSame('vr_elena1', $relink[0]['login'], 'SQL работает по текущему логину Moodle');
+        $this->assertSame('st113099', $relink[0]['loginNew'], 'Новый логин берётся из ЛК');
+
+        $this->assertCount(0, array_filter($result, fn ($c) => $c['type'] === 'enroll'), 'Новый пользователь не создаётся');
+        $this->assertCount(0, array_filter($result, fn ($c) => $c['type'] === 'expel'), 'Найденный по ФИО не отчисляется');
+    }
+
+    #[Test]
+    public function compare_extra_set_makes_no_duplicate_transfer(): void
+    {
+        // У «Доп. набора» группу меняет сама relink: отдельного перевода
+        // быть не должно, иначе студент попадёт в две строки с одной группой.
+        $lk = $this->makeStudent('st113099', 'Ткаченко', 'Елена', 'К1Л1(11) (2026)', 'Георгиевна');
+        $moodle = $this->makeMoodleRow('vr_elena1', 'Елена Георгиевна', 'Ткаченко', 3, '');
+        $result = $this->compareDirect($lk, $moodle);
+
+        $relink = array_values(array_filter($result, fn ($c) => $c['type'] === 'relink'));
+        $transfer = array_values(array_filter($result, fn ($c) => $c['type'] === 'transfer'));
+
+        $this->assertCount(1, $relink);
+        $this->assertCount(0, $transfer, 'relink уже несёт смену группы');
+        $this->assertSame('', $relink[0]['groupOld'], 'Был без когорты');
+        $this->assertSame('К1Л1(11) (2026)', $relink[0]['groupNew']);
+    }
+
+    #[Test]
+    public function compare_falls_back_from_standard_to_free_category(): void
+    {
+        // ФИО есть и в «Стандарте», и в «Свободных» — побеждает «Стандарт»:
+        // его категория 1, и в SQL он уже числится в когорте.
+        $lk = $this->makeStudent('st100500', 'Петров', 'Пётр', 'ИТ-24 К1', 'Сергеевич');
+        $moodle = $this->makeMoodleRow('st100900', 'Петров', 'Пётр Сергеевич', 2, '');
+        $moodle += $this->makeMoodleRow('st100901', 'Петров', 'Пётр Сергеевич', 1, 'БАЗА (2026)');
+        $result = $this->compareDirect($lk, $moodle);
+
+        $this->assertCount(0, array_filter($result, fn ($c) => $c['type'] === 'enroll'));
+
+        // Побеждён кандидат из «Стандарта»: перевод из его когорты, не пустой группы.
+        $transfer = array_values(array_filter($result, fn ($c) => $c['type'] === 'transfer'));
+        $this->assertCount(1, $transfer);
+        $this->assertSame('st100901', $transfer[0]['login']);
+        $this->assertSame('БАЗА (2026)', $transfer[0]['groupOld']);
+    }
+
+    #[Test]
+    public function compare_does_not_match_different_surname(): void
+    {
+        // Фамилии лишь похожи — сопоставлять нельзя, нужен новый пользователь.
+        $lk = $this->makeStudent('st100500', 'Петров', 'Пётр', 'ИТ-24 К1');
+        $moodle = $this->makeMoodleRow('vr_ivan', 'Петрова', 'Пётр', 3, '');
+        $result = $this->compareDirect($lk, $moodle);
+
+        $this->assertCount(1, $result);
+        $this->assertSame('enroll', $result[0]['type']);
+        $this->assertSame('st100500', $result[0]['login']);
+    }
+
+    #[Test]
+    public function compare_ambiguous_fio_creates_enroll_and_warns(): void
+    {
+        // Два одинаковых ФИО в одной категории — сопоставление неоднозначно.
+        $lk = $this->makeStudent('st100500', 'Сидоров', 'Сидор', 'ИТ-24 К1');
+        $moodle = $this->makeMoodleRow('vr_a', 'Сидоров', 'Сидор', 3, '');
+        $moodle += $this->makeMoodleRow('vr_b', 'Сидоров', 'Сидор', 3, '');
+        $result = $this->compareDirect($lk, $moodle);
+
+        $this->assertCount(1, $result);
+        $this->assertSame('enroll', $result[0]['type']);
+        $this->assertCount(0, array_filter($result, fn ($c) => $c['type'] === 'expel'));
+        $this->assertNotEmpty($this->component->moodleWarnings, 'Неоднозначность должна попасть в предупреждения');
+    }
+
+    #[Test]
+    public function buildSql_relink_updates_username_last(): void
+    {
+        $sql = $this->buildSqlWithChanges([
+            [
+                'type' => 'relink', 'reason' => 'test',
+                'login' => 'vr_elena1', 'loginNew' => 'st113099',
+                'surnameOld' => 'Елена', 'surnameNew' => 'Ткаченко',
+                'nameOld' => 'Ткаченко', 'nameNew' => 'Елена Георгиевна',
+                'groupOld' => '', 'groupNew' => 'К1Л1(11) (2026)', 'email' => 'a@b.ru',
+            ],
+        ]);
+
+        $this->assertStringContainsString("UPDATE mdl_user SET username = 'st113099'", $sql);
+        $this->assertStringContainsString("WHERE username = 'vr_elena1'", $sql);
+        // Пустой старой группы нет в карте когорт — лишнего DELETE быть не должно.
+        $this->assertStringNotContainsString('cohortid = NULL', $sql);
+        $this->assertStringContainsString('INSERT INTO mdl_cohort_members', $sql);
+        // Смена логина идёт после добавления в когорту (пользователь ещё vr).
+        $this->assertGreaterThan(
+            strpos($sql, 'INSERT INTO mdl_cohort_members'),
+            strpos($sql, 'UPDATE mdl_user SET username'),
+            'Смена логина должна идти после операций с когортами'
+        );
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // buildSql(): перевёрнутый INSERT и UPDATE с раскладкой
     // ═══════════════════════════════════════════════════════════
 
@@ -890,7 +1053,7 @@ class MoodleContingentSyncTest extends TestCase
         Livewire::test(MoodleContingentSync::class)
             ->set('changesKey', 'test:moodle:sync:paginated')
             ->set('selected', [0 => true, 1 => true])
-            ->set('stats', ['enroll' => 1, 'expel' => 0, 'fio' => 1, 'transfer' => 0])
+            ->set('stats', ['enroll' => 1, 'expel' => 0, 'fio' => 1, 'transfer' => 0, 'relink' => 0])
             ->set('parsed', true)
             ->assertOk()
             ->assertSee('st200001')
@@ -929,7 +1092,7 @@ class MoodleContingentSyncTest extends TestCase
         Livewire::test(MoodleContingentSync::class)
             ->set('changesKey', 'test:moodle:sync:tab')
             ->set('selected', [0 => true, 1 => true])
-            ->set('stats', ['enroll' => 0, 'expel' => 0, 'fio' => 1, 'transfer' => 1])
+            ->set('stats', ['enroll' => 0, 'expel' => 0, 'fio' => 1, 'transfer' => 1, 'relink' => 0])
             ->set('parsed', true)
             ->assertSee('st300001')
             ->assertDontSee('st300002')
@@ -979,7 +1142,7 @@ class MoodleContingentSyncTest extends TestCase
         Livewire::test(MoodleContingentSync::class)
             ->set('changesKey', 'test:keep')
             ->set('selected', [0 => true])
-            ->set('stats', ['enroll' => 0, 'expel' => 1, 'fio' => 0, 'transfer' => 0])
+            ->set('stats', ['enroll' => 0, 'expel' => 1, 'fio' => 0, 'transfer' => 0, 'relink' => 0])
             ->set('parsed', true)
             ->call('process')
             // Файл не загружен → ошибка, но старый результат сохраняется.
@@ -1019,7 +1182,7 @@ class MoodleContingentSyncTest extends TestCase
             ->set('lkUnavailable', true)
             ->set('changesKey', 'test:block')
             ->set('selected', [0 => true])
-            ->set('stats', ['enroll' => 0, 'expel' => 1, 'fio' => 0, 'transfer' => 0])
+            ->set('stats', ['enroll' => 0, 'expel' => 1, 'fio' => 0, 'transfer' => 0, 'relink' => 0])
             ->set('parsed', true)
             ->call('downloadSql')
             ->assertDispatched('show-toast')
@@ -1092,7 +1255,7 @@ class MoodleContingentSyncTest extends TestCase
         $livewire = Livewire::test(MoodleContingentSync::class)
             ->set('changesKey', 'test:copy')
             ->set('selected', [0 => true])
-            ->set('stats', ['enroll' => 1, 'expel' => 0, 'fio' => 0, 'transfer' => 0])
+            ->set('stats', ['enroll' => 1, 'expel' => 0, 'fio' => 0, 'transfer' => 0, 'relink' => 0])
             ->call('copySql')
             // SQL построен автоматически, без «Показать SQL».
             ->assertSet('sqlBuilt', true)
